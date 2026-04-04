@@ -5,7 +5,6 @@ import { NotificationDbRepository } from '../../domain/repository/notification.d
 import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
 import { GetNotificationUseCase } from '../../application/use-cases/get-notification.usecase';
 import { QueryService } from '../../domain/service/query.service';
-import { QueryEventParser } from '../../application/parsers/query.parser';
 import { QueryController } from '../controller/query.controller';
 
 @Module({
@@ -13,7 +12,6 @@ import { QueryController } from '../controller/query.controller';
     DynamoClient,
     EnvValidationMiddleware,
     QueryController,
-    QueryEventParser,
     QueryService,
     GetNotificationUseCase,
     { provide: NotificationDbRepository, useClass: NotificationDbRepositoryImpl },

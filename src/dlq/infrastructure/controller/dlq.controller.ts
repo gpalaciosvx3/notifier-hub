@@ -1,16 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { SQSEvent } from 'aws-lambda';
+import { SqsExtracted } from '../../../common/middleware/types/lambda-event.types';
 import { MarkBatchFailedPermanentUseCase } from '../../application/use-cases/mark-batch-failed-permanent.usecase';
-import { SqsEventParser } from '../../../worker/application/parsers/sqs.parser';
 
 @Injectable()
 export class DlqController {
-  constructor(
-    private readonly parser: SqsEventParser,
-    private readonly useCase: MarkBatchFailedPermanentUseCase,
-  ) {}
+  constructor(private readonly useCase: MarkBatchFailedPermanentUseCase) {}
 
-  handle(event: SQSEvent): Promise<void> {
-    return this.useCase.execute(this.parser.parse(event));
+  handle(event: SqsExtracted): Promise<void> {
+    return this.useCase.execute(event.records);
   }
 }

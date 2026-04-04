@@ -11,7 +11,6 @@ import { SnsSenderRepositoryImpl } from '../repository/sns.sender.repository.imp
 import { ChannelRouterService } from '../../domain/service/channel-router.service';
 import { ProcessBatchUseCase } from '../../application/use-cases/process-batch.usecase';
 import { ProcessingService } from '../../domain/service/processing.service';
-import { SqsEventParser } from '../../application/parsers/sqs.parser';
 import { WorkerController } from '../controller/worker.controller';
 
 @Module({
@@ -19,7 +18,6 @@ import { WorkerController } from '../controller/worker.controller';
     DynamoClient,
     EnvValidationMiddleware,
     WorkerController,
-    SqsEventParser,
     ProcessingService,
     ProcessBatchUseCase,
     { provide: NotificationDbRepository, useClass: NotificationDbRepositoryImpl },

@@ -7,7 +7,6 @@ import { NotificationDbRepositoryImpl } from '../repository/notification.db.repo
 import { NotificationSqsRepositoryImpl } from '../repository/notification.sqs.repository.impl';
 import { EnqueueNotificationUseCase } from '../../application/use-cases/enqueue-notification.usecase';
 import { NotificationService } from '../../domain/service/notification.service';
-import { EnqueueEventParser } from '../../application/parsers/enqueue.parser';
 import { EnqueueController } from '../controller/enqueue.controller';
 
 @Module({
@@ -15,7 +14,6 @@ import { EnqueueController } from '../controller/enqueue.controller';
     DynamoClient,
     EnvValidationMiddleware,
     EnqueueController,
-    EnqueueEventParser,
     NotificationService,
     EnqueueNotificationUseCase,
     { provide: NotificationDbRepository, useClass: NotificationDbRepositoryImpl },

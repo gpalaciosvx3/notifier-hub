@@ -1,20 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { HttpStatus } from '@nestjs/common';
-import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
+import { Injectable, HttpStatus } from '@nestjs/common';
+import { APIGatewayProxyResultV2 } from 'aws-lambda';
+import { ApiGwExtracted } from '../../../common/middleware/types/lambda-event.types';
 import { GetNotificationUseCase } from '../../application/use-cases/get-notification.usecase';
-import { QueryEventParser } from '../../application/parsers/query.parser';
 import { ApiGwHelper } from '../../../common/helpers/api-gw.helper';
 
 @Injectable()
 export class QueryController {
-  constructor(
-    private readonly parser: QueryEventParser,
-    private readonly useCase: GetNotificationUseCase,
-  ) {}
+  constructor(private readonly useCase: GetNotificationUseCase) {}
 
-  async handle(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+  async handle(event: ApiGwExtracted): Promise<APIGatewayProxyResultV2> {
     try {
-      return ApiGwHelper.exito(HttpStatus.OK, await this.useCase.execute(this.parser.parse(event)));
+      return ApiGwHelper.succes(HttpStatus.OK, await this.useCase.execute({
+        id: event.pathParameters['id'],
+        status: event.queryStringParameters['status'],
+      }));
     } catch (error) {
       return ApiGwHelper.error(error);
     }

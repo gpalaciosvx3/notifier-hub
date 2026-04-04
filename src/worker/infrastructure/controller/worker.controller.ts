@@ -1,16 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { SQSEvent, SQSBatchResponse } from 'aws-lambda';
+import { SQSBatchResponse } from 'aws-lambda';
+import { SqsExtracted } from '../../../common/middleware/types/lambda-event.types';
 import { ProcessBatchUseCase } from '../../application/use-cases/process-batch.usecase';
-import { SqsEventParser } from '../../application/parsers/sqs.parser';
 
 @Injectable()
 export class WorkerController {
-  constructor(
-    private readonly parser: SqsEventParser,
-    private readonly useCase: ProcessBatchUseCase,
-  ) {}
+  constructor(private readonly useCase: ProcessBatchUseCase) {}
 
-  handle(event: SQSEvent): Promise<SQSBatchResponse> {
-    return this.useCase.execute(this.parser.parse(event));
+  handle(event: SqsExtracted): Promise<SQSBatchResponse> {
+    return this.useCase.execute(event.records);
   }
 }

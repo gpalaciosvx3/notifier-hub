@@ -3,7 +3,7 @@ import { CustomException } from '../errors/custom.exception';
 import { ErrorDictionary } from '../errors/error.dictionary';
 
 export class ApiGwHelper {
-  static exito<T>(statusCode: number, datos: T): APIGatewayProxyResultV2 {
+  static succes<T>(statusCode: number, datos: T): APIGatewayProxyResultV2 {
     return { statusCode, body: JSON.stringify(datos) };
   }
 

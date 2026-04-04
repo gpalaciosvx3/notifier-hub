@@ -1,12 +1,11 @@
-import { SQSBatchResponse } from 'aws-lambda';
 import { createLambdaHandler } from '../../../common/bootstrap/lambda.factory';
 import { LambdaEventMiddleware } from '../../../common/middleware/lambda-event.middleware';
 import { SqsExtracted } from '../../../common/middleware/types/lambda-event.types';
-import { WorkerModule } from './worker.module';
-import { WorkerController } from '../controller/worker.controller';
+import { DlqModule } from './dlq.module';
+import { DlqController } from '../controller/dlq.controller';
 
-export const handler = createLambdaHandler<WorkerController, unknown, SQSBatchResponse>(
-  WorkerModule,
-  WorkerController,
+export const handler = createLambdaHandler<DlqController, unknown, void>(
+  DlqModule,
+  DlqController,
   (ctrl, event) => ctrl.handle(LambdaEventMiddleware.extract(event) as SqsExtracted),
 );

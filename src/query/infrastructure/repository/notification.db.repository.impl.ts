@@ -17,10 +17,10 @@ export class NotificationDbRepositoryImpl extends NotificationDbRepository {
 
   async findByStatus(status: NotificationStatus): Promise<NotificationEntity[]> {
     return this.dynamo.query<NotificationEntity>(envConfig.notificationsTable, {
-      indice: 'status-index',
-      condicionClave: '#status = :status',
-      nombresAtributos: { '#status': 'status' },
-      valoresAtributos: { ':status': status },
+      index: 'status-index',
+      keyCondition: '#status = :status',
+      attributeNames: { '#status': 'status' },
+      attributeValues: { ':status': status },
     });
   }
 }
