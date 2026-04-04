@@ -3,9 +3,16 @@ import { BundlingOptions } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export const lambdaBundling: BundlingOptions = {
   preCompilation: false,
-  externalModules: [],
+  externalModules: [
+    'class-transformer',
+    'class-validator',
+    '@nestjs/microservices',
+    '@nestjs/microservices/microservices-module',
+    '@nestjs/websockets/socket-module',
+    '@nestjs/platform-express',
+  ],
   minify: true,
   sourceMap: false,
   target: 'node20',
-  tsconfig: path.join(__dirname, '../../../../../tsconfig.json'),
+  tsconfig: path.join(__dirname, '../../../../../tsconfig.lambda.json'),
 };

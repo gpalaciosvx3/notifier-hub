@@ -4,7 +4,11 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "deploy:local": "cdklocal deploy --require-approval never"
+    "deploy:local": "cdklocal deploy --require-approval never",
+    "deploy:dev": "CDK_STAGE=dev cdk deploy --require-approval never",
+    "diff:local": "cdklocal diff",
+    "diff:dev": "CDK_STAGE=dev cdk diff",
+    "destroy:local": "cdklocal destroy --force"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.140.0",
