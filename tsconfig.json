@@ -5,7 +5,7 @@
     "lib": ["ES2020"],
     "types": ["node"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "strict": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -17,6 +17,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "local-test/**/*"],
   "exclude": ["node_modules", "dist", "test"]
 }
