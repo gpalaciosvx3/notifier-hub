@@ -11,11 +11,17 @@ export class MarkBatchFailedPermanentUseCase {
   constructor(private readonly dlqBatchService: DlqBatchService) {}
 
   async execute(records: SqsMessage[]): Promise<void> {
-    const result = await this.dlqBatchService.markAllFailed(records);
-    this.logger.log(`Resultado => Total: ${result.total} | Actualizados: ${result.updated} | No encontrados: ${result.notFound} | Fallidos: ${result.failed}`);
+    const outcomes = await Promise.allSettled(records.map(r => this.dlqBatchService.markFailed(r)));
 
-    if (result.failed > 0) {
-      throw new CustomException(ErrorDictionary.DLQ_BATCH_INFRA_ERROR, `${result.failed} de ${result.total} registros fallaron`);
+    const fulfilled = outcomes.filter((o): o is PromiseFulfilledResult<boolean> => o.status === 'fulfilled');
+    const updated = fulfilled.filter(o => o.value).length;
+    const notFound = fulfilled.filter(o => !o.value).length;
+    const failed = outcomes.filter(o => o.status === 'rejected').length;
+
+    this.logger.log(`Resultado => Total: ${records.length} | Actualizados: ${updated} | No encontrados: ${notFound} | Fallidos: ${failed}`);
+
+    if (failed > 0) {
+      throw new CustomException(ErrorDictionary.DLQ_BATCH_INFRA_ERROR, `${failed} de ${records.length} registros fallaron`);
     }
   }
 }
