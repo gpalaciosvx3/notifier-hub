@@ -67,4 +67,10 @@ export class ErrorDictionary {
       descripcion: 'Uno o más registros del batch DLQ fallaron por error de infraestructura',
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR
     };
+  static readonly NOTIFICATION_SEND_FAILED:
+    InputError = {
+      code: 'NTF-011',
+      descripcion: 'Error al enviar la notificación a través del proveedor externo',
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR
+    };
 }
