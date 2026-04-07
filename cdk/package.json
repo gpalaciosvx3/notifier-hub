@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "setup:local": "cdklocal bootstrap && cdklocal deploy --require-approval never",
+    "setup:local": "cdklocal bootstrap && cdklocal deploy --require-approval never && awslocal ses verify-email-identity --email-address test@example.com",
     "bootstrap:local": "cdklocal bootstrap",
     "deploy:local": "cdklocal deploy --require-approval never",
     "diff:local": "cdklocal diff",

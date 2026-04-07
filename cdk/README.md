@@ -81,6 +81,9 @@ awslocal logs describe-log-groups --query 'logGroups[*].logGroupName'
 # DynamoDB
 awslocal dynamodb scan --table-name notifications
 
+# SES
+awslocal ses get-send-statistics
+
 # SQS
 awslocal sqs get-queue-attributes \
   --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/notifications-queue \
