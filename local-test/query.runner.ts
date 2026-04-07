@@ -29,7 +29,7 @@ function buildEvent(pathParams: Record<string, string>, queryParams: Record<stri
 }
 
 // Cambia el ID o el status según lo que quieras probar
-const BY_ID     = buildEvent({ id: '01KNJZV0J96VVPD9VGAXDTCTXMxd' }, {});
+const BY_ID     = buildEvent({ id: 'REEMPLAZA_CON_UN_ID_REAL' }, {});
 const BY_STATUS = buildEvent({}, { status: NotificationStatus.PENDING });
 
 const event = process.argv[2] === 'id' ? BY_ID : BY_STATUS;
