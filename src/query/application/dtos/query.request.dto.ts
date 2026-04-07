@@ -5,7 +5,7 @@ import { QueryType } from '../../domain/constants/query-type.constants';
 export const QueryRawSchema = z.object({
   id: z.string().min(1).optional(),
   status: z.nativeEnum(NotificationStatus).optional(),
-}).refine(data => data.id ?? data.status, { message: 'Either id or status is required' });
+}).refine(data => data.id ?? data.status, { message: 'Path incorrecto, id o status es requerido' });
 
 export type QueryRequestDto =
   | { tipo: QueryType.BY_ID; notificationId: string }
