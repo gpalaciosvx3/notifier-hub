@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ZodIssue } from 'zod';
 import { NotificationEntity } from '../../../common/entities/notification.entity';
 import { QueryService } from '../../domain/service/query.service';
@@ -9,6 +9,8 @@ import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 
 @Injectable()
 export class GetNotificationUseCase {
+  private readonly logger = new Logger(GetNotificationUseCase.name);
+
   constructor(private readonly service: QueryService) {}
 
   execute(raw: unknown): Promise<NotificationEntity | NotificationEntity[]> {
@@ -17,6 +19,7 @@ export class GetNotificationUseCase {
     const command = result.data.id
       ? SearchNotificationCommand.byId(result.data.id)
       : SearchNotificationCommand.byStatus(result.data.status!);
+    this.logger.log(`Ejecutando consulta: ${JSON.stringify(command)}`);
     return this.service.search(command);
   }
 }

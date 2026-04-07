@@ -1,4 +1,4 @@
-import { Injectable, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpStatus, Logger } from '@nestjs/common';
 import { APIGatewayProxyResultV2 } from 'aws-lambda';
 import { ApiGwExtracted } from '../../../common/middleware/types/lambda-event.types';
 import { GetNotificationUseCase } from '../../application/use-cases/get-notification.usecase';
@@ -6,6 +6,8 @@ import { ApiGwHelper } from '../../../common/helpers/api-gw.helper';
 
 @Injectable()
 export class QueryController {
+  private readonly logger = new Logger(QueryController.name);
+
   constructor(private readonly useCase: GetNotificationUseCase) {}
 
   async handle(event: ApiGwExtracted): Promise<APIGatewayProxyResultV2> {
@@ -15,6 +17,7 @@ export class QueryController {
         status: event.queryStringParameters['status'],
       }));
     } catch (error) {
+      this.logger.error('Error obteniendo notificación', error);
       return ApiGwHelper.error(error);
     }
   }

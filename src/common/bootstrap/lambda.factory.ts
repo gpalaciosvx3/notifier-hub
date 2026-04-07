@@ -11,7 +11,7 @@ export const createLambdaHandler = <TController, TEvent, TResponse>(
 
   return async (event: TEvent): Promise<TResponse> => {
     if (!app) {
-      app = await NestFactory.createApplicationContext(Module, { logger: false });
+      app = await NestFactory.createApplicationContext(Module, { logger: ['log', 'warn', 'error'] });
     }
     const controller = app.get(Controller);
     return execute(controller, event);

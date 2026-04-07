@@ -8,7 +8,11 @@ export class ApiGwHelper {
   }
 
   static error(error: unknown): APIGatewayProxyResultV2 {
-    const excepcion = error instanceof CustomException ? error : new CustomException(ErrorDictionary.INTERNAL_ERROR);
+    if (error instanceof CustomException) {
+      return { statusCode: error.statusCode, body: JSON.stringify(error.toResponseBody()) };
+    }
+    const detalle = error instanceof Error ? error.message : String(error);
+    const excepcion = new CustomException(ErrorDictionary.INTERNAL_ERROR, detalle);
     return { statusCode: excepcion.statusCode, body: JSON.stringify(excepcion.toResponseBody()) };
   }
 }
