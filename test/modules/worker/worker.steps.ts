@@ -1,0 +1,205 @@
+import 'reflect-metadata';
+import { loadFeature, defineFeature } from 'jest-cucumber';
+import { ChannelRouterService } from '../../../src/worker/domain/service/channel-router.service';
+import { ProcessingService } from '../../../src/worker/domain/service/processing.service';
+import { ProcessBatchUseCase } from '../../../src/worker/application/use-cases/process-batch.usecase';
+import { NotificationDbRepository } from '../../../src/worker/domain/repository/notification.db.repository';
+import { NotificationSenderRepository } from '../../../src/worker/domain/repository/notification.sender.repository';
+import { NotificationEntity } from '../../../src/common/entities/notification.entity';
+import { NotificationChannel } from '../../../src/common/constants/notification-channel.constants';
+import { NotificationProvider } from '../../../src/common/constants/notification-provider.constants';
+import { NotificationStatus } from '../../../src/common/constants/notification-status.constants';
+import { CustomException } from '../../../src/common/errors/custom.exception';
+import { ErrorDictionary } from '../../../src/common/errors/error.dictionary';
+import { SqsMessage } from '../../../src/common/middleware/types/lambda-event.types';
+
+const feature = loadFeature('./test/modules/worker/features/worker.feature');
+
+const buildNotification = (): NotificationEntity =>
+  NotificationEntity.build({
+    channel: NotificationChannel.EMAIL,
+    provider: NotificationProvider.SES,
+    to: 'user@example.com',
+    subject: 'Hello',
+    body: 'Test body',
+  });
+
+defineFeature(feature, test => {
+  test('El router de canal resuelve un remitente conocido', ({ given, when, then }) => {
+    let router: ChannelRouterService;
+    let mockSender: NotificationSenderRepository;
+    let result: NotificationSenderRepository;
+
+    given('un remitente registrado para "email:ses"', () => {
+      mockSender = { send: jest.fn() } as unknown as NotificationSenderRepository;
+      router = new ChannelRouterService(new Map([['email:ses', mockSender]]));
+    });
+
+    when('el router de canal resuelve canal "email" y proveedor "ses"', () => {
+      result = router.resolve('email', 'ses');
+    });
+
+    then('el remitente registrado es retornado', () => {
+      expect(result).toBe(mockSender);
+    });
+  });
+
+  test('El router de canal lanza NTF-006 para una combinación desconocida', ({ given, when, then }) => {
+    let router: ChannelRouterService;
+    let error: CustomException;
+
+    given('ningún remitente registrado para "email:unknown"', () => {
+      router = new ChannelRouterService(new Map());
+    });
+
+    when('el router de canal resuelve canal "email" y proveedor "unknown"', () => {
+      try { router.resolve('email', 'unknown'); } catch (e) { error = e as CustomException; }
+    });
+
+    then('se lanza una CustomException con código "NTF-006"', () => {
+      expect(error).toBeInstanceOf(CustomException);
+      expect(error.code).toBe('NTF-006');
+    });
+  });
+
+  test('El servicio de procesamiento envía y marca DONE cuando toma el lock', ({ given, and, when, then }) => {
+    const mockSender = { send: jest.fn().mockResolvedValue(undefined) } as unknown as NotificationSenderRepository;
+    const mockDb = {
+      updateStatusConditional: jest.fn().mockResolvedValue(true),
+      updateStatus: jest.fn().mockResolvedValue(undefined),
+    } as unknown as NotificationDbRepository;
+    let service: ProcessingService;
+    let notification: NotificationEntity;
+
+    given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
+      notification = buildNotification();
+      const router = new ChannelRouterService(new Map([[`${notification.channel}:${notification.provider}`, mockSender]]));
+      service = new ProcessingService(mockDb, router);
+    });
+
+    and('la actualización condicional para "NOTIF-001" tiene éxito', () => {
+      (mockDb.updateStatusConditional as jest.Mock).mockResolvedValue(true);
+    });
+
+    when('el servicio de procesamiento procesa la notificación', async () => {
+      await service.process(notification);
+    });
+
+    then('el método send del remitente es invocado', () => {
+      expect(mockSender.send).toHaveBeenCalledTimes(1);
+    });
+
+    and('la notificación es marcada como "DONE"', () => {
+      expect(mockDb.updateStatus).toHaveBeenCalledWith(notification.notificationId, NotificationStatus.DONE);
+    });
+  });
+
+  test('El servicio de procesamiento omite cuando no toma el lock', ({ given, and, when, then }) => {
+    const mockSender = { send: jest.fn() } as unknown as NotificationSenderRepository;
+    const mockDb = {
+      updateStatusConditional: jest.fn().mockResolvedValue(false),
+      updateStatus: jest.fn(),
+    } as unknown as NotificationDbRepository;
+    let service: ProcessingService;
+    let notification: NotificationEntity;
+
+    given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
+      notification = buildNotification();
+      const router = new ChannelRouterService(new Map([[`${notification.channel}:${notification.provider}`, mockSender]]));
+      service = new ProcessingService(mockDb, router);
+    });
+
+    and('la actualización condicional para "NOTIF-001" falla', () => {
+      (mockDb.updateStatusConditional as jest.Mock).mockResolvedValue(false);
+    });
+
+    when('el servicio de procesamiento procesa la notificación', async () => {
+      await service.process(notification);
+    });
+
+    then('el estado de la notificación no es actualizado', () => {
+      expect(mockDb.updateStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  test('handleFault revierte la notificación a PENDING independientemente del tipo de error', ({ given, when, then, and }) => {
+    const mockDb = {
+      updateStatusConditional: jest.fn(),
+      updateStatus: jest.fn().mockResolvedValue(undefined),
+    } as unknown as NotificationDbRepository;
+    let service: ProcessingService;
+    let notification: NotificationEntity;
+    let result: boolean;
+
+    given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
+      notification = buildNotification();
+      const router = new ChannelRouterService(new Map());
+      service = new ProcessingService(mockDb, router);
+    });
+
+    when(/el servicio de procesamiento maneja un fallo con "(.+)"/, async (tipoError) => {
+      const error = tipoError.includes('CustomException')
+        ? new CustomException(ErrorDictionary.UNRESOLVABLE_SENDER, 'email:unknown')
+        : new Error('Connection timeout');
+      result = await service.handleFault(notification, error);
+    });
+
+    then('la notificación es revertida a "PENDING"', () => {
+      expect(mockDb.updateStatus).toHaveBeenCalledWith(notification.notificationId, NotificationStatus.PENDING);
+    });
+
+    and('se retorna false', () => {
+      expect(result).toBe(false);
+    });
+  });
+
+  test('El caso de uso de batch retorna lista de fallos vacía cuando todos los registros tienen éxito', ({ given, when, then }) => {
+    const mockProcessingService = {
+      process: jest.fn().mockResolvedValue(undefined),
+      handleFault: jest.fn(),
+    } as unknown as ProcessingService;
+    let useCase: ProcessBatchUseCase;
+    let records: SqsMessage[];
+    let result: { batchItemFailures: { itemIdentifier: string }[] };
+
+    given('un batch de 2 registros SQS donde todo el procesamiento tiene éxito', () => {
+      useCase = new ProcessBatchUseCase(mockProcessingService);
+      records = [
+        { messageId: 'msg-001', body: { notificationId: 'NOTIF-001' } },
+        { messageId: 'msg-002', body: { notificationId: 'NOTIF-002' } },
+      ];
+    });
+
+    when('el caso de uso de procesamiento de batch se ejecuta', async () => {
+      result = await useCase.execute(records);
+    });
+
+    then('la lista de batchItemFailures está vacía', () => {
+      expect(result.batchItemFailures).toHaveLength(0);
+    });
+  });
+
+  test('El caso de uso de batch incluye el registro fallido en batchItemFailures', ({ given, when, then }) => {
+    const mockProcessingService = {
+      process: jest.fn().mockRejectedValue(new Error('SES error')),
+      handleFault: jest.fn().mockResolvedValue(false),
+    } as unknown as ProcessingService;
+    let useCase: ProcessBatchUseCase;
+    let records: SqsMessage[];
+    let result: { batchItemFailures: { itemIdentifier: string }[] };
+
+    given('un batch de 1 registro SQS donde el procesamiento falla', () => {
+      useCase = new ProcessBatchUseCase(mockProcessingService);
+      records = [{ messageId: 'msg-001', body: { notificationId: 'NOTIF-001' } }];
+    });
+
+    when('el caso de uso de procesamiento de batch se ejecuta', async () => {
+      result = await useCase.execute(records);
+    });
+
+    then('la lista de batchItemFailures contiene 1 elemento', () => {
+      expect(result.batchItemFailures).toHaveLength(1);
+      expect(result.batchItemFailures[0].itemIdentifier).toBe('msg-001');
+    });
+  });
+});
