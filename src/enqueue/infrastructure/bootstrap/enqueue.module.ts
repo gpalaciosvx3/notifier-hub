@@ -12,13 +12,29 @@ import { EnqueueController } from '../controller/enqueue.controller';
 
 @Module({
   providers: [
-    DynamoClient,
+    { provide: DynamoClient, useFactory: () => new DynamoClient() },
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_ENQUEUE),
-    EnqueueController,
-    NotificationService,
-    EnqueueNotificationUseCase,
-    { provide: NotificationDbRepository, useClass: NotificationDbRepositoryImpl },
-    { provide: NotificationSqsRepository, useClass: NotificationSqsRepositoryImpl },
+    { provide: NotificationService, useFactory: () => new NotificationService() },
+    {
+      provide: NotificationDbRepository,
+      useFactory: (dynamo: DynamoClient) => new NotificationDbRepositoryImpl(dynamo),
+      inject: [DynamoClient],
+    },
+    {
+      provide: NotificationSqsRepository,
+      useFactory: () => new NotificationSqsRepositoryImpl(),
+    },
+    {
+      provide: EnqueueNotificationUseCase,
+      useFactory: (svc: NotificationService, db: NotificationDbRepository, sqs: NotificationSqsRepository) =>
+        new EnqueueNotificationUseCase(svc, db, sqs),
+      inject: [NotificationService, NotificationDbRepository, NotificationSqsRepository],
+    },
+    {
+      provide: EnqueueController,
+      useFactory: (uc: EnqueueNotificationUseCase) => new EnqueueController(uc),
+      inject: [EnqueueNotificationUseCase],
+    },
   ],
 })
 export class EnqueueModule {}

@@ -10,12 +10,28 @@ import { DlqController } from '../controller/dlq.controller';
 
 @Module({
   providers: [
-    DynamoClient,
+    { provide: DynamoClient, useFactory: () => new DynamoClient() },
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_DLQ),
-    DlqController,
-    DlqBatchService,
-    MarkBatchFailedPermanentUseCase,
-    { provide: NotificationDbRepository, useClass: NotificationDbRepositoryImpl },
+    {
+      provide: NotificationDbRepository,
+      useFactory: (dynamo: DynamoClient) => new NotificationDbRepositoryImpl(dynamo),
+      inject: [DynamoClient],
+    },
+    {
+      provide: DlqBatchService,
+      useFactory: (db: NotificationDbRepository) => new DlqBatchService(db),
+      inject: [NotificationDbRepository],
+    },
+    {
+      provide: MarkBatchFailedPermanentUseCase,
+      useFactory: (svc: DlqBatchService) => new MarkBatchFailedPermanentUseCase(svc),
+      inject: [DlqBatchService],
+    },
+    {
+      provide: DlqController,
+      useFactory: (uc: MarkBatchFailedPermanentUseCase) => new DlqController(uc),
+      inject: [MarkBatchFailedPermanentUseCase],
+    },
   ],
 })
 export class DlqModule {}

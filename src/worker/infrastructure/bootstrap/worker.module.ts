@@ -16,14 +16,15 @@ import { WorkerController } from '../controller/worker.controller';
 
 @Module({
   providers: [
-    DynamoClient,
+    { provide: DynamoClient, useFactory: () => new DynamoClient() },
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_WORKER),
-    WorkerController,
-    ProcessingService,
-    ProcessBatchUseCase,
-    { provide: NotificationDbRepository, useClass: NotificationDbRepositoryImpl },
-    { provide: SesSenderRepository, useClass: SesSenderRepositoryImpl },
-    { provide: SnsSenderRepository, useClass: SnsSenderRepositoryImpl },
+    {
+      provide: NotificationDbRepository,
+      useFactory: (dynamo: DynamoClient) => new NotificationDbRepositoryImpl(dynamo),
+      inject: [DynamoClient],
+    },
+    { provide: SesSenderRepository, useFactory: () => new SesSenderRepositoryImpl() },
+    { provide: SnsSenderRepository, useFactory: () => new SnsSenderRepositoryImpl() },
     {
       provide: ChannelRouterService,
       useFactory: (ses: SesSenderRepository, sns: SnsSenderRepository) => {
@@ -34,6 +35,22 @@ import { WorkerController } from '../controller/worker.controller';
         return new ChannelRouterService(remitentes);
       },
       inject: [SesSenderRepository, SnsSenderRepository],
+    },
+    {
+      provide: ProcessingService,
+      useFactory: (db: NotificationDbRepository, router: ChannelRouterService) =>
+        new ProcessingService(db, router),
+      inject: [NotificationDbRepository, ChannelRouterService],
+    },
+    {
+      provide: ProcessBatchUseCase,
+      useFactory: (svc: ProcessingService) => new ProcessBatchUseCase(svc),
+      inject: [ProcessingService],
+    },
+    {
+      provide: WorkerController,
+      useFactory: (uc: ProcessBatchUseCase) => new WorkerController(uc),
+      inject: [ProcessBatchUseCase],
     },
   ],
 })

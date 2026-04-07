@@ -10,12 +10,28 @@ import { QueryController } from '../controller/query.controller';
 
 @Module({
   providers: [
-    DynamoClient,
+    { provide: DynamoClient, useFactory: () => new DynamoClient() },
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_QUERY),
-    QueryController,
-    QueryService,
-    GetNotificationUseCase,
-    { provide: NotificationDbRepository, useClass: NotificationDbRepositoryImpl },
+    {
+      provide: NotificationDbRepository,
+      useFactory: (dynamo: DynamoClient) => new NotificationDbRepositoryImpl(dynamo),
+      inject: [DynamoClient],
+    },
+    {
+      provide: QueryService,
+      useFactory: (db: NotificationDbRepository) => new QueryService(db),
+      inject: [NotificationDbRepository],
+    },
+    {
+      provide: GetNotificationUseCase,
+      useFactory: (svc: QueryService) => new GetNotificationUseCase(svc),
+      inject: [QueryService],
+    },
+    {
+      provide: QueryController,
+      useFactory: (uc: GetNotificationUseCase) => new QueryController(uc),
+      inject: [GetNotificationUseCase],
+    },
   ],
 })
 export class QueryModule {}

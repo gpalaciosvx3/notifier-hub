@@ -11,7 +11,7 @@ export const lambdaBundling: BundlingOptions = {
     '@nestjs/websockets/socket-module',
     '@nestjs/platform-express',
   ],
-  minify: true,
+  minify: false,
   sourceMap: false,
   target: 'node20',
   tsconfig: path.join(__dirname, '../../../../../tsconfig.lambda.json'),
