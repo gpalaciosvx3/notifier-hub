@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { EnvValidationMiddleware } from '../../../common/middleware/env-validation.middleware';
+import { EnvConstants } from '../../../common/constants/env.constants';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
@@ -16,7 +17,7 @@ import { WorkerController } from '../controller/worker.controller';
 @Module({
   providers: [
     DynamoClient,
-    EnvValidationMiddleware,
+    EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_WORKER),
     WorkerController,
     ProcessingService,
     ProcessBatchUseCase,
