@@ -66,6 +66,35 @@ export class DynamoClient {
     }
   }
 
+  async updateIfExists(
+    table: string,
+    key: Record<string, unknown>,
+    fields: Record<string, unknown>,
+  ): Promise<boolean> {
+    const expression = this.buildUpdateExpression(fields);
+    const pkField = Object.keys(key)[0];
+    expression.names['#__pk'] = pkField;
+
+    try {
+      await dynamoDbClient.send(
+        new UpdateCommand({
+          TableName: table,
+          Key: key,
+          UpdateExpression: expression.update,
+          ConditionExpression: 'attribute_exists(#__pk)',
+          ExpressionAttributeNames: expression.names,
+          ExpressionAttributeValues: expression.values,
+        }),
+      );
+      return true;
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'ConditionalCheckFailedException') {
+        return false;
+      }
+      throw error;
+    }
+  }
+
   async get<T>(table: string, key: Record<string, unknown>): Promise<T | null> {
     const result = await dynamoDbClient.send(
       new GetCommand({ TableName: table, Key: key }),

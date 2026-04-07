@@ -10,8 +10,8 @@ export class NotificationDbRepositoryImpl extends NotificationDbRepository {
     super();
   }
 
-  async updateStatus(notificationId: string, status: NotificationStatus): Promise<void> {
-    await this.dynamo.updateFields(
+  async updateStatus(notificationId: string, status: NotificationStatus): Promise<boolean> {
+    return this.dynamo.updateIfExists(
       envConfig.notificationsTable,
       { notificationId },
       { status, updatedAt: new Date().toISOString() },

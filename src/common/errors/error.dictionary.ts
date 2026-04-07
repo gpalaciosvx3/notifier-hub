@@ -60,4 +60,11 @@ export class ErrorDictionary {
       code: 'NTF-009', 
       descripcion: 'El cuerpo de la solicitud no es válido', 
       statusCode: HttpStatus.BAD_REQUEST 
-    };}
+    };
+  static readonly DLQ_BATCH_INFRA_ERROR:
+    InputError = {
+      code: 'NTF-010',
+      descripcion: 'Uno o más registros del batch DLQ fallaron por error de infraestructura',
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR
+    };
+}
