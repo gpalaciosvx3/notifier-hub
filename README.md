@@ -6,7 +6,6 @@ Servicio backend centralizado para envío de notificaciones multi-canal (email, 
 
 ## Arquitectura
 
-> Agrega tu diagrama pegando la imagen en `docs/architecture.png` y descomenta la línea siguiente:
 ![Arquitectura](./docs/notifier-hub-architec.png)
 
 ---
@@ -121,11 +120,11 @@ Los pipelines están en `.github/workflows/`:
 
 | Archivo | Trigger | Acción |
 |---|---|---|
-| `local.yml` | `push` a `feature/*` | Smoke test para Deploy en LocalStack |
+| `local.yml` | `push` a `local` | Smoke test para Deploy en LocalStack |
 | `dev.yml` | `push` a `develop` | Deploy en AWS DEV |
-| `qa.yml` | `push` a `release/*` | Deploy en AWS QA |
-| `prd.yml` | `push` a `main` | Deploy en AWS PRD |
-| `destroy.yml` | Manual (`workflow_dispatch`) | Destruye el stack del stage seleccionado |
+| `qa.yml` | `push` a `release` | Deploy en AWS QA |
+| `prd.yml` | `push` a `master` | Deploy en AWS PRD |
+| `destroy.yml` | Manual (`workflow_dispatch`) | Destruye el stack del stage seleccionado en AWS |
 
 ### Secretos requeridos por ambiente
 
