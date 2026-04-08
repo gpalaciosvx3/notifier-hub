@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { INestApplicationContext, Type } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { LambdaLogger } from '../logger/lambda.logger';
 
 export const createLambdaHandler = <TController, TEvent, TResponse>(
   Module: Type,
@@ -11,7 +12,9 @@ export const createLambdaHandler = <TController, TEvent, TResponse>(
 
   return async (event: TEvent): Promise<TResponse> => {
     if (!app) {
-      app = await NestFactory.createApplicationContext(Module, { logger: ['log', 'warn', 'error'] });
+      app = await NestFactory.createApplicationContext(Module, {
+        logger: new LambdaLogger('', { logLevels: ['log', 'warn', 'error'] }),
+      });
     }
     const controller = app.get(Controller);
     return execute(controller, event);
