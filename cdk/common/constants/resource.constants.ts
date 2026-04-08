@@ -10,4 +10,5 @@ export class ResourceConstants {
   static readonly LAMBDA_WORKER         = NamingConstants.LMB_003;
   static readonly LAMBDA_DLQ_PROCESSOR  = NamingConstants.LMB_004;
   static readonly API_NAME              = NamingConstants.APG_001;
+  static readonly WORKER_ROLE           = NamingConstants.ROL_001;
 }

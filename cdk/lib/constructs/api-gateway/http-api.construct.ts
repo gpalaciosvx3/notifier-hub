@@ -1,12 +1,12 @@
-import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
-import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { ResourceConstants } from '../../../common/constants/resource.constants';
 
 interface HttpApiProps {
-  enqueueFn: NodejsFunction;
-  queryFn: NodejsFunction;
+  enqueueFn: lambda.IFunction;
+  queryFn: lambda.IFunction;
+  stage: string;
 }
 
 export class HttpApiConstruct extends Construct {
@@ -15,34 +15,44 @@ export class HttpApiConstruct extends Construct {
   constructor(scope: Construct, id: string, props: HttpApiProps) {
     super(scope, id);
 
-    const api = new apigatewayv2.HttpApi(this, 'Api', {
-      apiName: ResourceConstants.API_NAME,
+    const api = new apigateway.RestApi(this, 'Api', {
+      restApiName: ResourceConstants.API_NAME,
       description: 'API HTTP para recepción y consulta de notificaciones multicanal',
-      corsPreflight: {
-        allowOrigins: ['*'],
-        allowMethods: [apigatewayv2.CorsHttpMethod.POST, apigatewayv2.CorsHttpMethod.GET],
-        allowHeaders: ['Content-Type', 'Authorization'],
+      deployOptions: {
+        stageName: props.stage,
+      },
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: ['GET', 'POST', 'OPTIONS'],
+        allowHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
       },
     });
 
-    api.addRoutes({
-      path: '/notify',
-      methods: [apigatewayv2.HttpMethod.POST],
-      integration: new HttpLambdaIntegration('EnqueueIntegration', props.enqueueFn),
+    const apiKey = new apigateway.ApiKey(this, 'ApiKey', {
+      apiKeyName: `${ResourceConstants.API_NAME}-KEY`,
+      description: 'API Key para acceso al API de notificaciones',
     });
 
-    api.addRoutes({
-      path: '/notifications/{id}',
-      methods: [apigatewayv2.HttpMethod.GET],
-      integration: new HttpLambdaIntegration('QueryByIdIntegration', props.queryFn),
+    const usagePlan = new apigateway.UsagePlan(this, 'UsagePlan', {
+      name: `${ResourceConstants.API_NAME}-PLAN`,
+      apiStages: [{ api, stage: api.deploymentStage }],
+      throttle: { rateLimit: 100, burstLimit: 200 },
     });
 
-    api.addRoutes({
-      path: '/notifications',
-      methods: [apigatewayv2.HttpMethod.GET],
-      integration: new HttpLambdaIntegration('QueryByStatusIntegration', props.queryFn),
-    });
+    usagePlan.addApiKey(apiKey);
 
-    this.url = api.url ?? '';
+    const enqueueIntegration = new apigateway.LambdaIntegration(props.enqueueFn);
+    const queryIntegration   = new apigateway.LambdaIntegration(props.queryFn);
+
+    const v1 = api.root.addResource('v1');
+
+    const notify = v1.addResource('notify');
+    notify.addMethod('POST', enqueueIntegration, { apiKeyRequired: true });
+
+    const notifications = v1.addResource('notifications');
+    notifications.addMethod('GET', queryIntegration, { apiKeyRequired: true });
+    notifications.addResource('{id}').addMethod('GET', queryIntegration, { apiKeyRequired: true });
+
+    this.url = api.url;
   }
 }
