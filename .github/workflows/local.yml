@@ -69,8 +69,9 @@ jobs:
           - 443:443
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
-          DEBUG=: 0
+          DEBUG: 0
           PERSISTENCE: 0
+        options: -v /var/run/docker.sock:/var/run/docker.sock
 
     steps:
       - name: Obtener código fuente
