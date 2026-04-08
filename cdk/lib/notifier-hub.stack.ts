@@ -44,6 +44,7 @@ export class NotifierHubStack extends cdk.Stack {
     const api = new HttpApiConstruct(this, 'HttpApi', {
       enqueueFn: enqueueFn.fn,
       queryFn: queryFn.fn,
+      stage: props.config.stage,
     });
 
     new cdk.CfnOutput(this, 'ApiUrl',  { value: api.url, description: 'API Gateway URL' });
