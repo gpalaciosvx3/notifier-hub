@@ -1,4 +1,4 @@
-name: Destruir recursos
+name: DESTROY · AWS
 
 on:
   workflow_dispatch:
