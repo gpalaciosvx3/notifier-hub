@@ -28,6 +28,7 @@ jobs:
             node_modules
             cdk/node_modules
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+          save-always: true
 
       - name: Instalar dependencias
         if: steps.cache.outputs.cache-hit != 'true'
@@ -78,6 +79,7 @@ jobs:
             node_modules
             cdk/node_modules
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+          save-always: true
 
       - name: Instalar dependencias
         if: steps.cache.outputs.cache-hit != 'true'
@@ -102,7 +104,6 @@ jobs:
           AWS_ACCESS_KEY_ID: test
           AWS_SECRET_ACCESS_KEY: test
           AWS_DEFAULT_REGION: us-east-1
-          AWS_ENDPOINT_URL: http://localhost:4566
           SES_SOURCE_EMAIL: test@example.com
         run: cdklocal bootstrap && cdklocal deploy --require-approval never
 

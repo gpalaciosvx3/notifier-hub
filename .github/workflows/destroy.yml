@@ -35,6 +35,7 @@ jobs:
             node_modules
             cdk/node_modules
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+          save-always: true
 
       - name: Instalar dependencias
         if: steps.cache.outputs.cache-hit != 'true'
