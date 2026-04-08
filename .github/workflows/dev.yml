@@ -110,7 +110,7 @@ jobs:
         run: npx cdk deploy --require-approval never --all
 
       - name: Guardar caché de dependencias
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: always() && steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |

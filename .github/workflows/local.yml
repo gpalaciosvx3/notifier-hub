@@ -66,7 +66,7 @@ jobs:
         ports:
           - 4566:4566
         env:
-          SERVICES: lambda,sqs,dynamodb,ses,sns,apigateway,iam,logs,cloudformation,s3,sts
+          SERVICES: lambda,sqs,dynamodb,ses,sns,apigateway,iam,logs,cloudformation,s3,sts,ssm,events
           DEFAULT_REGION: us-east-1
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
 
@@ -122,7 +122,7 @@ jobs:
         run: awslocal ses verify-email-identity --email-address test@example.com
 
       - name: Guardar caché de dependencias
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: always() && steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
