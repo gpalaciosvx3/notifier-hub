@@ -1,0 +1,66 @@
+name: DEV · Deploy
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy:
+    name: Deploy to AWS DEV
+    runs-on: ubuntu-latest
+    environment: deployer-dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache root dependencies
+        id: cache-root
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package.json') }}
+
+      - name: Install dependencies
+        if: steps.cache-root.outputs.cache-hit != 'true'
+        run: npm install
+
+      - name: Cache CDK dependencies
+        id: cache-cdk
+        uses: actions/cache@v4
+        with:
+          path: cdk/node_modules
+          key: cdk-node-modules-${{ hashFiles('cdk/package.json') }}
+
+      - name: Install CDK dependencies
+        if: steps.cache-cdk.outputs.cache-hit != 'true'
+        working-directory: cdk
+        run: npm install
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: CDK Bootstrap
+        working-directory: cdk
+        env:
+          CDK_STAGE: dev
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_DEFAULT_ACCOUNT }}
+          CDK_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}
+        run: npx cdk bootstrap aws://${{ secrets.CDK_DEFAULT_ACCOUNT }}/${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: CDK Deploy
+        working-directory: cdk
+        env:
+          CDK_STAGE: dev
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_DEFAULT_ACCOUNT }}
+          CDK_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}
+        run: npx cdk deploy --require-approval never --all

@@ -1,0 +1,51 @@
+name: LOCAL · Build
+
+on:
+  pull_request:
+    branches: [local]
+
+jobs:
+  build:
+    name: Test & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache root dependencies
+        id: cache-root
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package.json') }}
+
+      - name: Install dependencies
+        if: steps.cache-root.outputs.cache-hit != 'true'
+        run: npm install
+
+      - name: Type check
+        run: npm run build
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Cache CDK dependencies
+        id: cache-cdk
+        uses: actions/cache@v4
+        with:
+          path: cdk/node_modules
+          key: cdk-node-modules-${{ hashFiles('cdk/package.json') }}
+
+      - name: Install CDK dependencies
+        if: steps.cache-cdk.outputs.cache-hit != 'true'
+        working-directory: cdk
+        run: npm install
+
+      - name: CDK synth (validate)
+        working-directory: cdk
+        env:
+          CDK_STAGE: local
+        run: npx cdk synth --quiet

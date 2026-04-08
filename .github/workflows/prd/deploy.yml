@@ -1,0 +1,13 @@
+name: PRD · Deploy
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  not-available:
+    name: PRD environment not yet available
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "PRD environment pending configuration."
+        shell: bash

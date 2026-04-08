@@ -1,0 +1,78 @@
+name: LOCAL · Deploy (LocalStack)
+
+on:
+  push:
+    branches: [local]
+
+jobs:
+  deploy:
+    name: Deploy to LocalStack
+    runs-on: ubuntu-latest
+
+    services:
+      localstack:
+        image: localstack/localstack:latest
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: lambda,sqs,dynamodb,ses,sns,apigateway,iam,logs
+          DEFAULT_REGION: us-east-1
+          LAMBDA_EXECUTOR: local
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache root dependencies
+        id: cache-root
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package.json') }}
+
+      - name: Install dependencies
+        if: steps.cache-root.outputs.cache-hit != 'true'
+        run: npm install
+
+      - name: Cache CDK dependencies
+        id: cache-cdk
+        uses: actions/cache@v4
+        with:
+          path: cdk/node_modules
+          key: cdk-node-modules-${{ hashFiles('cdk/package.json') }}
+
+      - name: Install CDK dependencies
+        if: steps.cache-cdk.outputs.cache-hit != 'true'
+        working-directory: cdk
+        run: npm install
+
+      - name: Install CDK + LocalStack CLI
+        run: npm install -g aws-cdk aws-cdk-local awslocal
+
+      - name: Wait for LocalStack
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:4566/_localstack/health | grep '"lambda": "available"' && break
+            sleep 3
+          done
+
+      - name: Bootstrap + Deploy
+        working-directory: cdk
+        env:
+          CDK_STAGE: local
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: http://localhost:4566
+          SES_SOURCE_EMAIL: test@example.com
+        run: cdklocal bootstrap && cdklocal deploy --require-approval never
+
+      - name: Verify SES identity
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+        run: awslocal ses verify-email-identity --email-address test@example.com

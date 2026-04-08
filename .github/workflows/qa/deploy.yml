@@ -1,0 +1,13 @@
+name: QA · Deploy
+
+on:
+  push:
+    branches: [release]
+
+jobs:
+  not-available:
+    name: QA environment not yet available
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "QA environment pending configuration."
+        shell: bash
