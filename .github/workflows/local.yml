@@ -84,7 +84,9 @@ jobs:
         run: npm install && cd cdk && npm install
 
       - name: Instalar CLI de CDK y LocalStack
-        run: npm install -g aws-cdk aws-cdk-local awslocal
+        run: |
+          npm install -g aws-cdk aws-cdk-local
+          pip install awscli-local
 
       - name: Esperar disponibilidad de LocalStack
         run: |
