@@ -11,6 +11,7 @@ jobs:
     if: github.event_name == 'pull_request'
     name: Validación y pruebas
     runs-on: ubuntu-latest
+    environment: deployer-qa
     steps:
       - name: Obtener código fuente
         uses: actions/checkout@v4
