@@ -1,0 +1,132 @@
+name: LOCAL · LocalStack
+
+on:
+  pull_request:
+    branches: [local]
+  push:
+    branches: [local]
+
+jobs:
+  build:
+    if: github.event_name == 'pull_request'
+    name: Validación y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Restaurar caché de dependencias
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+
+      - name: Instalar dependencias
+        run: npm install && cd cdk && npm install
+
+      - name: Verificación de tipos
+        run: npm run build
+
+      - name: Pruebas unitarias
+        run: npm test
+
+      - name: Validar plantilla CDK
+        working-directory: cdk
+        env:
+          CDK_STAGE: local
+        run: npx cdk synth --quiet
+
+      - name: Guardar caché de dependencias
+        if: always() && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+
+  deploy:
+    if: github.event_name == 'push'
+    name: Despliegue en LocalStack
+    runs-on: ubuntu-latest
+    environment: deployer-local
+
+    services:
+      localstack:
+        image: localstack/localstack:latest
+        ports:
+          - 4566:4566
+          - 4510-4559:4510-4559
+          - 443:443
+        env:
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+          DEBUG: 0
+          PERSISTENCE: 0
+        options: -v /var/run/docker.sock:/var/run/docker.sock
+
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Restaurar caché de dependencias
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+
+      - name: Instalar dependencias
+        run: npm install && cd cdk && npm install
+
+      - name: Instalar CLI de CDK y LocalStack
+        run: |
+          npm install -g aws-cdk aws-cdk-local
+          pip install awscli-local
+
+      - name: Esperar disponibilidad de LocalStack
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:4566/_localstack/health | grep '"lambda": "available"' && break
+            sleep 3
+          done
+
+      - name: Bootstrap y despliegue en LocalStack
+        working-directory: cdk
+        env:
+          CDK_STAGE: local
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          SES_SOURCE_EMAIL: test@example.com
+        run: cdklocal bootstrap && cdklocal deploy --require-approval never
+
+      - name: Verificar identidad SES
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+        run: awslocal ses verify-email-identity --email-address test@example.com
+
+      - name: Guardar caché de dependencias
+        if: always() && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}

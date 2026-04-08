@@ -13,7 +13,7 @@ export class NotificationsTableConstruct extends Construct {
       tableName: ResourceConstants.TABLE_NAME,
       partitionKey: { name: 'notificationId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
       timeToLiveAttribute: 'ttl',
     });
 
