@@ -1,4 +1,4 @@
-name: PRD · Build
+name: PRD · Build (AWS)
 
 on:
   pull_request:
