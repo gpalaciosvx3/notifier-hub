@@ -22,13 +22,12 @@ jobs:
 
       - name: Restaurar caché de dependencias
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             cdk/node_modules
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
-          save-always: true
 
       - name: Instalar dependencias
         if: steps.cache.outputs.cache-hit != 'true'
@@ -49,6 +48,15 @@ jobs:
           SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}
         run: npx cdk synth --quiet
 
+      - name: Guardar caché de dependencias
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+
   deploy:
     if: github.event_name == 'push'
     name: Despliegue en AWS DEV
@@ -65,13 +73,12 @@ jobs:
 
       - name: Restaurar caché de dependencias
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             cdk/node_modules
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
-          save-always: true
 
       - name: Instalar dependencias
         if: steps.cache.outputs.cache-hit != 'true'
@@ -101,3 +108,12 @@ jobs:
           CDK_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}
         run: npx cdk deploy --require-approval never --all
+
+      - name: Guardar caché de dependencias
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}

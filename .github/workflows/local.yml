@@ -22,13 +22,12 @@ jobs:
 
       - name: Restaurar caché de dependencias
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             cdk/node_modules
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
-          save-always: true
 
       - name: Instalar dependencias
         if: steps.cache.outputs.cache-hit != 'true'
@@ -46,6 +45,15 @@ jobs:
           CDK_STAGE: local
         run: npx cdk synth --quiet
 
+      - name: Guardar caché de dependencias
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+
   deploy:
     if: github.event_name == 'push'
     name: Despliegue en LocalStack
@@ -58,7 +66,7 @@ jobs:
         ports:
           - 4566:4566
         env:
-          SERVICES: lambda,sqs,dynamodb,ses,sns,apigateway,iam,logs
+          SERVICES: lambda,sqs,dynamodb,ses,sns,apigateway,iam,logs,cloudformation,s3,sts
           DEFAULT_REGION: us-east-1
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
 
@@ -73,13 +81,12 @@ jobs:
 
       - name: Restaurar caché de dependencias
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             cdk/node_modules
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
-          save-always: true
 
       - name: Instalar dependencias
         if: steps.cache.outputs.cache-hit != 'true'
@@ -113,3 +120,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: test
           AWS_DEFAULT_REGION: us-east-1
         run: awslocal ses verify-email-identity --email-address test@example.com
+
+      - name: Guardar caché de dependencias
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
