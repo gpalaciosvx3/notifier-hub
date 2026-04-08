@@ -30,6 +30,7 @@ export class WorkerFnConstruct extends Construct {
 
     const fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_WORKER,
+      description: 'Procesa notificaciones desde SQS y las envía por el canal correspondiente (SES/SNS)',
       logGroup,
       entry: path.join(__dirname, '../../../../../src/worker/infrastructure/bootstrap/worker.handler.ts'),
       handler: 'handler',

@@ -26,6 +26,7 @@ export class DlqProcessorFnConstruct extends Construct {
 
     const fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_DLQ_PROCESSOR,
+      description: 'Procesa mensajes fallidos de la DLQ y marca las notificaciones como FAILED_PERMANENT',
       logGroup,
       entry: path.join(__dirname, '../../../../../src/dlq/infrastructure/bootstrap/dlq.handler.ts'),
       handler: 'handler',

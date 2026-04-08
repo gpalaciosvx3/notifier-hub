@@ -1,11 +1,13 @@
+import { NamingConstants } from './naming.constants';
+
 export class ResourceConstants {
-  static readonly TABLE_NAME            = 'notifications';
+  static readonly TABLE_NAME            = NamingConstants.TBL_001;
   static readonly TABLE_STATUS_INDEX    = 'status-index';
-  static readonly QUEUE_NAME            = 'notifications-queue';
-  static readonly DLQ_NAME              = 'notifications-dlq';
-  static readonly LAMBDA_ENQUEUE        = 'notifier-hub-enqueue';
-  static readonly LAMBDA_QUERY          = 'notifier-hub-query';
-  static readonly LAMBDA_WORKER         = 'notifier-hub-worker';
-  static readonly LAMBDA_DLQ_PROCESSOR  = 'notifier-hub-dlq';
-  static readonly API_NAME              = 'notifier-hub-api';
+  static readonly QUEUE_NAME            = NamingConstants.SQS_001;
+  static readonly DLQ_NAME              = NamingConstants.SQS_002;
+  static readonly LAMBDA_ENQUEUE        = NamingConstants.LMB_001;
+  static readonly LAMBDA_QUERY          = NamingConstants.LMB_002;
+  static readonly LAMBDA_WORKER         = NamingConstants.LMB_003;
+  static readonly LAMBDA_DLQ_PROCESSOR  = NamingConstants.LMB_004;
+  static readonly API_NAME              = NamingConstants.APG_001;
 }

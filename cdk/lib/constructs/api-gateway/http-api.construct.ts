@@ -17,6 +17,7 @@ export class HttpApiConstruct extends Construct {
 
     const api = new apigatewayv2.HttpApi(this, 'Api', {
       apiName: ResourceConstants.API_NAME,
+      description: 'API HTTP para recepción y consulta de notificaciones multicanal',
       corsPreflight: {
         allowOrigins: ['*'],
         allowMethods: [apigatewayv2.CorsHttpMethod.POST, apigatewayv2.CorsHttpMethod.GET],

@@ -25,6 +25,7 @@ export class QueryFnConstruct extends Construct {
 
     this.fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_QUERY,
+      description: 'Consulta el estado e historial de notificaciones desde DynamoDB',
       logGroup,
       entry: path.join(__dirname, '../../../../../src/query/infrastructure/bootstrap/query.handler.ts'),
       handler: 'handler',

@@ -28,6 +28,7 @@ export class EnqueueFnConstruct extends Construct {
 
     this.fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_ENQUEUE,
+      description: 'Recibe peticiones HTTP del API Gateway y encola notificaciones en SQS',
       logGroup,
       entry: path.join(__dirname, '../../../../../src/enqueue/infrastructure/bootstrap/enqueue.handler.ts'),
       handler: 'handler',

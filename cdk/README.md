@@ -71,38 +71,10 @@ awslocal apigatewayv2 get-integrations --api-id <api-id>
 # Lambda
 awslocal lambda list-functions --query 'Functions[*].FunctionName'
 
-# Logs
-awslocal logs tail /aws/lambda/notifier-hub-enqueue --follow
-awslocal logs tail /aws/lambda/notifier-hub-query --follow
-awslocal logs tail /aws/lambda/notifier-hub-worker --follow
-awslocal logs tail /aws/lambda/notifier-hub-dlq --follow
-awslocal logs describe-log-groups --query 'logGroups[*].logGroupName'
-
 # DynamoDB
 awslocal dynamodb scan --table-name notifications
 
 # SES
 awslocal ses get-send-statistics
-
-# SQS
-awslocal sqs get-queue-attributes \
-  --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/notifications-queue \
-  --attribute-names ApproximateNumberOfMessages
-
-awslocal sqs send-message \
-  --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/notifications-queue \
-  --message-body '{"notificationId":"01J...","channel":"email","status":"PENDING"}'
-
-# Invocar Lambda directamente
-awslocal lambda invoke \
-  --function-name notifier-hub-worker \
-  --payload '{"Records":[{"messageId":"msg-001","eventSource":"aws:sqs","body":"{\"notificationId\":\"01J...\",\"channel\":\"email\",\"provider\":\"ses\",\"to\":\"user@example.com\",\"subject\":\"Hola\",\"body\":\"Test\",\"status\":\"PENDING\",\"createdAt\":\"2026-01-01T00:00:00.000Z\",\"updatedAt\":\"2026-01-01T00:00:00.000Z\",\"ttl\":9999999999}"}]}' \
-  /dev/stdout
-
-awslocal lambda invoke \
-  --function-name notifier-hub-dlq \
-  --payload '{"Records":[{"messageId":"msg-001","eventSource":"aws:sqs","body":"{\"notificationId\":\"01J...\",\"channel\":\"email\",\"provider\":\"ses\",\"to\":\"user@example.com\",\"subject\":\"Hola\",\"body\":\"Test\",\"status\":\"PENDING\",\"createdAt\":\"2026-01-01T00:00:00.000Z\",\"updatedAt\":\"2026-01-01T00:00:00.000Z\",\"ttl\":9999999999}"}]}' \
-  /dev/stdout
 ```
-
 
