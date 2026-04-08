@@ -30,7 +30,6 @@ jobs:
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
 
       - name: Instalar dependencias
-        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install && cd cdk && npm install
 
       - name: Verificación de tipos
@@ -49,7 +48,7 @@ jobs:
         run: npx cdk synth --quiet
 
       - name: Guardar caché de dependencias
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: always() && steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
