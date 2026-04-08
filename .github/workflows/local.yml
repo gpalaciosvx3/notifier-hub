@@ -65,10 +65,12 @@ jobs:
         image: localstack/localstack:latest
         ports:
           - 4566:4566
+          - 4510-4559:4510-4559
+          - 443:443
         env:
-          SERVICES: lambda,sqs,dynamodb,ses,sns,apigateway,iam,logs,cloudformation,s3,sts,ssm,events
-          DEFAULT_REGION: us-east-1
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+          DEBUG=: 0
+          PERSISTENCE: 0
 
     steps:
       - name: Obtener código fuente
