@@ -1,11 +1,14 @@
-name: DEV · Build
+name: QA · AWS
 
 on:
   pull_request:
-    branches: [develop]
+    branches: [release]
+  push:
+    branches: [release]
 
 jobs:
   build:
+    if: github.event_name == 'pull_request'
     name: Validación y pruebas
     runs-on: ubuntu-latest
     steps:
@@ -30,11 +33,25 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm install && cd cdk && npm install
 
+      - name: Verificación de tipos
+        run: npm run build
+
+      - name: Pruebas unitarias
+        run: npm test
+
       - name: Validar plantilla CDK
         working-directory: cdk
         env:
-          CDK_STAGE: dev
+          CDK_STAGE: qa
           CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_DEFAULT_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}
         run: npx cdk synth --quiet
+
+  deploy:
+    if: github.event_name == 'push'
+    name: Despliegue en QA (pendiente)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Entorno QA pendiente de configuración."
+        shell: bash

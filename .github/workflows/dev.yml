@@ -1,15 +1,58 @@
-name: DEV · Deploy (AWS)
+name: DEV · AWS  
 
 on:
+  pull_request:
+    branches: [develop]
   push:
     branches: [develop]
 
 jobs:
+  build:
+    if: github.event_name == 'pull_request'
+    name: Validación y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Restaurar caché de dependencias
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
+
+      - name: Instalar dependencias
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm install && cd cdk && npm install
+
+      - name: Verificación de tipos
+        run: npm run build
+
+      - name: Pruebas unitarias
+        run: npm test
+
+      - name: Validar plantilla CDK
+        working-directory: cdk
+        env:
+          CDK_STAGE: dev
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_DEFAULT_ACCOUNT }}
+          CDK_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}
+        run: npx cdk synth --quiet
+
   deploy:
+    if: github.event_name == 'push'
     name: Despliegue en AWS DEV
     runs-on: ubuntu-latest
     environment: deployer-dev
-
     steps:
       - name: Obtener código fuente
         uses: actions/checkout@v4
