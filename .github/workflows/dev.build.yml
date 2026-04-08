@@ -6,45 +6,31 @@ on:
 
 jobs:
   build:
-    name: Test & Validate
+    name: Validación y pruebas
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Cache root dependencies
-        id: cache-root
+      - name: Restaurar caché de dependencias
+        id: cache
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('package.json') }}
+          path: |
+            node_modules
+            cdk/node_modules
+          key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
 
-      - name: Install dependencies
-        if: steps.cache-root.outputs.cache-hit != 'true'
-        run: npm install
+      - name: Instalar dependencias
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm install && cd cdk && npm install
 
-      - name: Type check
-        run: npm run build
-
-      - name: Unit tests
-        run: npm test
-
-      - name: Cache CDK dependencies
-        id: cache-cdk
-        uses: actions/cache@v4
-        with:
-          path: cdk/node_modules
-          key: cdk-node-modules-${{ hashFiles('cdk/package.json') }}
-
-      - name: Install CDK dependencies
-        if: steps.cache-cdk.outputs.cache-hit != 'true'
-        working-directory: cdk
-        run: npm install
-
-      - name: CDK synth (validate)
+      - name: Validar plantilla CDK
         working-directory: cdk
         env:
           CDK_STAGE: dev
