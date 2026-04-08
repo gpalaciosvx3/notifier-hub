@@ -1,5 +1,6 @@
 import { ZodIssue } from 'zod';
 import { InputError } from './error.dictionary';
+import { ApiErrorBody, ApiValidationErrorBody } from '../types/api-response.types';
 
 export class CustomException extends Error {
   public readonly code: string;
@@ -15,7 +16,7 @@ export class CustomException extends Error {
     this.name = 'CustomException';
   }
 
-  toResponseBody(): Record<string, unknown> {
+  toResponseBody(): ApiErrorBody {
     return { code: this.code, description: this.description };
   }
 }
@@ -29,7 +30,7 @@ export class ValidationException extends CustomException {
     this.name = 'ValidationException';
   }
 
-  override toResponseBody(): Record<string, unknown> {
-    return { code: this.code, issues: this.issues };
+  override toResponseBody(): ApiValidationErrorBody {
+    return { code: this.code, description: this.description, issues: this.issues };
   }
 }

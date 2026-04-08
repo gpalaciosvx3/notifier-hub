@@ -1,18 +1,34 @@
-import { APIGatewayProxyResultV2 } from 'aws-lambda';
+import { APIGatewayProxyResult } from 'aws-lambda';
 import { CustomException } from '../errors/custom.exception';
 import { ErrorDictionary } from '../errors/error.dictionary';
+import { ApiSuccessBody, ApiErrorBody } from '../types/api-response.types';
 
 export class ApiGwHelper {
-  static succes<T>(statusCode: number, datos: T): APIGatewayProxyResultV2 {
-    return { statusCode, body: JSON.stringify(datos) };
+  static success<T>(statusCode: number, data: T, meta?: Record<string, unknown>): APIGatewayProxyResult {
+    const body: ApiSuccessBody<T> = { data, ...(meta && { meta }) };
+    return {
+      statusCode,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    };
   }
 
-  static error(error: unknown): APIGatewayProxyResultV2 {
+  static error(error: unknown): APIGatewayProxyResult {
     if (error instanceof CustomException) {
-      return { statusCode: error.statusCode, body: JSON.stringify(error.toResponseBody()) };
+      const body: ApiErrorBody = error.toResponseBody();
+      return {
+        statusCode: error.statusCode,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      };
     }
     const detalle = error instanceof Error ? error.message : String(error);
     const excepcion = new CustomException(ErrorDictionary.INTERNAL_ERROR, detalle);
-    return { statusCode: excepcion.statusCode, body: JSON.stringify(excepcion.toResponseBody()) };
+    const body: ApiErrorBody = excepcion.toResponseBody();
+    return {
+      statusCode: excepcion.statusCode,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    };
   }
 }

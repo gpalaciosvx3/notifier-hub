@@ -1,5 +1,5 @@
 import { Injectable, HttpStatus, Logger } from '@nestjs/common';
-import { APIGatewayProxyResultV2 } from 'aws-lambda';
+import { APIGatewayProxyResult } from 'aws-lambda';
 import { ApiGwExtracted } from '../../../common/middleware/types/lambda-event.types';
 import { EnqueueNotificationUseCase } from '../../application/use-cases/enqueue-notification.usecase';
 import { ApiGwHelper } from '../../../common/helpers/api-gw.helper';
@@ -10,10 +10,10 @@ export class EnqueueController {
 
   constructor(private readonly useCase: EnqueueNotificationUseCase) {}
 
-  async handle(event: ApiGwExtracted): Promise<APIGatewayProxyResultV2> {
+  async handle(event: ApiGwExtracted): Promise<APIGatewayProxyResult> {
     try {
       const notificationId = await this.useCase.execute(event.body);
-      return ApiGwHelper.succes(HttpStatus.ACCEPTED, { notificationId });
+      return ApiGwHelper.success(HttpStatus.ACCEPTED, { notificationId });
     } catch (error) {
       this.logger.error('Error encolando notificación', error);
       return ApiGwHelper.error(error);
