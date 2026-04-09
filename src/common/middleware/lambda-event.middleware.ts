@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyEventV2, SQSEvent } from 'aws-lambda';
-import { ApiGwExtracted, SqsExtracted, LambdaExtracted } from './types/lambda-event.types';
+import { LambdaExtracted } from './types/lambda-event.types';
 
 export class LambdaEventMiddleware {
   static extract(event: unknown): LambdaExtracted {
