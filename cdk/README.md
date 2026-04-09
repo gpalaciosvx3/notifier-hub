@@ -1,80 +1,176 @@
 # notifier-hub — CDK
 
-## Instalación global (una sola vez)
+Infraestructura AWS del proyecto `notifier-hub`, definida con AWS CDK (TypeScript).
+
+---
+
+## Índice
+
+- [Estructura](#estructura)
+- [Requisitos](#requisitos)
+- [Instalación](#instalación)
+- [Desarrollo en LocalStack](#desarrollo-en-localstack)
+- [Despliegue en AWS](#despliegue-en-aws)
+- [Comandos de referencia](#comandos-de-referencia)
+- [Stages y configuración](#stages-y-configuración)
+- [Recursos desplegados](#recursos-desplegados)
+
+---
+
+## Estructura
+
+```
+cdk/
+  bin/
+    notifier-hub.ts       # Entry point — resuelve stage → config → stack
+  lib/
+    notifier-hub.stack.ts # Stack principal
+    constructs/
+      api-gateway/        # REST API v1, API Key, Usage Plan
+      cloudwatch/         # Log groups por Lambda
+      dynamodb/           # Tabla de notificaciones
+      iam/                # Rol de ejecución compartido
+      lambda/             # Una construct por función Lambda
+      sqs/                # Cola principal + DLQ
+  common/
+    constants/            # NamingConstants, ResourceConstants, InfraConstants
+    stages/               # local.stage.ts, dev.stage.ts
+    types/                # StageConfig
+  docker-compose.yml      # LocalStack Pro para desarrollo local
+```
+
+---
+
+## Requisitos
+
+- Node.js 20+
+- Docker (para LocalStack)
+- `LOCALSTACK_AUTH_TOKEN` en `.env` (LocalStack Pro)
+
+---
+
+## Instalación
 
 ```bash
-npm install -g aws-cdk aws-cdk-local awslocal
+# Instalar dependencias CDK
 cd cdk && npm install
+
+# Instalar CLI global (una sola vez)
+npm install -g aws-cdk aws-cdk-local
+pip install awscli-local
 ```
 
 ---
 
-## Local (LocalStack)
+## Desarrollo en LocalStack
 
-**1. Levantar LocalStack**
-```bash
-docker run --rm -d --name localstack -p 4566:4566 \
-  -e SERVICES=dynamodb,sqs,lambda,apigateway,iam,logs,ses,sns \
-  -e DEFAULT_REGION=us-east-1 \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  localstack/localstack
-```
+> Copiar `.env.example` a `.env` y completar `LOCALSTACK_AUTH_TOKEN`.
 
-**2. Bootstrap** _(una vez por contenedor)_
 ```bash
-AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1 \
+# Levantar LocalStack
+docker compose up -d
+
+# Bootstrap (una vez por contenedor)
 cdklocal bootstrap
+
+# Deploy
+CDK_STAGE=local cdklocal deploy --require-approval never
+
+# Preview de cambios
+CDK_STAGE=local cdklocal diff
+
+# Destruir
+cdklocal destroy --force
 ```
 
-**3. Deploy / Diff / Destroy**
+### Scripts disponibles
+
 ```bash
-npm run deploy:local
-npm run diff:local
-npm run destroy:local
+npm run setup:local      # bootstrap + deploy + verificar SES
+npm run deploy:local     # solo deploy
+npm run diff:local       # diff
+npm run destroy:local    # destruir stack
 ```
 
 ---
 
-## AWS dev
+## Despliegue en AWS
 
-**1. Configurar credenciales**
 ```bash
-aws configure
+# Bootstrap (una vez por cuenta/región)
+CDK_STAGE=dev cdk bootstrap aws://<ACCOUNT_ID>/us-east-1
+
+# Preview
+CDK_STAGE=dev cdk diff
+
+# Deploy
+CDK_STAGE=dev cdk deploy --require-approval never
 ```
 
-**2. Bootstrap** _(una vez por cuenta/región)_
-```bash
-CDK_STAGE=dev cdk bootstrap
-```
+### Scripts disponibles
 
-**3. Deploy / Diff**
 ```bash
-SES_SOURCE_EMAIL=noreply@tudominio.com npm run deploy:dev
-SES_SOURCE_EMAIL=noreply@tudominio.com npm run diff:dev
+npm run deploy:dev       # deploy a AWS DEV
+npm run diff:dev         # diff en AWS DEV
 ```
-
-> `SES_SOURCE_EMAIL` debe ser un email verificado en SES.
 
 ---
 
-## Comandos útiles (LocalStack)
+## Comandos de referencia
+
+### Verificar recursos en LocalStack
 
 ```bash
-# Listar todas las APIs creadas
-awslocal apigatewayv2 get-apis
-
-# Con el API ID del output anterior:
-awslocal apigatewayv2 get-routes --api-id <api-id>
-awslocal apigatewayv2 get-stages --api-id <api-id>
-awslocal apigatewayv2 get-integrations --api-id <api-id>
+# API Gateway
+awslocal apigateway get-rest-apis
+awslocal apigateway get-stages --rest-api-id <api-id>
 
 # Lambda
 awslocal lambda list-functions --query 'Functions[*].FunctionName'
 
 # DynamoDB
-awslocal dynamodb scan --table-name notifications
+awslocal dynamodb list-tables
+awslocal dynamodb scan --table-name UE1NOTIFIERDDB001
+
+# SQS
+awslocal sqs list-queues
 
 # SES
-awslocal ses get-send-statistics
+awslocal ses list-identities
 ```
+
+---
+
+## Stages y configuración
+
+| Stage | Branch | Cuenta |
+|---|---|---|
+| `local` | `local` | `000000000000` (LocalStack) |
+| `dev` | `develop` | `CDK_DEFAULT_ACCOUNT` |
+| `qa` | `release` | pendiente |
+| `prd` | `master` | pendiente |
+
+El stage se controla con la variable `CDK_STAGE`:
+
+```bash
+CDK_STAGE=dev cdk deploy ...
+```
+
+Para agregar un nuevo stage: crear `cdk/common/stages/qa.stage.ts` y extender el `switch` en `bin/notifier-hub.ts`.
+
+---
+
+## Recursos desplegados
+
+| Recurso | Nombre lógico | Nombre físico |
+|---|---|---|
+| DynamoDB Table | `NotificationsTable` | `UE1NOTIFIERDDB001` |
+| SQS Main Queue | `MainQueue` | `UE1NOTIFIERSQS001` |
+| SQS Dead Letter Queue | `DeadLetterQueue` | `UE1NOTIFIERSQS002` |
+| Lambda Enqueue | `EnqueueFn` | `UE1NOTIFIERLMB001` |
+| Lambda Query | `QueryFn` | `UE1NOTIFIERLMB002` |
+| Lambda Worker | `WorkerFn` | `UE1NOTIFIERLMB003` |
+| Lambda DLQ Processor | `DlqProcessorFn` | `UE1NOTIFIERLMB004` |
+| API Gateway REST | `HttpApi` | `UE1NOTIFIERGTW001` |
+| IAM Role | `WorkerRole` | `UE1NOTIFIERROL001` |
 
