@@ -4,8 +4,7 @@
   "description": "Servicio de notificación multicanal - EMAIL (SES) + SMS (SNS)",
   "scripts": {
     "build": "tsc --noEmit",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "jest --coverage",
     "local:enqueue": "ts-node local-test/enqueue.runner.ts",
     "local:query": "ts-node local-test/query.runner.ts",
     "local:query:id": "ts-node local-test/query.runner.ts id",
