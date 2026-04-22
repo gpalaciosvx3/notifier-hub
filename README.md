@@ -160,7 +160,6 @@ npm test
 
 | Archivo | Trigger | Acción |
 |---|---|---|
-| `local.yml` | `push` a `local` | Deploy en LocalStack + tests BDD |
 | `dev.yml` | `push` a `develop` | Deploy en AWS DEV |
 | `qa.yml` | `push` a `release` | Deploy en AWS QA |
 | `prd.yml` | `push` a `master` | Deploy en AWS PRD |
@@ -178,10 +177,3 @@ CDK_DEFAULT_ACCOUNT
 AWS_DEFAULT_REGION
 SES_SOURCE_EMAIL
 ```
-
-**`deployer-local`:**
-```
-LOCALSTACK_AUTH_TOKEN
-```
-
----
