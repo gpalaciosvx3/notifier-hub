@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EnvValidationMiddleware } from '../../../common/middleware/env-validation.middleware';
 import { EnvConstants } from '../../../common/constants/env.constants';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
+import { SqsClient } from '../../../common/sqs/sqs.client';
 import { envConfig } from '../../../common/config/env.config';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
 import { NotificationSqsRepository } from '../../domain/repository/notification.sqs.repository';
@@ -15,6 +16,7 @@ import { EnqueueController } from '../controller/enqueue.controller';
 @Module({
   providers: [
     { provide: DynamoClient, useFactory: () => new DynamoClient() },
+    { provide: SqsClient, useFactory: () => new SqsClient() },
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_ENQUEUE),
     {
       provide: NotificationService,
@@ -32,7 +34,8 @@ import { EnqueueController } from '../controller/enqueue.controller';
     },
     {
       provide: NotificationSqsRepository,
-      useFactory: () => new NotificationSqsRepositoryImpl(envConfig.notificationsQueueUrl),
+      useFactory: (sqs: SqsClient) => new NotificationSqsRepositoryImpl(sqs, envConfig.notificationsQueueUrl),
+      inject: [SqsClient],
     },
     {
       provide: EnqueueNotificationUseCase,

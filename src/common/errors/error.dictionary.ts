@@ -78,4 +78,22 @@ export class ErrorDictionary {
     descripcion: 'Servicio de base de datos DynamoDB no disponible',
     statusCode: HttpStatus.SERVICE_UNAVAILABLE,
   };
+
+  static readonly SQS_UNAVAILABLE: InputError = {
+    code: 'NTF-013',
+    descripcion: 'Servicio de mensajería SQS no disponible',
+    statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+  };
+
+  static readonly SES_UNAVAILABLE: InputError = {
+    code: 'NTF-014',
+    descripcion: 'Servicio de envío de email SES no disponible',
+    statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+  };
+
+  static readonly SNS_UNAVAILABLE: InputError = {
+    code: 'NTF-015',
+    descripcion: 'Servicio de mensajería SNS no disponible',
+    statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+  };
 }
