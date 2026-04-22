@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EnvValidationMiddleware } from '../../../common/middleware/env-validation.middleware';
 import { EnvConstants } from '../../../common/constants/env.constants';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
+import { envConfig } from '../../../common/config/env.config';
 import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
@@ -20,10 +21,11 @@ import { WorkerController } from '../controller/worker.controller';
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_WORKER),
     {
       provide: NotificationDbRepository,
-      useFactory: (dynamo: DynamoClient) => new NotificationDbRepositoryImpl(dynamo),
+      useFactory: (dynamo: DynamoClient) =>
+        new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable),
       inject: [DynamoClient],
     },
-    { provide: SesSenderRepository, useFactory: () => new SesSenderRepositoryImpl() },
+    { provide: SesSenderRepository, useFactory: () => new SesSenderRepositoryImpl(envConfig.sesSourceEmail) },
     { provide: SnsSenderRepository, useFactory: () => new SnsSenderRepositoryImpl() },
     {
       provide: ChannelRouterService,

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EnvValidationMiddleware } from '../../../common/middleware/env-validation.middleware';
 import { EnvConstants } from '../../../common/constants/env.constants';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
+import { envConfig } from '../../../common/config/env.config';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
 import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
 import { DlqBatchService } from '../../domain/service/dlq-batch.service';
@@ -14,7 +15,8 @@ import { DlqController } from '../controller/dlq.controller';
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_DLQ),
     {
       provide: NotificationDbRepository,
-      useFactory: (dynamo: DynamoClient) => new NotificationDbRepositoryImpl(dynamo),
+      useFactory: (dynamo: DynamoClient) =>
+        new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable),
       inject: [DynamoClient],
     },
     {

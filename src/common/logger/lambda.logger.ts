@@ -9,9 +9,11 @@ export class LambdaLogger extends ConsoleLogger {
   ): void {
     const level = logLevel.toUpperCase().padEnd(5);
     const ctx   = context ? `[${context}]` : '';
+    const time  = new Date().toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour12: false })
+                + '.' + String(new Date().getMilliseconds()).padStart(3, '0');
 
     messages.forEach(message => {
-      const line = `${ctx} ${level} - ${String(message)}`;
+      const line = `${time} ${ctx} ${level} - ${String(message)}`;
       process[writeStreamType ?? 'stdout'].write(line + '\n');
     });
   }

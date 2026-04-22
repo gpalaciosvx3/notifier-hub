@@ -2,17 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
-import { envConfig } from '../../../common/config/env.config';
 
 @Injectable()
 export class NotificationDbRepositoryImpl extends NotificationDbRepository {
-  constructor(private readonly dynamo: DynamoClient) {
+  constructor(
+    private readonly dynamo: DynamoClient,
+    private readonly tableName: string,
+  ) {
     super();
   }
 
   async updateStatus(notificationId: string, status: NotificationStatus): Promise<boolean> {
     return this.dynamo.updateIfExists(
-      envConfig.notificationsTable,
+      this.tableName,
       { notificationId },
       { status, updatedAt: new Date().toISOString() },
     );

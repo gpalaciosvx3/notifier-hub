@@ -3,6 +3,7 @@ import { APIGatewayProxyResult } from 'aws-lambda';
 import { ApiGwExtracted } from '../../../common/middleware/types/lambda-event.types';
 import { GetNotificationUseCase } from '../../application/use-cases/get-notification.usecase';
 import { ApiGwHelper } from '../../../common/helpers/api-gw.helper';
+import { HandleExecution } from '../../../common/decorator/handle-execution.decorator';
 
 @Injectable()
 export class QueryController {
@@ -10,6 +11,7 @@ export class QueryController {
 
   constructor(private readonly useCase: GetNotificationUseCase) {}
 
+  @HandleExecution('QUERY')  
   async handle(event: ApiGwExtracted): Promise<APIGatewayProxyResult> {
     try {
       return ApiGwHelper.success(HttpStatus.OK, await this.useCase.execute({
