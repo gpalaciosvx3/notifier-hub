@@ -1,17 +1,17 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
-import { NotificationService } from '../../../src/enqueue/domain/service/notification.service';
-import { BuildNotificationCommand } from '../../../src/enqueue/domain/commands/build-notification.command';
-import { EnqueueNotificationUseCase } from '../../../src/enqueue/application/use-cases/enqueue-notification.usecase';
-import { NotificationDbRepository } from '../../../src/enqueue/domain/repository/notification.db.repository';
-import { NotificationSqsRepository } from '../../../src/enqueue/domain/repository/notification.sqs.repository';
-import { NotificationEntity } from '../../../src/common/entities/notification.entity';
-import { NotificationChannel } from '../../../src/common/constants/notification-channel.constants';
-import { NotificationProvider } from '../../../src/common/constants/notification-provider.constants';
-import { NotificationStatus } from '../../../src/common/constants/notification-status.constants';
-import { CustomException, ValidationException } from '../../../src/common/errors/custom.exception';
+import { NotificationService } from '../../src/enqueue/domain/service/notification.service';
+import { BuildNotificationCommand } from '../../src/enqueue/domain/commands/build-notification.command';
+import { EnqueueNotificationUseCase } from '../../src/enqueue/application/use-cases/enqueue-notification.usecase';
+import { NotificationDbRepository } from '../../src/enqueue/domain/repository/notification.db.repository';
+import { NotificationSqsRepository } from '../../src/enqueue/domain/repository/notification.sqs.repository';
+import { NotificationEntity } from '../../src/common/entities/notification.entity';
+import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
+import { NotificationProvider } from '../../src/common/constants/notification-provider.constants';
+import { NotificationStatus } from '../../src/common/constants/notification-status.constants';
+import { CustomException, ValidationException } from '../../src/common/errors/custom.exception';
 
-const feature = loadFeature('./test/modules/enqueue/features/enqueue.feature');
+const feature = loadFeature('./test/enqueue/features/enqueue.feature');
 
 defineFeature(feature, test => {
   test('Construir una notificación de email válida crea una entidad PENDING', ({ given, when, then, and }) => {
@@ -20,7 +20,7 @@ defineFeature(feature, test => {
     let entity: NotificationEntity;
 
     given('un comando de construcción para canal "email", destinatario "user@example.com", asunto "Hello", proveedor "ses" y cuerpo "Test body"', () => {
-      service = new NotificationService();
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS);
       command = new BuildNotificationCommand(NotificationChannel.EMAIL, 'user@example.com', 'Test body', NotificationProvider.SES, 'Hello');
     });
 
@@ -47,7 +47,7 @@ defineFeature(feature, test => {
     let error: CustomException;
 
     given(/un comando de construcción para canal "(.+)", destinatario "(.+)", asunto "(.*)", proveedor "(.+)" y cuerpo "Test body"/, (canal, destinatario, asunto, proveedor) => {
-      service = new NotificationService();
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS);
       command = new BuildNotificationCommand(
         canal as NotificationChannel,
         destinatario,
@@ -73,7 +73,7 @@ defineFeature(feature, test => {
     let entity: NotificationEntity;
 
     given('un comando de construcción para canal "sms", destinatario "+15551234567", proveedor "sns" y cuerpo "Test body"', () => {
-      service = new NotificationService();
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS);
       command = new BuildNotificationCommand(NotificationChannel.SMS, '+15551234567', 'Test body', NotificationProvider.SNS);
     });
 
@@ -98,7 +98,7 @@ defineFeature(feature, test => {
     let notificationId: string;
 
     given('un payload de encolar válido con canal "email", destinatario "user@example.com", asunto "Hello" y cuerpo "Test body"', () => {
-      useCase = new EnqueueNotificationUseCase(new NotificationService(), mockDb, mockSqs);
+      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS), mockDb, mockSqs);
       payload = { channel: 'email', to: 'user@example.com', subject: 'Hello', body: 'Test body', provider: 'ses' };
     });
 
@@ -128,7 +128,7 @@ defineFeature(feature, test => {
     let error: ValidationException;
 
     given('un payload de encolar sin el campo canal', () => {
-      useCase = new EnqueueNotificationUseCase(new NotificationService(), mockDb, mockSqs);
+      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS), mockDb, mockSqs);
       payload = { to: 'user@example.com', body: 'Test body' };
     });
 

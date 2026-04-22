@@ -1,19 +1,19 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
-import { ChannelRouterService } from '../../../src/worker/domain/service/channel-router.service';
-import { ProcessingService } from '../../../src/worker/domain/service/processing.service';
-import { ProcessBatchUseCase } from '../../../src/worker/application/use-cases/process-batch.usecase';
-import { NotificationDbRepository } from '../../../src/worker/domain/repository/notification.db.repository';
-import { NotificationSenderRepository } from '../../../src/worker/domain/repository/notification.sender.repository';
-import { NotificationEntity } from '../../../src/common/entities/notification.entity';
-import { NotificationChannel } from '../../../src/common/constants/notification-channel.constants';
-import { NotificationProvider } from '../../../src/common/constants/notification-provider.constants';
-import { NotificationStatus } from '../../../src/common/constants/notification-status.constants';
-import { CustomException } from '../../../src/common/errors/custom.exception';
-import { ErrorDictionary } from '../../../src/common/errors/error.dictionary';
-import { SqsMessage } from '../../../src/common/middleware/types/lambda-event.types';
+import { ChannelRouterService } from '../../src/worker/domain/service/channel-router.service';
+import { ProcessingService } from '../../src/worker/domain/service/processing.service';
+import { ProcessBatchUseCase } from '../../src/worker/application/use-cases/process-batch.usecase';
+import { NotificationDbRepository } from '../../src/worker/domain/repository/notification.db.repository';
+import { NotificationSenderRepository } from '../../src/worker/domain/repository/notification.sender.repository';
+import { NotificationEntity } from '../../src/common/entities/notification.entity';
+import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
+import { NotificationProvider } from '../../src/common/constants/notification-provider.constants';
+import { NotificationStatus } from '../../src/common/constants/notification-status.constants';
+import { CustomException } from '../../src/common/errors/custom.exception';
+import { ErrorDictionary } from '../../src/common/errors/error.dictionary';
+import { SqsMessage } from '../../src/common/middleware/types/lambda-event.types';
 
-const feature = loadFeature('./test/modules/worker/features/worker.feature');
+const feature = loadFeature('./test/worker/features/worker.feature');
 
 const buildNotification = (): NotificationEntity =>
   NotificationEntity.build({

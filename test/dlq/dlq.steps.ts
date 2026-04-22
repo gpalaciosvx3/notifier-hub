@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
-import { DlqBatchService } from '../../../src/dlq/domain/service/dlq-batch.service';
-import { MarkBatchFailedPermanentUseCase } from '../../../src/dlq/application/use-cases/mark-batch-failed-permanent.usecase';
-import { NotificationDbRepository } from '../../../src/dlq/domain/repository/notification.db.repository';
-import { CustomException } from '../../../src/common/errors/custom.exception';
-import { SqsMessage } from '../../../src/common/middleware/types/lambda-event.types';
+import { DlqBatchService } from '../../src/dlq/domain/service/dlq-batch.service';
+import { MarkBatchFailedPermanentUseCase } from '../../src/dlq/application/use-cases/mark-batch-failed-permanent.usecase';
+import { NotificationDbRepository } from '../../src/dlq/domain/repository/notification.db.repository';
+import { CustomException } from '../../src/common/errors/custom.exception';
+import { SqsMessage } from '../../src/common/middleware/types/lambda-event.types';
 
-const feature = loadFeature('./test/modules/dlq/features/dlq.feature');
+const feature = loadFeature('./test/dlq/features/dlq.feature');
 
 const buildRecord = (notificationId: string): SqsMessage => ({
   messageId: `msg-${notificationId}`,

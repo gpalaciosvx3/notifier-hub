@@ -1,16 +1,16 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
-import { QueryService } from '../../../src/query/domain/service/query.service';
-import { GetNotificationUseCase } from '../../../src/query/application/use-cases/get-notification.usecase';
-import { NotificationDbRepository } from '../../../src/query/domain/repository/notification.db.repository';
-import { SearchNotificationCommand } from '../../../src/query/domain/commands/search-notification.command';
-import { NotificationEntity } from '../../../src/common/entities/notification.entity';
-import { NotificationChannel } from '../../../src/common/constants/notification-channel.constants';
-import { NotificationProvider } from '../../../src/common/constants/notification-provider.constants';
-import { NotificationStatus } from '../../../src/common/constants/notification-status.constants';
-import { CustomException, ValidationException } from '../../../src/common/errors/custom.exception';
+import { QueryService } from '../../src/query/domain/service/query.service';
+import { GetNotificationUseCase } from '../../src/query/application/use-cases/get-notification.usecase';
+import { NotificationDbRepository } from '../../src/query/domain/repository/notification.db.repository';
+import { SearchNotificationCommand } from '../../src/query/domain/commands/search-notification.command';
+import { NotificationEntity } from '../../src/common/entities/notification.entity';
+import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
+import { NotificationProvider } from '../../src/common/constants/notification-provider.constants';
+import { NotificationStatus } from '../../src/common/constants/notification-status.constants';
+import { CustomException, ValidationException } from '../../src/common/errors/custom.exception';
 
-const feature = loadFeature('./test/modules/query/features/query.feature');
+const feature = loadFeature('./test/query/features/query.feature');
 
 const buildNotification = (id?: string): NotificationEntity =>
   NotificationEntity.build({
