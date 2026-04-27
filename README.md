@@ -7,11 +7,8 @@ Servicio backend centralizado para envío de notificaciones multi-canal (email, 
 ## Índice
 
 - [Arquitectura](#arquitectura)
-- [Canales soportados](#canales-soportados)
 - [API Reference](#api-reference)
-  - [POST /v1/notify](#post-v1notify)
-  - [GET /v1/notifications/{id}](#get-v1notificationsid)
-  - [GET /v1/notifications](#get-v1notifications)
+  - [Endpoints](#api-reference)
   - [Códigos de error](#códigos-de-error)
 - [Instalación y desarrollo local](#instalación-y-desarrollo-local)
 - [CI/CD](#cicd)
