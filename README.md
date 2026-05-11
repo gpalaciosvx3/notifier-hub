@@ -157,16 +157,14 @@ npm test
 
 | Archivo | Trigger | Acción |
 |---|---|---|
-| `dev.yml` | `push` a `develop` | Deploy en AWS DEV |
-| `qa.yml` | `push` a `release` | Deploy en AWS QA |
-| `prd.yml` | `push` a `master` | Deploy en AWS PRD |
+| `deploy.yml` | `push` a `master` | Deploy en AWS |
 | `destroy.yml` | Manual (`workflow_dispatch`) | Destruye el stack del stage seleccionado |
 
 ### Secretos requeridos
 
 Configurar en GitHub → Settings → Environments:
 
-**`deployer-dev` / `deployer-qa` / `deployer-prd`:**
+**`deployer`:**
 ```
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
