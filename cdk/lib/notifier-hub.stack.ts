@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { StageConfig } from '../common/types/stage-config.types';
 import { NotificationsTableConstruct } from './constructs/dynamodb/notifications-table.construct';
 import { DeadLetterQueueConstruct } from './constructs/sqs/dead-letter-queue.construct';
 import { MainQueueConstruct } from './constructs/sqs/main-queue.construct';
@@ -11,7 +10,7 @@ import { DlqProcessorFnConstruct } from './constructs/lambda/dlq-processor/dlq-p
 import { HttpApiConstruct } from './constructs/api-gateway/http-api.construct';
 
 interface NotifierHubStackProps extends cdk.StackProps {
-  config: StageConfig;
+  sesSourceEmail: string;
 }
 
 export class NotifierHubStack extends cdk.Stack {
@@ -25,7 +24,7 @@ export class NotifierHubStack extends cdk.Stack {
     const enqueueFn = new EnqueueFnConstruct(this, 'EnqueueFn', {
       table: db.table,
       queue: queue.queue,
-      sesSourceEmail: props.config.sesSourceEmail,
+      sesSourceEmail: props.sesSourceEmail,
     });
 
     const queryFn = new QueryFnConstruct(this, 'QueryFn', { table: db.table });
@@ -33,7 +32,7 @@ export class NotifierHubStack extends cdk.Stack {
     new WorkerFnConstruct(this, 'WorkerFn', {
       table: db.table,
       queue: queue.queue,
-      sesSourceEmail: props.config.sesSourceEmail,
+      sesSourceEmail: props.sesSourceEmail,
     });
 
     new DlqProcessorFnConstruct(this, 'DlqProcessorFn', {
@@ -44,7 +43,6 @@ export class NotifierHubStack extends cdk.Stack {
     const api = new HttpApiConstruct(this, 'HttpApi', {
       enqueueFn: enqueueFn.fn,
       queryFn: queryFn.fn,
-      stage: props.config.stage,
     });
 
     new cdk.CfnOutput(this, 'ApiUrl',  { value: api.url, description: 'API Gateway URL' });

@@ -1,17 +1,17 @@
-name: DEV · AWS  
+name: Deploy · AWS
 
 on:
   pull_request:
-    branches: [develop]
+    branches: [master]
   push:
-    branches: [develop]
+    branches: [master]
 
 jobs:
   build:
     if: github.event_name == 'pull_request'
     name: Validación y pruebas
     runs-on: ubuntu-latest
-    environment: deployer-dev
+    environment: deployer
     steps:
       - name: Obtener código fuente
         uses: actions/checkout@v4
@@ -42,7 +42,6 @@ jobs:
       - name: Validar plantilla CDK
         working-directory: cdk
         env:
-          CDK_STAGE: dev
           CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_DEFAULT_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}
@@ -59,9 +58,9 @@ jobs:
 
   deploy:
     if: github.event_name == 'push'
-    name: Despliegue en AWS DEV
+    name: Despliegue en AWS
     runs-on: ubuntu-latest
-    environment: deployer-dev
+    environment: deployer
     steps:
       - name: Obtener código fuente
         uses: actions/checkout@v4
@@ -93,16 +92,14 @@ jobs:
       - name: Bootstrap del entorno CDK
         working-directory: cdk
         env:
-          CDK_STAGE: dev
           CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_DEFAULT_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}
         run: npx cdk bootstrap aws://${{ secrets.CDK_DEFAULT_ACCOUNT }}/${{ secrets.AWS_DEFAULT_REGION }}
 
-      - name: Desplegar stack en AWS DEV
+      - name: Desplegar stack en AWS
         working-directory: cdk
         env:
-          CDK_STAGE: dev
           CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_DEFAULT_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           SES_SOURCE_EMAIL: ${{ secrets.SES_SOURCE_EMAIL }}

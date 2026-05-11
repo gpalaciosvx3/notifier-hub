@@ -8,9 +8,7 @@
     "bootstrap:local": "cdklocal bootstrap",
     "deploy:local": "cdklocal deploy --require-approval never",
     "diff:local": "cdklocal diff",
-    "destroy:local": "cdklocal destroy --force",
-    "deploy:dev": "CDK_STAGE=dev cdk deploy --require-approval never",
-    "diff:dev": "CDK_STAGE=dev cdk diff"
+    "destroy:local": "cdklocal destroy --force"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.140.0",

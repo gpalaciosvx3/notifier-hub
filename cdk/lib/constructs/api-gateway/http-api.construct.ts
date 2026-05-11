@@ -6,7 +6,6 @@ import { ResourceConstants } from '../../../common/constants/resource.constants'
 interface HttpApiProps {
   enqueueFn: lambda.IFunction;
   queryFn: lambda.IFunction;
-  stage: string;
 }
 
 export class HttpApiConstruct extends Construct {
@@ -19,7 +18,7 @@ export class HttpApiConstruct extends Construct {
       restApiName: ResourceConstants.API_NAME,
       description: 'API HTTP para recepción y consulta de notificaciones multicanal',
       deployOptions: {
-        stageName: props.stage,
+        stageName: 'prod',
       },
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
