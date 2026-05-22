@@ -5,11 +5,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "test": "jest --coverage",
-    "local:enqueue": "ts-node local-test/enqueue.runner.ts",
-    "local:query": "ts-node local-test/query.runner.ts",
-    "local:query:id": "ts-node local-test/query.runner.ts id",
-    "local:worker": "ts-node local-test/worker.runner.ts",
-    "local:dlq": "ts-node local-test/dlq.runner.ts"
+    "local:templates": "ts-node runners/templates-seed.runner.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.600.0",

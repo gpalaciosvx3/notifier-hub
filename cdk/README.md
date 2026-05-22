@@ -6,11 +6,13 @@ Infraestructura AWS del proyecto `notifier-hub`, definida con AWS CDK (TypeScrip
 
 ## Índice
 
+- [Índice](#índice)
 - [Estructura](#estructura)
 - [Requisitos](#requisitos)
 - [Instalación](#instalación)
 - [Desarrollo en LocalStack](#desarrollo-en-localstack)
 - [Despliegue en AWS](#despliegue-en-aws)
+- [Gestión de plantillas](#gestión-de-plantillas)
 - [Comandos de referencia](#comandos-de-referencia)
 - [Recursos desplegados](#recursos-desplegados)
 
@@ -108,6 +110,57 @@ cdk deploy --require-approval never
 
 ## Comandos de referencia
 
+### Gestión de plantillas
+
+Las plantillas se administran directamente en DynamoDB via CLI — no existe un endpoint de gestión.
+La tabla usa `templateId` (PK) + `version` (SK numérico). La versión más alta con `active: true` es la activa.
+
+**Crear o actualizar un template (LocalStack):**
+
+```bash
+awslocal dynamodb put-item \
+  --table-name UE1NOTIFIERDDB002 \
+  --item '{
+    "templateId": {"S": "password-reset"},
+    "version":    {"N": "1"},
+    "channel":    {"S": "email"},
+    "provider":   {"S": "ses"},
+    "subject":    {"S": "Restablece tu contraseña — {{user.name}}"},
+    "body":       {"S": "<p>Usa el código <b>{{token}}</b>. Expira en {{expiry}}.</p>"},
+    "active":     {"BOOL": true},
+    "createdAt":  {"S": "2026-05-22T10:00:00Z"}
+  }'
+```
+
+**Crear o actualizar un template (AWS):**
+
+```bash
+aws dynamodb put-item \
+  --table-name UE1NOTIFIERDDB002 \
+  --item '{
+    "templateId": {"S": "password-reset"},
+    "version":    {"N": "1"},
+    "channel":    {"S": "email"},
+    "provider":   {"S": "ses"},
+    "subject":    {"S": "Restablece tu contraseña — {{user.name}}"},
+    "body":       {"S": "<p>Usa el código <b>{{token}}</b>. Expira en {{expiry}}.</p>"},
+    "active":     {"BOOL": true},
+    "createdAt":  {"S": "2026-05-22T10:00:00Z"}
+  }'
+```
+
+**Nueva versión de un template existente:** incrementar `version`. El Lambda `enqueue` resuelve siempre la versión más alta con `active: true`.
+
+**Desactivar un template (soft delete):** poner `active: false` en la versión que corresponda.
+
+**Seed de datos de ejemplo (LocalStack):**
+
+```bash
+npx ts-node local-test/templates.seed.ts
+```
+
+---
+
 ### Verificar recursos en LocalStack
 
 ```bash
@@ -136,6 +189,7 @@ awslocal ses list-identities
 | Recurso | Nombre lógico | Nombre físico |
 |---|---|---|
 | DynamoDB Table | `NotificationsTable` | `UE1NOTIFIERDDB001` |
+| DynamoDB Table | `TemplatesTable` | `UE1NOTIFIERDDB002` |
 | SQS Main Queue | `MainQueue` | `UE1NOTIFIERSQS001` |
 | SQS Dead Letter Queue | `DeadLetterQueue` | `UE1NOTIFIERSQS002` |
 | Lambda Enqueue | `EnqueueFn` | `UE1NOTIFIERLMB001` |

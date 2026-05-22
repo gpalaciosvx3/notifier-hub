@@ -17,6 +17,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", "local-test/**/*", "test/**/*"],
+  "include": ["src/**/*", "runner/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
 }

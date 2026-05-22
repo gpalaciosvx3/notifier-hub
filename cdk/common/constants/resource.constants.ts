@@ -2,6 +2,8 @@ import { NamingConstants } from './naming.constants';
 
 export class ResourceConstants {
   static readonly TABLE_NAME            = NamingConstants.TBL_001;
+  static readonly TEMPLATES_TABLE_NAME  = NamingConstants.TBL_002;
+  static readonly TEMPLATES_CHANNEL_INDEX = 'channel-index';
   static readonly TABLE_STATUS_INDEX    = 'status-index';
   static readonly TABLE_TO_INDEX        = 'to-index';
   static readonly QUEUE_NAME            = NamingConstants.SQS_001;
