@@ -8,6 +8,9 @@ import { NotificationDbRepository } from '../../domain/repository/notification.d
 import { NotificationSqsRepository } from '../../domain/repository/notification.sqs.repository';
 import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
 import { NotificationSqsRepositoryImpl } from '../repository/notification.sqs.repository.impl';
+import { TemplateDbRepository } from '../../domain/repository/template.db.repository';
+import { TemplateDbRepositoryImpl } from '../repository/template.db.repository.impl';
+import { TemplateRenderService } from '../../domain/service/template.render.service';
 import { EnqueueNotificationUseCase } from '../../application/use-cases/enqueue-notification.usecase';
 import { NotificationService } from '../../domain/service/notification.service';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
@@ -30,6 +33,12 @@ import { EnqueueController } from '../controller/enqueue.controller';
       inject: [SqsClient],
     },
     {
+      provide: TemplateDbRepository,
+      useFactory: (dynamo: DynamoClient) =>
+        new TemplateDbRepositoryImpl(dynamo, envConfig.templatesTable),
+      inject: [DynamoClient],
+    },
+    {
       provide: NotificationService,
       useFactory: (db: NotificationDbRepository, sqs: NotificationSqsRepository) =>
         new NotificationService(
@@ -42,8 +51,9 @@ import { EnqueueController } from '../controller/enqueue.controller';
     },
     {
       provide: EnqueueNotificationUseCase,
-      useFactory: (svc: NotificationService) => new EnqueueNotificationUseCase(svc),
-      inject: [NotificationService],
+      useFactory: (svc: NotificationService, templateRepo: TemplateDbRepository) =>
+        new EnqueueNotificationUseCase(svc, templateRepo, new TemplateRenderService()),
+      inject: [NotificationService, TemplateDbRepository],
     },
     {
       provide: EnqueueController,
@@ -53,3 +63,4 @@ import { EnqueueController } from '../controller/enqueue.controller';
   ],
 })
 export class EnqueueModule {}
+

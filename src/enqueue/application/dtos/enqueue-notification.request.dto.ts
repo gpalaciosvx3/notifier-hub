@@ -26,7 +26,7 @@ const REGLAS_POR_CANAL: Record<NotificationChannel, ReglaCanalConfig> = {
   },
 };
 
-export const EnqueueNotificationSchema = z
+const InlineSchema = z
   .object({
     channel: z.nativeEnum(NotificationChannel),
     provider: z.nativeEnum(NotificationProvider).optional(),
@@ -46,4 +46,18 @@ export const EnqueueNotificationSchema = z
       .forEach(([, issue]) => ctx.addIssue({ code: z.ZodIssueCode.custom, ...issue }));
   });
 
+const TemplateSchema = z.object({
+  templateId: z.string().min(1),
+  to: z.string().min(1),
+  variables: z.record(z.unknown()).optional(),
+});
+
+export const EnqueueNotificationSchema = z.union([InlineSchema, TemplateSchema]);
+
+export type InlineNotificationDto   = z.infer<typeof InlineSchema>;
+export type TemplateNotificationDto = z.infer<typeof TemplateSchema>;
 export type EnqueueNotificationRequestDto = z.infer<typeof EnqueueNotificationSchema>;
+
+export const isTemplateRequest = (dto: EnqueueNotificationRequestDto): dto is TemplateNotificationDto =>
+  'templateId' in dto;
+

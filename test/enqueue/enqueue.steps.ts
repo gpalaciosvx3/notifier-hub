@@ -5,6 +5,8 @@ import { BuildNotificationCommand } from '../../src/enqueue/domain/commands/buil
 import { EnqueueNotificationUseCase } from '../../src/enqueue/application/use-cases/enqueue-notification.usecase';
 import { NotificationDbRepository } from '../../src/enqueue/domain/repository/notification.db.repository';
 import { NotificationSqsRepository } from '../../src/enqueue/domain/repository/notification.sqs.repository';
+import { TemplateDbRepository } from '../../src/enqueue/domain/repository/template.db.repository';
+import { TemplateRenderService } from '../../src/enqueue/domain/service/template.render.service';
 import { NotificationEntity } from '../../src/common/entities/notification.entity';
 import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../src/common/constants/notification-provider.constants';
@@ -104,7 +106,8 @@ defineFeature(feature, test => {
     let notificationId: string;
 
     given('un payload de encolar válido con canal "email", destinatario "user@example.com", asunto "Hello" y cuerpo "Test body"', () => {
-      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs));
+      const mockTemplateRepo = { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository;
+      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs), mockTemplateRepo, new TemplateRenderService());
       payload = { channel: 'email', to: 'user@example.com', subject: 'Hello', body: 'Test body', provider: 'ses' };
     });
 
@@ -134,7 +137,8 @@ defineFeature(feature, test => {
     let error: ValidationException;
 
     given('un payload de encolar sin el campo canal', () => {
-      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs));
+      const mockTemplateRepo = { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository;
+      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs), mockTemplateRepo, new TemplateRenderService());
       payload = { to: 'user@example.com', body: 'Test body' };
     });
 

@@ -106,6 +106,8 @@ export class DynamoClient {
         KeyConditionExpression: options.keyCondition,
         ExpressionAttributeNames: options.attributeNames,
         ExpressionAttributeValues: options.attributeValues,
+        Limit: options.limit,
+        ScanIndexForward: options.scanIndexForward,
       }));
       return (result.Items as T[]) ?? [];
     }, ErrorDictionary.DYNAMO_UNAVAILABLE);

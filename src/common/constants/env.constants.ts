@@ -1,5 +1,6 @@
 export class EnvConstants {
   static readonly NOTIFICATIONS_TABLE     = 'NOTIFICATIONS_TABLE';
+  static readonly TEMPLATES_TABLE         = 'TEMPLATES_TABLE';
   static readonly NOTIFICATIONS_QUEUE_URL = 'NOTIFICATIONS_QUEUE_URL';
   static readonly SES_SOURCE_EMAIL        = 'SES_SOURCE_EMAIL';
   static readonly AWS_REGION              = 'AWS_REGION';
@@ -18,6 +19,7 @@ export class EnvConstants {
   ];
   static readonly REQUERIDAS_ENQUEUE: readonly string[] = [
     EnvConstants.NOTIFICATIONS_TABLE,
+    EnvConstants.TEMPLATES_TABLE,
     EnvConstants.NOTIFICATIONS_QUEUE_URL,
     EnvConstants.SES_SOURCE_EMAIL,
   ];

@@ -18,27 +18,27 @@ export class NotifierHubStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: NotifierHubStackProps) {
     super(scope, id, props);
 
-    const db      = new NotificationsTableConstruct(this, 'NotificationsTable');
-    const templates = new TemplatesTableConstruct(this, 'TemplatesTable');
-    const dlq    = new DeadLetterQueueConstruct(this, 'DeadLetterQueue');
-    const queue  = new MainQueueConstruct(this, 'MainQueue', { dlq: dlq.queue });
+    const notifications   = new NotificationsTableConstruct(this, 'NotificationsTable');
+    const templates       = new TemplatesTableConstruct(this, 'TemplatesTable');
+    const dlq             = new DeadLetterQueueConstruct(this, 'DeadLetterQueue');
+    const queue           = new MainQueueConstruct(this, 'MainQueue', { dlq: dlq.queue });
 
     const enqueueFn = new EnqueueFnConstruct(this, 'EnqueueFn', {
-      table: db.table,
+      table: notifications.table,
       queue: queue.queue,
       sesSourceEmail: props.sesSourceEmail,
     });
 
-    const queryFn = new QueryFnConstruct(this, 'QueryFn', { table: db.table });
+    const queryFn = new QueryFnConstruct(this, 'QueryFn', { table: notifications.table });
 
     new WorkerFnConstruct(this, 'WorkerFn', {
-      table: db.table,
+      table: notifications.table,
       queue: queue.queue,
       sesSourceEmail: props.sesSourceEmail,
     });
 
     new DlqProcessorFnConstruct(this, 'DlqProcessorFn', {
-      table: db.table,
+      table: notifications.table,
       dlq: dlq.queue,
     });
 

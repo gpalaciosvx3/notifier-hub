@@ -5,17 +5,24 @@ import { NotificationProvider } from '../../../common/constants/notification-pro
 import { NotificationDbRepository } from '../repository/notification.db.repository';
 import { NotificationSqsRepository } from '../repository/notification.sqs.repository';
 import { NotificationInput } from '../types/notification-input.types';
+import { NotificationMapper } from '../mapper/notification.mapper';
 
 @Injectable()
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
+  private readonly defaultProviderByChannel: Record<NotificationChannel, NotificationProvider>;
 
   constructor(
-    private readonly defaultEmailProvider: NotificationProvider,
-    private readonly defaultSmsProvider: NotificationProvider,
+    defaultEmailProvider: NotificationProvider,
+    defaultSmsProvider: NotificationProvider,
     private readonly dbRepository: NotificationDbRepository,
     private readonly sqsRepository: NotificationSqsRepository,
-  ) {}
+  ) {
+    this.defaultProviderByChannel = {
+      [NotificationChannel.EMAIL]: defaultEmailProvider,
+      [NotificationChannel.SMS]: defaultSmsProvider,
+    };
+  }
 
   async enqueue(input: NotificationInput): Promise<string> {
     this.logger.log(`[PASO 1] Construyendo entidad de notificación => channel: ${input.channel} | to: ${input.to}`);
@@ -31,21 +38,7 @@ export class NotificationService {
   }
 
   build(input: NotificationInput): NotificationEntity {
-    const provider = input.provider ?? this.resolveDefaultProvider(input.channel);
-    return NotificationEntity.build({
-      channel: input.channel,
-      provider,
-      to: input.to,
-      subject: input.subject,
-      body: input.body,
-    });
-  }
-
-  private resolveDefaultProvider(channel: NotificationChannel): NotificationProvider {
-    const defaultProvider: Record<NotificationChannel, NotificationProvider> = {
-      [NotificationChannel.EMAIL]: this.defaultEmailProvider,
-      [NotificationChannel.SMS]: this.defaultSmsProvider,
-    };
-    return defaultProvider[channel];
+    const provider = input.provider ?? this.defaultProviderByChannel[input.channel];
+    return NotificationMapper.fromInput(input, provider);
   }
 }

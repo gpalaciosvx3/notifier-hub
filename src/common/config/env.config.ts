@@ -3,6 +3,7 @@ import { NotificationProvider } from '../constants/notification-provider.constan
 
 export const envConfig = {
   notificationsTable: process.env[EnvConstants.NOTIFICATIONS_TABLE] as string,
+  templatesTable: process.env[EnvConstants.TEMPLATES_TABLE] as string,
   notificationsQueueUrl: process.env[EnvConstants.NOTIFICATIONS_QUEUE_URL] as string,
   sesSourceEmail: process.env[EnvConstants.SES_SOURCE_EMAIL] as string,
   awsRegion: process.env[EnvConstants.AWS_REGION] ?? 'us-east-1',

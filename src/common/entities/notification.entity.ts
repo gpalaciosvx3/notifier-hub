@@ -41,6 +41,8 @@ export class NotificationEntity {
     public readonly updatedAt: string,
     public readonly subject?: string,
     public readonly failureReason?: string,
+    public readonly templateId?: string,
+    public readonly templateVersion?: number,
   ) {}
 
   static build(params: {
@@ -49,6 +51,8 @@ export class NotificationEntity {
     to: string;
     body: string;
     subject?: string;
+    templateId?: string;
+    templateVersion?: number;
   }): NotificationEntity {
     NotificationEntity.validateInvariants(params);
     const now = new Date().toISOString();
@@ -63,6 +67,9 @@ export class NotificationEntity {
       now,
       now,
       params.subject,
+      undefined,
+      params.templateId,
+      params.templateVersion,
     );
   }
 

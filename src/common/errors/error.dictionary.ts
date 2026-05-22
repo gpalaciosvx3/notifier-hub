@@ -79,6 +79,18 @@ export class ErrorDictionary {
     statusCode: HttpStatus.SERVICE_UNAVAILABLE,
   };
 
+  static readonly TEMPLATE_NOT_FOUND: InputError = {
+    code: 'NTF-013',
+    descripcion: 'El templateId indicado no existe o no tiene una versión activa',
+    statusCode: HttpStatus.BAD_REQUEST,
+  };
+
+  static readonly TEMPLATE_TOO_LARGE: InputError = {
+    code: 'NTF-014',
+    descripcion: 'La plantilla renderizada supera el límite de 50 KB',
+    statusCode: HttpStatus.BAD_REQUEST,
+  };
+
   static readonly SQS_UNAVAILABLE: InputError = {
     code: 'NTF-013',
     descripcion: 'Servicio de mensajería SQS no disponible',

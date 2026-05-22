@@ -1,12 +1,13 @@
 import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
 
-export type NotificationInput = {
+export type TemplateRecord = {
+  templateId: string;
+  version: number;
   channel: NotificationChannel;
-  to: string;
+  provider: NotificationProvider;
+  subject: string;
   body: string;
-  provider?: NotificationProvider;
-  subject?: string;
-  templateId?: string;
-  templateVersion?: number;
+  active: boolean;
+  createdAt: string;
 };
