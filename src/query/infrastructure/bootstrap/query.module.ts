@@ -6,6 +6,7 @@ import { envConfig } from '../../../common/config/env.config';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
 import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
 import { GetNotificationUseCase } from '../../application/use-cases/get-notification.usecase';
+import { GetNotificationsByRecipientUseCase } from '../../application/use-cases/get-notifications-by-recipient.usecase';
 import { QueryService } from '../../domain/service/query.service';
 import { QueryController } from '../controller/query.controller';
 
@@ -30,9 +31,15 @@ import { QueryController } from '../controller/query.controller';
       inject: [QueryService],
     },
     {
+      provide: GetNotificationsByRecipientUseCase,
+      useFactory: (svc: QueryService) => new GetNotificationsByRecipientUseCase(svc),
+      inject: [QueryService],
+    },
+    {
       provide: QueryController,
-      useFactory: (uc: GetNotificationUseCase) => new QueryController(uc),
-      inject: [GetNotificationUseCase],
+      useFactory: (uc: GetNotificationUseCase, ucr: GetNotificationsByRecipientUseCase) =>
+        new QueryController(uc, ucr),
+      inject: [GetNotificationUseCase, GetNotificationsByRecipientUseCase],
     },
   ],
 })

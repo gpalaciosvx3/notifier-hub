@@ -3,4 +3,7 @@ export interface QueryOptions {
   keyCondition: string;
   attributeNames?: Record<string, string>;
   attributeValues: Record<string, unknown>;
+  limit?: number;
+  exclusiveStartKey?: Record<string, unknown>;
+  scanIndexForward?: boolean;
 }

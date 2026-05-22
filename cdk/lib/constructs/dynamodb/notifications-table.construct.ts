@@ -22,5 +22,12 @@ export class NotificationsTableConstruct extends Construct {
       partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
     });
+
+    this.table.addGlobalSecondaryIndex({
+      indexName: ResourceConstants.TABLE_TO_INDEX,
+      partitionKey: { name: 'to', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
   }
 }

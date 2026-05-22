@@ -111,6 +111,22 @@ export class DynamoClient {
     }, ErrorDictionary.DYNAMO_UNAVAILABLE);
   }
 
+  async queryPaged<T>(table: string, options: QueryOptions): Promise<{ items: T[]; lastEvaluatedKey?: Record<string, NativeAttributeValue> }> {
+    return awsError(async () => {
+      const result = await dynamoDbClient.send(new QueryCommand({
+        TableName: table,
+        IndexName: options.index,
+        KeyConditionExpression: options.keyCondition,
+        ExpressionAttributeNames: options.attributeNames,
+        ExpressionAttributeValues: options.attributeValues,
+        Limit: options.limit,
+        ExclusiveStartKey: options.exclusiveStartKey as Record<string, NativeAttributeValue> | undefined,
+        ScanIndexForward: options.scanIndexForward,
+      }));
+      return { items: (result.Items as T[]) ?? [], lastEvaluatedKey: result.LastEvaluatedKey };
+    }, ErrorDictionary.DYNAMO_UNAVAILABLE);
+  }
+
   private buildUpdateExpression(fields: Record<string, unknown>): { update: string; names: Record<string, string>; values: Record<string, unknown> } {
     const names: Record<string, string> = {};
     const values: Record<string, unknown> = {};
