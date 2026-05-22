@@ -20,6 +20,7 @@ export class QueryService {
   };
 
   search(command: SearchNotificationCommand): Promise<NotificationEntity | NotificationEntity[]> {
+    this.logger.log(`[PASO 1] Resolviendo búsqueda => tipo: ${command.type}`);
     return this.handlers[command.type](command);
   }
 
@@ -31,6 +32,7 @@ export class QueryService {
   }
 
   private async getById(notificationId: string): Promise<NotificationEntity> {
+    this.logger.log(`[PASO 2] Buscando notificación por ID => notificationId: ${notificationId}`);
     const notification = await this.dbRepository.findById(notificationId);
     if (!notification) throw new CustomException(ErrorDictionary.NOTIFICATION_NOT_FOUND);
     return notification;

@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SQSBatchResponse } from 'aws-lambda';
 import { SqsMessage } from '../../../common/middleware/types/lambda-event.types';
 import { NotificationEntity } from '../../../common/entities/notification.entity';
 import { ProcessingService } from '../../domain/service/processing.service';
+import { WorkerConstants } from '../constants/worker.constants';
+import { ProcessRecordResult } from '../../../common/types/process-record-result.types';
+import { executeChunkedBatch, classifyBatchFailure, summarizeBatchResults } from '../../../common/helpers/batch-processing.helper';
 
 @Injectable()
 export class ProcessBatchUseCase {
@@ -10,28 +12,29 @@ export class ProcessBatchUseCase {
 
   constructor(private readonly processingService: ProcessingService) {}
 
-  async execute(records: SqsMessage[]): Promise<SQSBatchResponse> {
-    const outcomes = await Promise.allSettled(records.map(r => this.processRecord(r)));
-
-    const fulfilled = outcomes.filter((o): o is PromiseFulfilledResult<{ itemIdentifier: string } | null> => o.status === 'fulfilled');
-    const batchItemFailures = fulfilled.filter(o => o.value !== null).map(o => o.value as { itemIdentifier: string });
-    const success = fulfilled.filter(o => o.value === null).length;
-    const failed = outcomes.filter(o => o.status === 'rejected').length;
-
-    this.logger.log(`Resultado => Total: ${records.length} | Exitosos: ${success} | Reintentables: ${batchItemFailures.length} | Fallidos: ${failed}`);
-
-    return { batchItemFailures };
+  async executeBatch(records: SqsMessage[]): Promise<ProcessRecordResult[]> {
+    this.logger.log(`Lote recibido => total: ${records.length}`);
+    const results = await executeChunkedBatch(
+      records,
+      WorkerConstants.SQS_CHUNK_SIZE,
+      record => this.executeOne(record),
+      (sequenceNumber, error) => this.classifyFailure(sequenceNumber, error),
+    );
+    const summary = summarizeBatchResults(results);
+    this.logger.log(`Resultado batch => total: ${summary.total} | success: ${summary.success} | discarded: ${summary.discarded} | retryable: ${summary.retryable}`);
+    return results;
   }
 
-  private async processRecord(record: SqsMessage): Promise<{ itemIdentifier: string } | null> {
+  private async executeOne(record: SqsMessage): Promise<void> {
     const notification = record.body as NotificationEntity;
-    this.logger.log(`Procesando notificación: ${JSON.stringify(notification)}`);
-    try {
-      await this.processingService.process(notification);
-      return null;
-    } catch (error) {
-      const handled = await this.processingService.handleFault(notification, error);
-      return handled ? null : { itemIdentifier: record.messageId };
-    }
+    this.logger.log(`Procesando notificación => notificationId: ${notification.notificationId}`);
+    await this.processingService.processSafe(notification);
+  }
+
+  private classifyFailure(sequenceNumber: string, error: unknown): ProcessRecordResult {
+    const reason = error instanceof Error ? error.message : String(error);
+    this.logger.warn(`Error al procesar registro => sequenceNumber: ${sequenceNumber} | reason: ${reason}`);
+    return classifyBatchFailure(sequenceNumber, error);
   }
 }
+

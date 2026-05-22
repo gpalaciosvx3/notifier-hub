@@ -12,6 +12,7 @@ import { NotificationStatus } from '../../src/common/constants/notification-stat
 import { CustomException } from '../../src/common/errors/custom.exception';
 import { ErrorDictionary } from '../../src/common/errors/error.dictionary';
 import { SqsMessage } from '../../src/common/middleware/types/lambda-event.types';
+import { ProcessRecordResult } from '../../src/common/types/process-record-result.types';
 
 const feature = loadFeature('./test/worker/features/worker.feature');
 
@@ -153,53 +154,51 @@ defineFeature(feature, test => {
     });
   });
 
-  test('El caso de uso de batch retorna lista de fallos vacía cuando todos los registros tienen éxito', ({ given, when, then }) => {
+  test('El caso de uso de batch no retorna registros reintentables cuando todos tienen éxito', ({ given, when, then }) => {
     const mockProcessingService = {
-      process: jest.fn().mockResolvedValue(undefined),
-      handleFault: jest.fn(),
+      processSafe: jest.fn().mockResolvedValue(undefined),
     } as unknown as ProcessingService;
     let useCase: ProcessBatchUseCase;
     let records: SqsMessage[];
-    let result: { batchItemFailures: { itemIdentifier: string }[] };
+    let result: ProcessRecordResult[];
 
     given('un batch de 2 registros SQS donde todo el procesamiento tiene éxito', () => {
       useCase = new ProcessBatchUseCase(mockProcessingService);
       records = [
-        { messageId: 'msg-001', body: { notificationId: 'NOTIF-001' } },
-        { messageId: 'msg-002', body: { notificationId: 'NOTIF-002' } },
+        { messageId: 'msg-001', sequenceNumber: 'msg-001', body: { notificationId: 'NOTIF-001' } },
+        { messageId: 'msg-002', sequenceNumber: 'msg-002', body: { notificationId: 'NOTIF-002' } },
       ];
     });
 
     when('el caso de uso de procesamiento de batch se ejecuta', async () => {
-      result = await useCase.execute(records);
+      result = await useCase.executeBatch(records);
     });
 
-    then('la lista de batchItemFailures está vacía', () => {
-      expect(result.batchItemFailures).toHaveLength(0);
+    then('la lista de registros reintentables está vacía', () => {
+      expect(result.filter(r => r.retry)).toHaveLength(0);
     });
   });
 
-  test('El caso de uso de batch incluye el registro fallido en batchItemFailures', ({ given, when, then }) => {
+  test('El caso de uso de batch incluye el registro fallido como reintentable', ({ given, when, then }) => {
     const mockProcessingService = {
-      process: jest.fn().mockRejectedValue(new Error('SES error')),
-      handleFault: jest.fn().mockResolvedValue(false),
+      processSafe: jest.fn().mockRejectedValue(new Error('SES error')),
     } as unknown as ProcessingService;
     let useCase: ProcessBatchUseCase;
     let records: SqsMessage[];
-    let result: { batchItemFailures: { itemIdentifier: string }[] };
+    let result: ProcessRecordResult[];
 
     given('un batch de 1 registro SQS donde el procesamiento falla', () => {
       useCase = new ProcessBatchUseCase(mockProcessingService);
-      records = [{ messageId: 'msg-001', body: { notificationId: 'NOTIF-001' } }];
+      records = [{ messageId: 'msg-001', sequenceNumber: 'msg-001', body: { notificationId: 'NOTIF-001' } }];
     });
 
     when('el caso de uso de procesamiento de batch se ejecuta', async () => {
-      result = await useCase.execute(records);
+      result = await useCase.executeBatch(records);
     });
 
-    then('la lista de batchItemFailures contiene 1 elemento', () => {
-      expect(result.batchItemFailures).toHaveLength(1);
-      expect(result.batchItemFailures[0].itemIdentifier).toBe('msg-001');
+    then('la lista de registros reintentables contiene 1 elemento', () => {
+      expect(result.filter(r => r.retry)).toHaveLength(1);
+      expect(result.filter(r => r.retry)[0].sequenceNumber).toBe('msg-001');
     });
   });
 });

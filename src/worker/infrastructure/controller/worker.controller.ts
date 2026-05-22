@@ -9,7 +9,9 @@ export class WorkerController {
   constructor(private readonly useCase: ProcessBatchUseCase) {}
 
   @HandleExecution('WORKER')
-  handle(event: SqsExtracted): Promise<SQSBatchResponse> {
-    return this.useCase.execute(event.records);
+  async handle(event: SqsExtracted): Promise<SQSBatchResponse> {
+    const results = await this.useCase.executeBatch(event.records);
+    return { batchItemFailures: results.filter(r => r.retry).map(r => ({ itemIdentifier: r.sequenceNumber })) };
   }
 }
+

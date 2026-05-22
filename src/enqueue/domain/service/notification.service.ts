@@ -1,24 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { NotificationEntity } from '../../../common/entities/notification.entity';
-import { BuildNotificationCommand } from '../commands/build-notification.command';
 import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
+import { NotificationDbRepository } from '../repository/notification.db.repository';
+import { NotificationSqsRepository } from '../repository/notification.sqs.repository';
+import { NotificationInput } from '../types/notification-input.types';
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
+
   constructor(
     private readonly defaultEmailProvider: NotificationProvider,
     private readonly defaultSmsProvider: NotificationProvider,
+    private readonly dbRepository: NotificationDbRepository,
+    private readonly sqsRepository: NotificationSqsRepository,
   ) {}
 
-  build(command: BuildNotificationCommand): NotificationEntity {
-    const provider = command.provider ?? this.resolveDefaultProvider(command.channel);
+  async enqueue(input: NotificationInput): Promise<string> {
+    this.logger.log(`[PASO 1] Construyendo entidad de notificación => channel: ${input.channel} | to: ${input.to}`);
+    const notification = this.build(input);
+
+    this.logger.log(`[PASO 2] Persistiendo notificación => notificationId: ${notification.notificationId}`);
+    await this.dbRepository.create(notification);
+
+    this.logger.log(`[PASO 3] Encolando notificación => notificationId: ${notification.notificationId}`);
+    await this.sqsRepository.enqueue(notification);
+
+    return notification.notificationId;
+  }
+
+  build(input: NotificationInput): NotificationEntity {
+    const provider = input.provider ?? this.resolveDefaultProvider(input.channel);
     return NotificationEntity.build({
-      channel: command.channel,
+      channel: input.channel,
       provider,
-      to: command.to,
-      subject: command.subject,
-      body: command.body,
+      to: input.to,
+      subject: input.subject,
+      body: input.body,
     });
   }
 

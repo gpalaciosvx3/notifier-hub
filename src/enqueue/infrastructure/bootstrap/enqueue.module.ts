@@ -19,14 +19,6 @@ import { EnqueueController } from '../controller/enqueue.controller';
     { provide: SqsClient, useFactory: () => new SqsClient() },
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_ENQUEUE),
     {
-      provide: NotificationService,
-      useFactory: () =>
-        new NotificationService(
-          envConfig.defaultEmailProvider as NotificationProvider,
-          envConfig.defaultSmsProvider as NotificationProvider,
-        ),
-    },
-    {
       provide: NotificationDbRepository,
       useFactory: (dynamo: DynamoClient) =>
         new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable),
@@ -38,10 +30,20 @@ import { EnqueueController } from '../controller/enqueue.controller';
       inject: [SqsClient],
     },
     {
+      provide: NotificationService,
+      useFactory: (db: NotificationDbRepository, sqs: NotificationSqsRepository) =>
+        new NotificationService(
+          envConfig.defaultEmailProvider as NotificationProvider,
+          envConfig.defaultSmsProvider as NotificationProvider,
+          db,
+          sqs,
+        ),
+      inject: [NotificationDbRepository, NotificationSqsRepository],
+    },
+    {
       provide: EnqueueNotificationUseCase,
-      useFactory: (svc: NotificationService, db: NotificationDbRepository, sqs: NotificationSqsRepository) =>
-        new EnqueueNotificationUseCase(svc, db, sqs),
-      inject: [NotificationService, NotificationDbRepository, NotificationSqsRepository],
+      useFactory: (svc: NotificationService) => new EnqueueNotificationUseCase(svc),
+      inject: [NotificationService],
     },
     {
       provide: EnqueueController,

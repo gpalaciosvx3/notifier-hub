@@ -10,6 +10,7 @@ const feature = loadFeature('./test/dlq/features/dlq.feature');
 
 const buildRecord = (notificationId: string): SqsMessage => ({
   messageId: `msg-${notificationId}`,
+  sequenceNumber: `msg-${notificationId}`,
   body: { notificationId },
 });
 
@@ -50,7 +51,7 @@ defineFeature(feature, test => {
     });
 
     when('el caso de uso de marcar batch fallido permanente se ejecuta', async () => {
-      try { await useCase.execute(records); } catch (e) { error = e as Error; }
+      try { await useCase.executeBatch(records); } catch (e) { error = e as Error; }
     });
 
     then('no se lanza ninguna excepción', () => {
@@ -72,7 +73,7 @@ defineFeature(feature, test => {
     });
 
     when('el caso de uso de marcar batch fallido permanente se ejecuta', async () => {
-      try { await useCase.execute(records); } catch (e) { error = e as Error; }
+      try { await useCase.executeBatch(records); } catch (e) { error = e as Error; }
     });
 
     then('no se lanza ninguna excepción', () => {
@@ -94,7 +95,7 @@ defineFeature(feature, test => {
     });
 
     when('el caso de uso de marcar batch fallido permanente se ejecuta', async () => {
-      try { await useCase.execute(records); } catch (e) { error = e as CustomException; }
+      try { await useCase.executeBatch(records); } catch (e) { error = e as CustomException; }
     });
 
     then('se lanza una CustomException con código "NTF-010"', () => {

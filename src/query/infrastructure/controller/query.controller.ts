@@ -1,4 +1,4 @@
-import { Injectable, HttpStatus, Logger } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { ApiGwExtracted } from '../../../common/middleware/types/lambda-event.types';
 import { GetNotificationUseCase } from '../../application/use-cases/get-notification.usecase';
@@ -8,29 +8,16 @@ import { HandleExecution } from '../../../common/decorator/handle-execution.deco
 
 @Injectable()
 export class QueryController {
-  private readonly logger = new Logger(QueryController.name);
-
   constructor(
     private readonly useCase: GetNotificationUseCase,
     private readonly byRecipientUseCase: GetNotificationsByRecipientUseCase,
   ) {}
 
-  @HandleExecution('QUERY')  
+  @HandleExecution('QueryNotification', ApiGwHelper.error)
   async handle(event: ApiGwExtracted): Promise<APIGatewayProxyResult> {
-    try {
-      if (event.queryStringParameters['to']) {
-        return ApiGwHelper.success(HttpStatus.OK, await this.byRecipientUseCase.execute({
-          to: event.queryStringParameters['to'],
-          pageToken: event.queryStringParameters['pageToken'],
-        }));
-      }
-      return ApiGwHelper.success(HttpStatus.OK, await this.useCase.execute({
-        id: event.pathParameters['id'],
-        status: event.queryStringParameters['status'],
-      }));
-    } catch (error) {
-      this.logger.error('Error obteniendo notificación', error);
-      return ApiGwHelper.error(error);
+    if (event.queryStringParameters.to) {
+      return ApiGwHelper.success(HttpStatus.OK, await this.byRecipientUseCase.execute(event.queryStringParameters));
     }
+    return ApiGwHelper.success(HttpStatus.OK, await this.useCase.execute({ ...event.pathParameters, ...event.queryStringParameters }));
   }
 }

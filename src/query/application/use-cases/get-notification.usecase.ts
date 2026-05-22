@@ -13,13 +13,18 @@ export class GetNotificationUseCase {
 
   constructor(private readonly service: QueryService) {}
 
-  execute(raw: unknown): Promise<NotificationEntity | NotificationEntity[]> {
+  async execute(raw: unknown): Promise<NotificationEntity | NotificationEntity[]> {
+    this.logger.log(`Body recibido: ${JSON.stringify(raw)}`);
     const result = QueryRawSchema.safeParse(raw);
     if (!result.success) throw new ValidationException(ErrorDictionary.VALIDATION_ERROR, result.error.issues as ZodIssue[]);
+
+    this.logger.log(`Consulta validada => id: ${result.data.id ?? '-'} | status: ${result.data.status ?? '-'}`);
     const command = result.data.id
       ? SearchNotificationCommand.byId(result.data.id)
       : SearchNotificationCommand.byStatus(result.data.status!);
-    this.logger.log(`Ejecutando consulta: ${JSON.stringify(command)}`);
-    return this.service.search(command);
+
+    const response = await this.service.search(command);
+    this.logger.log(`Resultado => count: ${Array.isArray(response) ? response.length : 1}`);
+    return response;
   }
 }

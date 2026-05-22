@@ -18,9 +18,11 @@ defineFeature(feature, test => {
     let service: NotificationService;
     let command: BuildNotificationCommand;
     let entity: NotificationEntity;
+    const mockDb = { create: jest.fn() } as unknown as NotificationDbRepository;
+    const mockSqs = { enqueue: jest.fn() } as unknown as NotificationSqsRepository;
 
     given('un comando de construcción para canal "email", destinatario "user@example.com", asunto "Hello", proveedor "ses" y cuerpo "Test body"', () => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS);
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs);
       command = new BuildNotificationCommand(NotificationChannel.EMAIL, 'user@example.com', 'Test body', NotificationProvider.SES, 'Hello');
     });
 
@@ -45,9 +47,11 @@ defineFeature(feature, test => {
     let service: NotificationService;
     let command: BuildNotificationCommand;
     let error: CustomException;
+    const mockDb = { create: jest.fn() } as unknown as NotificationDbRepository;
+    const mockSqs = { enqueue: jest.fn() } as unknown as NotificationSqsRepository;
 
     given(/un comando de construcción para canal "(.+)", destinatario "(.+)", asunto "(.*)", proveedor "(.+)" y cuerpo "Test body"/, (canal, destinatario, asunto, proveedor) => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS);
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs);
       command = new BuildNotificationCommand(
         canal as NotificationChannel,
         destinatario,
@@ -71,9 +75,11 @@ defineFeature(feature, test => {
     let service: NotificationService;
     let command: BuildNotificationCommand;
     let entity: NotificationEntity;
+    const mockDb = { create: jest.fn() } as unknown as NotificationDbRepository;
+    const mockSqs = { enqueue: jest.fn() } as unknown as NotificationSqsRepository;
 
     given('un comando de construcción para canal "sms", destinatario "+15551234567", proveedor "sns" y cuerpo "Test body"', () => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS);
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs);
       command = new BuildNotificationCommand(NotificationChannel.SMS, '+15551234567', 'Test body', NotificationProvider.SNS);
     });
 
@@ -98,7 +104,7 @@ defineFeature(feature, test => {
     let notificationId: string;
 
     given('un payload de encolar válido con canal "email", destinatario "user@example.com", asunto "Hello" y cuerpo "Test body"', () => {
-      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS), mockDb, mockSqs);
+      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs));
       payload = { channel: 'email', to: 'user@example.com', subject: 'Hello', body: 'Test body', provider: 'ses' };
     });
 
@@ -128,7 +134,7 @@ defineFeature(feature, test => {
     let error: ValidationException;
 
     given('un payload de encolar sin el campo canal', () => {
-      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS), mockDb, mockSqs);
+      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs));
       payload = { to: 'user@example.com', body: 'Test body' };
     });
 

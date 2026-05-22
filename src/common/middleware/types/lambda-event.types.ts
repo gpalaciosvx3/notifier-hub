@@ -8,6 +8,7 @@ export type ApiGwExtracted = {
 export type SqsMessage = {
   body: unknown;
   messageId: string;
+  sequenceNumber: string;
 };
 
 export type SqsExtracted = {

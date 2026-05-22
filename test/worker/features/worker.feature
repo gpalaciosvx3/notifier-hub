@@ -35,12 +35,12 @@ Característica: Procesamiento Worker
       | un error genérico           |
       | una CustomException NTF-006 |
 
-  Escenario: El caso de uso de batch retorna lista de fallos vacía cuando todos los registros tienen éxito
+  Escenario: El caso de uso de batch no retorna registros reintentables cuando todos tienen éxito
     Dado un batch de 2 registros SQS donde todo el procesamiento tiene éxito
     Cuando el caso de uso de procesamiento de batch se ejecuta
-    Entonces la lista de batchItemFailures está vacía
+    Entonces la lista de registros reintentables está vacía
 
-  Escenario: El caso de uso de batch incluye el registro fallido en batchItemFailures
+  Escenario: El caso de uso de batch incluye el registro fallido como reintentable
     Dado un batch de 1 registro SQS donde el procesamiento falla
     Cuando el caso de uso de procesamiento de batch se ejecuta
-    Entonces la lista de batchItemFailures contiene 1 elemento
+    Entonces la lista de registros reintentables contiene 1 elemento

@@ -30,6 +30,7 @@ export class LambdaEventMiddleware {
         records: e.Records.map(r => ({
           body: JSON.parse(r.body),
           messageId: r.messageId,
+          sequenceNumber: r.messageId,
         })),
       };
     }

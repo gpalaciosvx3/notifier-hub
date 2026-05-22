@@ -1,23 +1,21 @@
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { NotificationSenderRepository } from '../repository/notification.sender.repository';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 import { CustomException } from '../../../common/errors/custom.exception';
 
+@Injectable()
 export class ChannelRouterService {
   private readonly logger = new Logger(ChannelRouterService.name);
 
   constructor(
-    private readonly remitentes: Map<string, NotificationSenderRepository>,
+    private readonly senders: Map<string, NotificationSenderRepository>,
   ) {}
 
-  resolve(canal: string, proveedor: string): NotificationSenderRepository {
-    const clave = `${canal}:${proveedor}`;
-    const remitente = this.remitentes.get(clave);
-
-    this.logger.log(`Resolviendo remitente para canal ${canal} y proveedor ${proveedor}: ${remitente ? 'encontrado' : 'no encontrado'}`);
-
-    if (!remitente) throw new CustomException(ErrorDictionary.UNRESOLVABLE_SENDER, clave);
-
-    return remitente;
+  resolve(channel: string, provider: string): NotificationSenderRepository {
+    const key = `${channel}:${provider}`;
+    this.logger.log(`[PASO 1] Resolviendo remitente => key: ${key}`);
+    const sender = this.senders.get(key);
+    if (!sender) throw new CustomException(ErrorDictionary.UNRESOLVABLE_SENDER, key);
+    return sender;
   }
 }
