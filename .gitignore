@@ -143,3 +143,9 @@ vite.config.ts.timestamp-*
 
 # CDK Out
 cdk.out/
+
+# Docs
+openspec/
+.github/prompts/
+.github/skills/
+brief/
