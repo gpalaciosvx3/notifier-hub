@@ -32,7 +32,7 @@ export class EnqueueNotificationUseCase {
 
       this.logger.log(`Template resuelto => templateId: ${template.templateId} | version: ${template.version}`);
 
-      const input = this.templateRenderService.buildInput(template, dto.to, dto.variables ?? {});
+      const input = this.templateRenderService.buildInput(template, dto.to, dto.variables ?? {}, dto.callbackUrl);
       const notificationId = await this.service.enqueue(input);
       this.logger.log(`Resultado => notificationId: ${notificationId} | templateId: ${template.templateId}`);
       return notificationId;

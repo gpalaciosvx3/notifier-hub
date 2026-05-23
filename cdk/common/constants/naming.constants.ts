@@ -16,4 +16,8 @@ export class NamingConstants {
   static readonly APG_001 = `${NamingConstants.REGION}${NamingConstants.PROJECT}GTW001`;
 
   static readonly ROL_001 = `${NamingConstants.REGION}${NamingConstants.PROJECT}ROL001`;
+
+  static readonly LMB_005 = `${NamingConstants.REGION}${NamingConstants.PROJECT}LMB005`;
+  static readonly TBL_003 = `${NamingConstants.REGION}${NamingConstants.PROJECT}DDB003`;
+  static readonly SQS_003 = `${NamingConstants.REGION}${NamingConstants.PROJECT}SQS003`;
 }

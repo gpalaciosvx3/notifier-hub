@@ -13,6 +13,7 @@ import { LambdaLogGroupConstruct } from '../../cloudwatch/lambda-log-group.const
 
 interface DlqProcessorFnProps {
   table: dynamodb.Table;
+  outboxTable: dynamodb.Table;
   dlq: sqs.Queue;
 }
 
@@ -36,10 +37,12 @@ export class DlqProcessorFnConstruct extends Construct {
       bundling: lambdaBundling,
       environment: {
         NOTIFICATIONS_TABLE: props.table.tableName,
+        OUTBOX_TABLE:        props.outboxTable.tableName,
       },
     });
 
     props.table.grantWriteData(fn);
+    props.outboxTable.grantWriteData(fn);
 
     fn.addEventSource(new SqsEventSource(props.dlq, {
       batchSize: InfraConstants.SQS_BATCH_SIZE,

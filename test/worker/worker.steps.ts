@@ -23,6 +23,7 @@ const buildNotification = (): NotificationEntity =>
     to: 'user@example.com',
     subject: 'Hello',
     body: 'Test body',
+    callbackUrl: 'https://example.com/callback',
   });
 
 defineFeature(feature, test => {
@@ -68,6 +69,7 @@ defineFeature(feature, test => {
     const mockDb = {
       updateStatusConditional: jest.fn().mockResolvedValue(true),
       updateStatus: jest.fn().mockResolvedValue(undefined),
+      updateStatusWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
     } as unknown as NotificationDbRepository;
     let service: ProcessingService;
     let notification: NotificationEntity;
@@ -91,7 +93,7 @@ defineFeature(feature, test => {
     });
 
     and('la notificación es marcada como "DONE"', () => {
-      expect(mockDb.updateStatus).toHaveBeenCalledWith(notification.notificationId, NotificationStatus.DONE);
+      expect(mockDb.updateStatus).toHaveBeenCalledWith(notification.notificationId, NotificationStatus.SENT);
     });
   });
 

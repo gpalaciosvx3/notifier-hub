@@ -1,4 +1,6 @@
-import { APIGatewayProxyEvent, APIGatewayProxyEventV2, SQSEvent } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyEventV2, SQSEvent, DynamoDBStreamEvent } from 'aws-lambda';
+import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { LambdaExtracted } from './types/lambda-event.types';
 
 export class LambdaEventMiddleware {
@@ -35,6 +37,19 @@ export class LambdaEventMiddleware {
       };
     }
 
+    if (LambdaEventMiddleware.isDynamoStream(event)) {
+      const e = event as DynamoDBStreamEvent;
+      return {
+        source: 'dynamodb-stream',
+        records: e.Records
+          .filter(r => r.eventName === 'INSERT' && r.dynamodb?.NewImage)
+          .map(r => ({
+            sequenceNumber: r.dynamodb!.SequenceNumber!,
+            newImage: unmarshall(r.dynamodb!.NewImage! as Record<string, AttributeValue>),
+          })),
+      };
+    }
+
     throw new Error(`Evento no reconocido`);
   }
 
@@ -67,6 +82,16 @@ export class LambdaEventMiddleware {
       e !== null &&
       Array.isArray(e['Records']) &&
       (e['Records'] as Record<string, unknown>[])[0]?.['eventSource'] === 'aws:sqs'
+    );
+  }
+
+  private static isDynamoStream(event: unknown): boolean {
+    const e = event as Record<string, unknown>;
+    return (
+      typeof e === 'object' &&
+      e !== null &&
+      Array.isArray(e['Records']) &&
+      (e['Records'] as Record<string, unknown>[])[0]?.['eventSource'] === 'aws:dynamodb'
     );
   }
 }

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-scheduler": "^3.1053.0",
     "@aws-sdk/client-ses": "^3.600.0",
     "@aws-sdk/client-sns": "^3.600.0",
     "@aws-sdk/client-sqs": "^3.600.0",

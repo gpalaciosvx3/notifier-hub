@@ -21,6 +21,7 @@ const buildNotification = (): NotificationEntity =>
     to: 'user@example.com',
     subject: 'Hello',
     body: 'Test body',
+    callbackUrl: 'https://example.com/callback',
   });
 
 defineFeature(feature, test => {

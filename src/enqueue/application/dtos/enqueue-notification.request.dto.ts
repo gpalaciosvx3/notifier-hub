@@ -33,6 +33,7 @@ const InlineSchema = z
     to: z.string().min(1),
     subject: z.string().optional(),
     body: z.string().min(1),
+    callbackUrl: z.string().url(),
   })
   .superRefine((data, ctx) => {
     const config = REGLAS_POR_CANAL[data.channel];
@@ -50,6 +51,7 @@ const TemplateSchema = z.object({
   templateId: z.string().min(1),
   to: z.string().min(1),
   variables: z.record(z.unknown()).optional(),
+  callbackUrl: z.string().url(),
 });
 
 export const EnqueueNotificationSchema = z.union([InlineSchema, TemplateSchema]);

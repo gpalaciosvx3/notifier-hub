@@ -6,10 +6,10 @@ import { NotificationInput } from '../types/notification-input.types';
 import { NotificationInputMapper } from '../mapper/notification-input.mapper';
 
 export class TemplateRenderService {
-  buildInput(template: TemplateRecord, to: string, variables: Record<string, unknown>): NotificationInput {
+  buildInput(template: TemplateRecord, to: string, variables: Record<string, unknown>, callbackUrl: string): NotificationInput {
     const renderedSubject = template.subject ? this.render(template.subject, variables) : undefined;
     const renderedBody = this.render(template.body, variables);
-    return NotificationInputMapper.fromTemplate(template, to, renderedSubject, renderedBody);
+    return NotificationInputMapper.fromTemplate(template, to, renderedSubject, renderedBody, callbackUrl);
   }
 
   private render(template: string, variables: Record<string, unknown>): string {

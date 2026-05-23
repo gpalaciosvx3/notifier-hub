@@ -26,7 +26,7 @@ import { WorkerController } from '../controller/worker.controller';
     {
       provide: NotificationDbRepository,
       useFactory: (dynamo: DynamoClient) =>
-        new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable),
+        new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable, envConfig.outboxTable),
       inject: [DynamoClient],
     },
     {

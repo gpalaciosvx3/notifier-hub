@@ -5,6 +5,7 @@ export type NotificationInput = {
   channel: NotificationChannel;
   to: string;
   body: string;
+  callbackUrl: string;
   provider?: NotificationProvider;
   subject?: string;
   templateId?: string;

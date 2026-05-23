@@ -6,6 +6,7 @@ export class BuildNotificationCommand {
     public readonly channel: NotificationChannel,
     public readonly to: string,
     public readonly body: string,
+    public readonly callbackUrl: string,
     public readonly provider?: NotificationProvider,
     public readonly subject?: string,
   ) {}

@@ -12,6 +12,7 @@ export class NotificationMapper {
       body: input.body,
       templateId: input.templateId,
       templateVersion: input.templateVersion,
+      callbackUrl: input.callbackUrl,
     });
   }
 }

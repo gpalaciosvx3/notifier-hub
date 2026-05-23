@@ -7,6 +7,7 @@ export class NotificationInputMapper {
     to: string,
     renderedSubject: string | undefined,
     renderedBody: string,
+    callbackUrl: string,
   ): NotificationInput {
     return {
       channel: template.channel,
@@ -16,6 +17,7 @@ export class NotificationInputMapper {
       body: renderedBody,
       templateId: template.templateId,
       templateVersion: template.version,
+      callbackUrl,
     };
   }
 }

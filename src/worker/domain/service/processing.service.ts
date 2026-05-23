@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NotificationEntity } from '../../../common/entities/notification.entity';
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
+import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity';
+import { OutboxEventType } from '../../../common/constants/outbox-event-type.constants';
+import { OutboxEventBrokerType } from '../../../common/constants/outbox-event-broker-type.constants';
 import { NotificationDbRepository } from '../repository/notification.db.repository';
 import { ChannelRouterService } from './channel-router.service';
 import { CustomException } from '../../../common/errors/custom.exception';
@@ -50,7 +53,16 @@ export class ProcessingService {
     const sender = this.channelRouter.resolve(notification.channel, notification.provider);
     this.logger.log(`[PASO 3] Enviando notificación => notificationId: ${notification.notificationId} | to: ${notification.to}`);
     await sender.send(notification.to, notification.subject, notification.body);
-    this.logger.log(`[PASO 4] Marcando notificación como DONE => notificationId: ${notification.notificationId}`);
-    await this.dbRepository.updateStatus(notification.notificationId, NotificationStatus.DONE);
+    this.logger.log(`[PASO 4] Marcando notificación como SENT => notificationId: ${notification.notificationId}`);
+    const outboxEvent = OutboxEventEntity.build({
+      eventType: OutboxEventType.WEBHOOK_REQUESTED,
+      brokerType: OutboxEventBrokerType.SQS_WEBHOOK,
+      payload: {
+        notificationId: notification.notificationId,
+        status: NotificationStatus.SENT,
+        callbackUrl: notification.callbackUrl,
+      },
+    });
+    await this.dbRepository.updateStatusWithOutboxEvent(notification.notificationId, NotificationStatus.SENT, outboxEvent);
   }
 }

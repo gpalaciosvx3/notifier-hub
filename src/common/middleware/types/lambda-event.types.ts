@@ -16,4 +16,14 @@ export type SqsExtracted = {
   records: SqsMessage[];
 };
 
-export type LambdaExtracted = ApiGwExtracted | SqsExtracted;
+export type DynamoStreamRecord = {
+  sequenceNumber: string;
+  newImage: Record<string, unknown>;
+};
+
+export type DynamoStreamExtracted = {
+  source: 'dynamodb-stream';
+  records: DynamoStreamRecord[];
+};
+
+export type LambdaExtracted = ApiGwExtracted | SqsExtracted | DynamoStreamExtracted;

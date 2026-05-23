@@ -14,6 +14,7 @@ import { LambdaLogGroupConstruct } from '../../cloudwatch/lambda-log-group.const
 
 interface WorkerFnProps {
   table: dynamodb.Table;
+  outboxTable: dynamodb.Table;
   queue: sqs.Queue;
   sesSourceEmail: string;
 }
@@ -41,6 +42,7 @@ export class WorkerFnConstruct extends Construct {
       role,
       environment: {
         NOTIFICATIONS_TABLE:    props.table.tableName,
+        OUTBOX_TABLE:           props.outboxTable.tableName,
         SES_SOURCE_EMAIL:       props.sesSourceEmail,
         EMAIL_DEFAULT_PROVIDER: 'ses',
         SMS_DEFAULT_PROVIDER:   'sns',
@@ -48,6 +50,7 @@ export class WorkerFnConstruct extends Construct {
     });
 
     props.table.grantReadWriteData(fn);
+    props.outboxTable.grantWriteData(fn);
 
     fn.addEventSource(new SqsEventSource(props.queue, {
       batchSize: InfraConstants.SQS_BATCH_SIZE,

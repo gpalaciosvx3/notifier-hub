@@ -4,10 +4,12 @@ import {
   UpdateCommand,
   GetCommand,
   QueryCommand,
+  TransactWriteCommand,
   NativeAttributeValue,
 } from '@aws-sdk/lib-dynamodb';
 import { dynamoDbClient } from '../config/aws.config';
 import { QueryOptions } from './types/query-options';
+import { TransactWriteOperation } from './types/transact-write-operation.types';
 import { awsError } from '../errors/aws-error.mapper';
 import { ErrorDictionary } from '../errors/error.dictionary';
 import { AwsErrorCodes } from '../constants/aws-errors.constants';
@@ -127,6 +129,28 @@ export class DynamoClient {
       }));
       return { items: (result.Items as T[]) ?? [], lastEvaluatedKey: result.LastEvaluatedKey };
     }, ErrorDictionary.DYNAMO_UNAVAILABLE);
+  }
+
+  async transactWrite(operations: TransactWriteOperation[]): Promise<void> {
+    const transactItems = operations.map(op => {
+      if (op.type === 'put') {
+        return { Put: { TableName: op.table, Item: op.item as Record<string, NativeAttributeValue> } };
+      }
+      const expression = this.buildUpdateExpression(op.fields);
+      return {
+        Update: {
+          TableName: op.table,
+          Key: op.key as Record<string, NativeAttributeValue>,
+          UpdateExpression: expression.update,
+          ExpressionAttributeNames: expression.names,
+          ExpressionAttributeValues: expression.values as Record<string, NativeAttributeValue>,
+        },
+      };
+    });
+    await awsError(
+      () => dynamoDbClient.send(new TransactWriteCommand({ TransactItems: transactItems })),
+      ErrorDictionary.DYNAMO_UNAVAILABLE,
+    );
   }
 
   private buildUpdateExpression(fields: Record<string, unknown>): { update: string; names: Record<string, string>; values: Record<string, unknown> } {

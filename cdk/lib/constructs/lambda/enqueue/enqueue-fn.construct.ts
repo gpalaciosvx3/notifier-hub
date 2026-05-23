@@ -1,7 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import * as path from 'path';
@@ -12,7 +11,7 @@ import { LambdaLogGroupConstruct } from '../../cloudwatch/lambda-log-group.const
 
 interface EnqueueFnProps {
   table: dynamodb.Table;
-  queue: sqs.Queue;
+  outboxTable: dynamodb.Table;
   sesSourceEmail: string;
 }
 
@@ -37,15 +36,15 @@ export class EnqueueFnConstruct extends Construct {
       memorySize: InfraConstants.LAMBDA_MEMORY_DEFAULT_MB,
       bundling: lambdaBundling,
       environment: {
-        NOTIFICATIONS_TABLE:      props.table.tableName,
-        NOTIFICATIONS_QUEUE_URL:  props.queue.queueUrl,
-        SES_SOURCE_EMAIL:         props.sesSourceEmail,
-        EMAIL_DEFAULT_PROVIDER:   'ses',
-        SMS_DEFAULT_PROVIDER:     'sns',
+        NOTIFICATIONS_TABLE: props.table.tableName,
+        OUTBOX_TABLE:        props.outboxTable.tableName,
+        SES_SOURCE_EMAIL:    props.sesSourceEmail,
+        EMAIL_DEFAULT_PROVIDER: 'ses',
+        SMS_DEFAULT_PROVIDER:   'sns',
       },
     });
 
     props.table.grantWriteData(this.fn);
-    props.queue.grantSendMessages(this.fn);
+    props.outboxTable.grantWriteData(this.fn);
   }
 }

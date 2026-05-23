@@ -2,12 +2,9 @@ import { Module } from '@nestjs/common';
 import { EnvValidationMiddleware } from '../../../common/middleware/env-validation.middleware';
 import { EnvConstants } from '../../../common/constants/env.constants';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
-import { SqsClient } from '../../../common/sqs/sqs.client';
 import { envConfig } from '../../../common/config/env.config';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
-import { NotificationSqsRepository } from '../../domain/repository/notification.sqs.repository';
 import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
-import { NotificationSqsRepositoryImpl } from '../repository/notification.sqs.repository.impl';
 import { TemplateDbRepository } from '../../domain/repository/template.db.repository';
 import { TemplateDbRepositoryImpl } from '../repository/template.db.repository.impl';
 import { TemplateRenderService } from '../../domain/service/template.render.service';
@@ -19,18 +16,12 @@ import { EnqueueController } from '../controller/enqueue.controller';
 @Module({
   providers: [
     { provide: DynamoClient, useFactory: () => new DynamoClient() },
-    { provide: SqsClient, useFactory: () => new SqsClient() },
     EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_ENQUEUE),
     {
       provide: NotificationDbRepository,
       useFactory: (dynamo: DynamoClient) =>
-        new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable),
+        new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable, envConfig.outboxTable),
       inject: [DynamoClient],
-    },
-    {
-      provide: NotificationSqsRepository,
-      useFactory: (sqs: SqsClient) => new NotificationSqsRepositoryImpl(sqs, envConfig.notificationsQueueUrl),
-      inject: [SqsClient],
     },
     {
       provide: TemplateDbRepository,
@@ -40,14 +31,13 @@ import { EnqueueController } from '../controller/enqueue.controller';
     },
     {
       provide: NotificationService,
-      useFactory: (db: NotificationDbRepository, sqs: NotificationSqsRepository) =>
+      useFactory: (db: NotificationDbRepository) =>
         new NotificationService(
           envConfig.defaultEmailProvider as NotificationProvider,
           envConfig.defaultSmsProvider as NotificationProvider,
           db,
-          sqs,
         ),
-      inject: [NotificationDbRepository, NotificationSqsRepository],
+      inject: [NotificationDbRepository],
     },
     {
       provide: EnqueueNotificationUseCase,

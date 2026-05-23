@@ -39,6 +39,7 @@ export class NotificationEntity {
     public readonly ttl: number,
     public readonly createdAt: string,
     public readonly updatedAt: string,
+    public readonly callbackUrl: string,
     public readonly subject?: string,
     public readonly failureReason?: string,
     public readonly templateId?: string,
@@ -53,6 +54,7 @@ export class NotificationEntity {
     subject?: string;
     templateId?: string;
     templateVersion?: number;
+    callbackUrl: string;
   }): NotificationEntity {
     NotificationEntity.validateInvariants(params);
     const now = new Date().toISOString();
@@ -66,6 +68,7 @@ export class NotificationEntity {
       Math.floor(Date.now() / 1000) + NotificationConstants.TTL_SECONDS,
       now,
       now,
+      params.callbackUrl,
       params.subject,
       undefined,
       params.templateId,

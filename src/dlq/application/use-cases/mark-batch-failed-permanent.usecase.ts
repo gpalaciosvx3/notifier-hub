@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SqsMessage } from '../../../common/middleware/types/lambda-event.types';
 import { DlqBatchService } from '../../domain/service/dlq-batch.service';
-import { CustomException } from '../../../common/errors/custom.exception';
-import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 import { DlqConstants } from '../constants/dlq.constants';
 import { ProcessRecordResult } from '../../../common/types/process-record-result.types';
 import { executeChunkedBatch, classifyBatchFailure, summarizeBatchResults } from '../../../common/helpers/batch-processing.helper';
@@ -14,7 +12,7 @@ export class MarkBatchFailedPermanentUseCase {
 
   constructor(private readonly dlqBatchService: DlqBatchService) {}
 
-  async executeBatch(records: SqsMessage[]): Promise<void> {
+  async executeBatch(records: SqsMessage[]): Promise<ProcessRecordResult[]> {
     this.logger.log(`Lote recibido => total: ${records.length}`);
     const results = await executeChunkedBatch(
       records,
@@ -24,9 +22,7 @@ export class MarkBatchFailedPermanentUseCase {
     );
     const summary = summarizeBatchResults(results);
     this.logger.log(`Resultado batch => total: ${summary.total} | success: ${summary.success} | discarded: ${summary.discarded} | retryable: ${summary.retryable}`);
-    if (summary.retryable > 0) {
-      throw new CustomException(ErrorDictionary.DLQ_BATCH_INFRA_ERROR, `${summary.retryable} de ${summary.total} registros fallaron`);
-    }
+    return results;
   }
 
   private async executeOne(record: SqsMessage): Promise<void> {

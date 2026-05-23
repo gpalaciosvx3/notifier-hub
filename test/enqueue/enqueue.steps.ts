@@ -4,7 +4,6 @@ import { NotificationService } from '../../src/enqueue/domain/service/notificati
 import { BuildNotificationCommand } from '../../src/enqueue/domain/commands/build-notification.command';
 import { EnqueueNotificationUseCase } from '../../src/enqueue/application/use-cases/enqueue-notification.usecase';
 import { NotificationDbRepository } from '../../src/enqueue/domain/repository/notification.db.repository';
-import { NotificationSqsRepository } from '../../src/enqueue/domain/repository/notification.sqs.repository';
 import { TemplateDbRepository } from '../../src/enqueue/domain/repository/template.db.repository';
 import { TemplateRenderService } from '../../src/enqueue/domain/service/template.render.service';
 import { NotificationEntity } from '../../src/common/entities/notification.entity';
@@ -20,12 +19,11 @@ defineFeature(feature, test => {
     let service: NotificationService;
     let command: BuildNotificationCommand;
     let entity: NotificationEntity;
-    const mockDb = { create: jest.fn() } as unknown as NotificationDbRepository;
-    const mockSqs = { enqueue: jest.fn() } as unknown as NotificationSqsRepository;
+    const mockDb = { createWithOutboxEvent: jest.fn() } as unknown as NotificationDbRepository;
 
     given('un comando de construcción para canal "email", destinatario "user@example.com", asunto "Hello", proveedor "ses" y cuerpo "Test body"', () => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs);
-      command = new BuildNotificationCommand(NotificationChannel.EMAIL, 'user@example.com', 'Test body', NotificationProvider.SES, 'Hello');
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb);
+      command = new BuildNotificationCommand(NotificationChannel.EMAIL, 'user@example.com', 'Test body', 'https://example.com/callback', NotificationProvider.SES, 'Hello');
     });
 
     when('el servicio de notificación construye la entidad', () => {
@@ -49,15 +47,15 @@ defineFeature(feature, test => {
     let service: NotificationService;
     let command: BuildNotificationCommand;
     let error: CustomException;
-    const mockDb = { create: jest.fn() } as unknown as NotificationDbRepository;
-    const mockSqs = { enqueue: jest.fn() } as unknown as NotificationSqsRepository;
+    const mockDb = { createWithOutboxEvent: jest.fn() } as unknown as NotificationDbRepository;
 
     given(/un comando de construcción para canal "(.+)", destinatario "(.+)", asunto "(.*)", proveedor "(.+)" y cuerpo "Test body"/, (canal, destinatario, asunto, proveedor) => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs);
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb);
       command = new BuildNotificationCommand(
         canal as NotificationChannel,
         destinatario,
         'Test body',
+        'https://example.com/callback',
         proveedor as NotificationProvider,
         asunto || undefined,
       );
@@ -77,12 +75,11 @@ defineFeature(feature, test => {
     let service: NotificationService;
     let command: BuildNotificationCommand;
     let entity: NotificationEntity;
-    const mockDb = { create: jest.fn() } as unknown as NotificationDbRepository;
-    const mockSqs = { enqueue: jest.fn() } as unknown as NotificationSqsRepository;
+    const mockDb = { createWithOutboxEvent: jest.fn() } as unknown as NotificationDbRepository;
 
     given('un comando de construcción para canal "sms", destinatario "+15551234567", proveedor "sns" y cuerpo "Test body"', () => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs);
-      command = new BuildNotificationCommand(NotificationChannel.SMS, '+15551234567', 'Test body', NotificationProvider.SNS);
+      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb);
+      command = new BuildNotificationCommand(NotificationChannel.SMS, '+15551234567', 'Test body', 'https://example.com/callback', NotificationProvider.SNS);
     });
 
     when('el servicio de notificación construye la entidad', () => {
@@ -99,15 +96,14 @@ defineFeature(feature, test => {
   });
 
   test('Encolar una notificación válida la persiste y encola', ({ given, when, then, and }) => {
-    const mockDb = { create: jest.fn().mockResolvedValue(undefined) } as unknown as NotificationDbRepository;
-    const mockSqs = { enqueue: jest.fn().mockResolvedValue(undefined) } as unknown as NotificationSqsRepository;
+    const mockDb = { createWithOutboxEvent: jest.fn().mockResolvedValue(undefined) } as unknown as NotificationDbRepository;
     let useCase: EnqueueNotificationUseCase;
     let payload: unknown;
     let notificationId: string;
 
     given('un payload de encolar válido con canal "email", destinatario "user@example.com", asunto "Hello" y cuerpo "Test body"', () => {
       const mockTemplateRepo = { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository;
-      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs), mockTemplateRepo, new TemplateRenderService());
+      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb), mockTemplateRepo, new TemplateRenderService());
       payload = { channel: 'email', to: 'user@example.com', subject: 'Hello', body: 'Test body', provider: 'ses' };
     });
 
@@ -121,24 +117,19 @@ defineFeature(feature, test => {
     });
 
     and('la notificación es guardada en la base de datos', () => {
-      expect(mockDb.create).toHaveBeenCalledTimes(1);
-    });
-
-    and('la notificación es enviada a la cola', () => {
-      expect(mockSqs.enqueue).toHaveBeenCalledTimes(1);
+      expect(mockDb.createWithOutboxEvent).toHaveBeenCalledTimes(1);
     });
   });
 
   test('Encolar un payload sin canal lanza una ValidationException', ({ given, when, then }) => {
-    const mockDb = { create: jest.fn() } as unknown as NotificationDbRepository;
-    const mockSqs = { enqueue: jest.fn() } as unknown as NotificationSqsRepository;
+    const mockDb = { createWithOutboxEvent: jest.fn() } as unknown as NotificationDbRepository;
     let useCase: EnqueueNotificationUseCase;
     let payload: unknown;
     let error: ValidationException;
 
     given('un payload de encolar sin el campo canal', () => {
       const mockTemplateRepo = { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository;
-      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb, mockSqs), mockTemplateRepo, new TemplateRenderService());
+      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb), mockTemplateRepo, new TemplateRenderService());
       payload = { to: 'user@example.com', body: 'Test body' };
     });
 
