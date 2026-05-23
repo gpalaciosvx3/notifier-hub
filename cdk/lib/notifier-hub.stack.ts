@@ -14,6 +14,8 @@ import { DlqProcessorFnConstruct } from './constructs/lambda/dlq-processor/dlq-p
 import { RelayFnConstruct } from './constructs/lambda/relay/relay-fn.construct';
 import { WebhookDispatcherFnConstruct } from './constructs/lambda/webhook-dispatcher/webhook-dispatcher-fn.construct';
 import { HttpApiConstruct } from './constructs/api-gateway/http-api.construct';
+import { NotificationDlqAlarmConstruct } from './constructs/cloudwatch/notification-dlq-alarm.construct';
+import { WebhookDlqAlarmConstruct } from './constructs/cloudwatch/webhook-dlq-alarm.construct';
 
 interface NotifierHubStackProps extends cdk.StackProps {
   sesSourceEmail: string;
@@ -52,7 +54,11 @@ export class NotifierHubStack extends cdk.Stack {
       table: notifications.table,
       outboxTable: outbox.table,
       dlq: dlq.queue,
+      webhookDlq: webhookDlq.queue,
     });
+
+    new NotificationDlqAlarmConstruct(this, 'NotificationDlqAlarm', { queue: dlq.queue });
+    new WebhookDlqAlarmConstruct(this, 'WebhookDlqAlarm', { queue: webhookDlq.queue });
 
     new RelayFnConstruct(this, 'RelayFn', {
       outboxTable: outbox.table,

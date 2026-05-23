@@ -15,6 +15,7 @@ interface DlqProcessorFnProps {
   table: dynamodb.Table;
   outboxTable: dynamodb.Table;
   dlq: sqs.Queue;
+  webhookDlq: sqs.Queue;
 }
 
 export class DlqProcessorFnConstruct extends Construct {
@@ -47,6 +48,15 @@ export class DlqProcessorFnConstruct extends Construct {
 
     fn.addEventSource(
       new SqsEventSource(props.dlq, {
+        batchSize: InfraConstants.SQS_BATCH_SIZE,
+        maxBatchingWindow: cdk.Duration.minutes(
+          InfraConstants.SQS_DLQ_PROCESSOR_BATCH_WINDOW_MINUTES,
+        ),
+      }),
+    );
+
+    fn.addEventSource(
+      new SqsEventSource(props.webhookDlq, {
         batchSize: InfraConstants.SQS_BATCH_SIZE,
         maxBatchingWindow: cdk.Duration.minutes(
           InfraConstants.SQS_DLQ_PROCESSOR_BATCH_WINDOW_MINUTES,

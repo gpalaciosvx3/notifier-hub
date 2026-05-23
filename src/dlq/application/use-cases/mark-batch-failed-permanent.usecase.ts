@@ -8,7 +8,7 @@ import {
   classifyBatchFailure,
   summarizeBatchResults,
 } from '../../../common/helpers/batch-processing.helper';
-import { NotificationEntity } from '../../../common/entities/notification.entity';
+import { DlqMessageSchema } from '../dtos/dlq-message.request.dto';
 
 @Injectable()
 export class MarkBatchFailedPermanentUseCase {
@@ -32,9 +32,20 @@ export class MarkBatchFailedPermanentUseCase {
   }
 
   private async executeOne(record: SqsMessage): Promise<void> {
-    const notificationId = (record.body as NotificationEntity).notificationId;
-    this.logger.log(`Procesando registro DLQ => notificationId: ${notificationId}`);
-    await this.dlqBatchService.markFailed(record);
+    this.logger.log(`Body recibido: ${JSON.stringify(record.body)}`);
+    const result = DlqMessageSchema.safeParse(record.body);
+    if (!result.success) {
+      this.logger.warn(
+        `Mensaje con messageType desconocido — descartando => sequenceNumber: ${record.sequenceNumber}`,
+      );
+      return;
+    }
+    const msg = result.data;
+    this.logger.log(
+      `Mensaje validado => notificationId: ${msg.notificationId} | messageType: ${msg.messageType}`,
+    );
+    await this.dlqBatchService.handle(msg);
+    this.logger.log(`Resultado => notificationId: ${msg.notificationId} | processed`);
   }
 
   private classifyFailure(sequenceNumber: string, error: unknown): ProcessRecordResult {

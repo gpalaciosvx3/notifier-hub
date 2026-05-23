@@ -24,11 +24,13 @@ Característica: Procesamiento Worker
     Cuando el servicio de procesamiento procesa la notificación
     Entonces el estado de la notificación no es actualizado
 
-  Esquema del escenario: handleFault revierte la notificación a PENDING independientemente del tipo de error
+  Esquema del escenario: processSafe revierte la notificación a PENDING y relanza la excepción cuando el envío falla
     Dado una notificación PENDING con ID "NOTIF-001" para canal "email:ses"
-    Cuando el servicio de procesamiento maneja un fallo con "<tipo_error>"
+    Y la actualización condicional para "NOTIF-001" tiene éxito
+    Y el remitente lanza "<tipo_error>" al intentar enviar
+    Cuando el servicio de procesamiento procesa de forma segura la notificación
     Entonces la notificación es revertida a "PENDING"
-    Y se retorna false
+    Y la excepción original es relanzada
 
     Ejemplos:
       | tipo_error                  |

@@ -102,7 +102,7 @@ defineFeature(feature, (test) => {
     });
 
     when('el servicio de procesamiento procesa la notificación', async () => {
-      await service.process(notification);
+      await service.processSafe(notification);
     });
 
     then('el método send del remitente es invocado', () => {
@@ -145,7 +145,7 @@ defineFeature(feature, (test) => {
     });
 
     when('el servicio de procesamiento procesa la notificación', async () => {
-      await service.process(notification);
+      await service.processSafe(notification);
     });
 
     then('el estado de la notificación no es actualizado', () => {
@@ -153,31 +153,49 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('handleFault revierte la notificación a PENDING independientemente del tipo de error', ({
+  test('processSafe revierte la notificación a PENDING y relanza la excepción cuando el envío falla', ({
     given,
+    and,
     when,
     then,
-    and,
   }) => {
+    const mockSender = {
+      send: jest.fn(),
+    } as unknown as NotificationSenderRepository;
     const mockDb = {
-      updateStatusConditional: jest.fn(),
+      updateStatusConditional: jest.fn().mockResolvedValue(true),
       updateStatus: jest.fn().mockResolvedValue(undefined),
+      updateStatusWithOutboxEvent: jest.fn(),
     } as unknown as NotificationDbRepository;
     let service: ProcessingService;
     let notification: NotificationEntity;
-    let result: boolean;
+    let thrownError: unknown;
 
     given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
       notification = buildNotification();
-      const router = new ChannelRouterService(new Map());
+      const router = new ChannelRouterService(
+        new Map([[`${notification.channel}:${notification.provider}`, mockSender]]),
+      );
       service = new ProcessingService(mockDb, router);
     });
 
-    when(/el servicio de procesamiento maneja un fallo con "(.+)"/, async (tipoError) => {
+    and('la actualización condicional para "NOTIF-001" tiene éxito', () => {
+      (mockDb.updateStatusConditional as jest.Mock).mockResolvedValue(true);
+    });
+
+    and(/el remitente lanza "(.+)" al intentar enviar/, (tipoError) => {
       const error = tipoError.includes('CustomException')
         ? new CustomException(ErrorDictionary.UNRESOLVABLE_SENDER, 'email:unknown')
         : new Error('Connection timeout');
-      result = await service.handleFault(notification, error);
+      (mockSender.send as jest.Mock).mockRejectedValue(error);
+    });
+
+    when('el servicio de procesamiento procesa de forma segura la notificación', async () => {
+      try {
+        await service.processSafe(notification);
+      } catch (e) {
+        thrownError = e;
+      }
     });
 
     then('la notificación es revertida a "PENDING"', () => {
@@ -187,8 +205,8 @@ defineFeature(feature, (test) => {
       );
     });
 
-    and('se retorna false', () => {
-      expect(result).toBe(false);
+    and('la excepción original es relanzada', () => {
+      expect(thrownError).toBeDefined();
     });
   });
 

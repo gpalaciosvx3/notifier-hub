@@ -3,6 +3,7 @@ import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
 import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity';
+import { WebhookStatus } from '../../../common/constants/webhook-status.constants';
 
 @Injectable()
 export class NotificationDbRepositoryImpl extends NotificationDbRepository {
@@ -36,5 +37,13 @@ export class NotificationDbRepositoryImpl extends NotificationDbRepository {
       },
       { type: 'put', table: this.outboxTableName, item: outboxEvent },
     ]);
+  }
+
+  async updateWebhookStatus(notificationId: string, status: WebhookStatus): Promise<void> {
+    await this.dynamo.updateFields(
+      this.tableName,
+      { notificationId },
+      { webhookStatus: status, updatedAt: new Date().toISOString() },
+    );
   }
 }

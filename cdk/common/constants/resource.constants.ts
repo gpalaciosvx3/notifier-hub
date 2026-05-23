@@ -24,4 +24,7 @@ export class ResourceConstants {
   static readonly API_NAME = NamingConstants.APG_001;
 
   static readonly WORKER_ROLE = NamingConstants.ROL_001;
+
+  static readonly ALARM_NOTIFICATION_DLQ = NamingConstants.CWA_001;
+  static readonly ALARM_WEBHOOK_DLQ = NamingConstants.CWA_002;
 }
