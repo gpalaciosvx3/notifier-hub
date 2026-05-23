@@ -38,5 +38,5 @@
   },
   "lint-staged": {
     "{src,test,cdk}/**/*.ts": "prettier --write"
-  },
+  }
 }

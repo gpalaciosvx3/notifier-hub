@@ -2,6 +2,7 @@ import { ulid } from 'ulid';
 import { CustomException } from '../errors/custom.exception';
 import { ErrorDictionary, InputError } from '../errors/error.dictionary';
 import { NotificationStatus } from '../constants/notification-status.constants';
+import { WebhookStatus } from '../constants/webhook-status.constants';
 import { NotificationChannel } from '../constants/notification-channel.constants';
 import { NotificationProvider } from '../constants/notification-provider.constants';
 import { NotificationConstants } from '../constants/notification.constants';
@@ -39,6 +40,7 @@ export class NotificationEntity {
     public readonly to: string,
     public readonly body: string,
     public readonly status: NotificationStatus,
+    public readonly webhookStatus: WebhookStatus,
     public readonly ttl: number,
     public readonly createdAt: string,
     public readonly updatedAt: string,
@@ -68,6 +70,7 @@ export class NotificationEntity {
       params.to,
       params.body,
       NotificationStatus.PENDING,
+      WebhookStatus.PENDING,
       Math.floor(Date.now() / 1000) + NotificationConstants.TTL_SECONDS,
       now,
       now,

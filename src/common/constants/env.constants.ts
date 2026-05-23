@@ -30,4 +30,7 @@ export class EnvConstants {
     EnvConstants.NOTIFICATIONS_QUEUE_URL,
     EnvConstants.WEBHOOKS_QUEUE_URL,
   ];
+  static readonly REQUERIDAS_WEBHOOK_DISPATCHER: readonly string[] = [
+    EnvConstants.NOTIFICATIONS_TABLE,
+  ];
 }

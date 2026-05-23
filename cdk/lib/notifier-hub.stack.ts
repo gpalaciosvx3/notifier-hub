@@ -6,11 +6,13 @@ import { OutboxTableConstruct } from './constructs/dynamodb/outbox-table.constru
 import { DeadLetterQueueConstruct } from './constructs/sqs/dead-letter-queue.construct';
 import { MainQueueConstruct } from './constructs/sqs/main-queue.construct';
 import { WebhooksQueueConstruct } from './constructs/sqs/webhooks-queue.construct';
+import { WebhookDeadLetterQueueConstruct } from './constructs/sqs/webhook-dead-letter-queue.construct';
 import { EnqueueFnConstruct } from './constructs/lambda/enqueue/enqueue-fn.construct';
 import { QueryFnConstruct } from './constructs/lambda/query/query-fn.construct';
 import { WorkerFnConstruct } from './constructs/lambda/worker/worker-fn.construct';
 import { DlqProcessorFnConstruct } from './constructs/lambda/dlq-processor/dlq-processor-fn.construct';
 import { RelayFnConstruct } from './constructs/lambda/relay/relay-fn.construct';
+import { WebhookDispatcherFnConstruct } from './constructs/lambda/webhook-dispatcher/webhook-dispatcher-fn.construct';
 import { HttpApiConstruct } from './constructs/api-gateway/http-api.construct';
 
 interface NotifierHubStackProps extends cdk.StackProps {
@@ -26,7 +28,10 @@ export class NotifierHubStack extends cdk.Stack {
     const outbox = new OutboxTableConstruct(this, 'OutboxTable');
     const dlq = new DeadLetterQueueConstruct(this, 'DeadLetterQueue');
     const queue = new MainQueueConstruct(this, 'MainQueue', { dlq: dlq.queue });
-    const webhooksQueue = new WebhooksQueueConstruct(this, 'WebhooksQueue', { dlq: dlq.queue });
+    const webhookDlq = new WebhookDeadLetterQueueConstruct(this, 'WebhookDeadLetterQueue');
+    const webhooksQueue = new WebhooksQueueConstruct(this, 'WebhooksQueue', {
+      webhookDlq: webhookDlq.queue,
+    });
 
     const enqueueFn = new EnqueueFnConstruct(this, 'EnqueueFn', {
       table: notifications.table,
@@ -56,6 +61,11 @@ export class NotifierHubStack extends cdk.Stack {
       webhooksQueue: webhooksQueue.queue,
     });
 
+    new WebhookDispatcherFnConstruct(this, 'WebhookDispatcherFn', {
+      table: notifications.table,
+      webhooksQueue: webhooksQueue.queue,
+    });
+
     const api = new HttpApiConstruct(this, 'HttpApi', {
       enqueueFn: enqueueFn.fn,
       queryFn: queryFn.fn,
@@ -73,6 +83,10 @@ export class NotifierHubStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'WebhooksQueueUrl', {
       value: webhooksQueue.queue.queueUrl,
       description: 'Webhooks Queue URL',
+    });
+    new cdk.CfnOutput(this, 'WebhooksDlqUrl', {
+      value: webhookDlq.queue.queueUrl,
+      description: 'Webhooks Dead Letter Queue URL',
     });
     new cdk.CfnOutput(this, 'OutboxTableName', {
       value: outbox.table.tableName,

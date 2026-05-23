@@ -108,4 +108,10 @@ export class ErrorDictionary {
     descripcion: 'Servicio de mensajería SNS no disponible',
     statusCode: HttpStatus.SERVICE_UNAVAILABLE,
   };
+
+  static readonly WEBHOOK_POST_FAILED: InputError = {
+    code: 'NTF-016',
+    descripcion: 'El POST al callbackUrl del webhook falló tras agotar los reintentos',
+    statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+  };
 }

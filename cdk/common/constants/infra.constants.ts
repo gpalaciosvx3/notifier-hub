@@ -8,6 +8,7 @@ export class InfraConstants {
   static readonly LAMBDA_TIMEOUT_DEFAULT_SECONDS = 30;
   static readonly LAMBDA_TIMEOUT_WORKER_SECONDS = 60;
   static readonly LAMBDA_TIMEOUT_RELAY_SECONDS = 60;
+  static readonly LAMBDA_TIMEOUT_WEBHOOK_DISPATCHER_SECONDS = 120;
   static readonly LAMBDA_MEMORY_DEFAULT_MB = 256;
   static readonly LAMBDA_MEMORY_WORKER_MB = 512;
 }

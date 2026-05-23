@@ -5,7 +5,7 @@ import { InfraConstants } from '../../../common/constants/infra.constants';
 import { ResourceConstants } from '../../../common/constants/resource.constants';
 
 interface WebhooksQueueProps {
-  dlq: sqs.Queue;
+  webhookDlq: sqs.Queue;
 }
 
 export class WebhooksQueueConstruct extends Construct {
@@ -18,7 +18,7 @@ export class WebhooksQueueConstruct extends Construct {
       queueName: ResourceConstants.WEBHOOKS_QUEUE_NAME,
       visibilityTimeout: cdk.Duration.seconds(InfraConstants.SQS_VISIBILITY_TIMEOUT_SECONDS),
       deadLetterQueue: {
-        queue: props.dlq,
+        queue: props.webhookDlq,
         maxReceiveCount: InfraConstants.SQS_MAX_RECEIVE_COUNT,
       },
     });
