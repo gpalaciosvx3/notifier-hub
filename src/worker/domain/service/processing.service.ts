@@ -18,7 +18,17 @@ export class ProcessingService {
     private readonly channelRouter: ChannelRouterService,
   ) {}
 
-  async process(notification: NotificationEntity): Promise<void> {
+  
+  async processSafe(notification: NotificationEntity): Promise<void> {
+    try {
+      await this.process(notification);
+    } catch (error) {
+      await this.handleFault(notification, error);
+      throw error;
+    }
+  }
+
+  private async process(notification: NotificationEntity): Promise<void> {
     this.logger.log(
       `[PASO 1] Tomando control de notificación => notificationId: ${notification.notificationId}`,
     );
@@ -36,17 +46,11 @@ export class ProcessingService {
     if (!taken) return;
     await this.sendAndFinalize(notification);
   }
-
-  async processSafe(notification: NotificationEntity): Promise<void> {
-    try {
-      await this.process(notification);
-    } catch (error) {
-      await this.handleFault(notification, error);
-      throw error;
-    }
-  }
-
-  async handleFault(notification: NotificationEntity, error: unknown): Promise<boolean> {
+  
+  private async handleFault(notification: NotificationEntity, error: unknown): Promise<boolean> {
+    this.logger.error(
+      `[PASO 1] Manejando fallo => notificationId: ${notification.notificationId}`,
+    );
     const exception =
       error instanceof CustomException
         ? error
@@ -54,11 +58,8 @@ export class ProcessingService {
             ErrorDictionary.NOTIFICATION_SEND_FAILED,
             error instanceof Error ? error.message : String(error),
           );
-    this.logger.error(
-      `[PASO 1] Manejando fallo => notificationId: ${notification.notificationId} | [${exception.code}] ${exception.description}`,
-    );
     this.logger.log(
-      `[PASO 2] Revirtiendo estado a PENDING => notificationId: ${notification.notificationId}`,
+      `[PASO 2] Revirtiendo estado a PENDING => notificationId: ${notification.notificationId} | [${exception.code}] ${exception.description}`,
     );
     await this.dbRepository.updateStatus(notification.notificationId, NotificationStatus.PENDING);
     return false;
@@ -83,6 +84,7 @@ export class ProcessingService {
         notificationId: notification.notificationId,
         status: NotificationStatus.SENT,
         callbackUrl: notification.callbackUrl,
+        sentAt: new Date().toISOString(),
       },
     });
     await this.dbRepository.updateStatusWithOutboxEvent(
