@@ -7,9 +7,9 @@ import { NotificationDbRepository } from '../../domain/repository/notification.d
 import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
 import { TemplateDbRepository } from '../../domain/repository/template.db.repository';
 import { TemplateDbRepositoryImpl } from '../repository/template.db.repository.impl';
-import { TemplateRenderService } from '../../domain/service/template.render.service';
+import { TemplateRenderService } from '../../domain/service/template-render.service';
 import { EnqueueNotificationUseCase } from '../../application/use-cases/enqueue-notification.usecase';
-import { NotificationService } from '../../domain/service/notification.service';
+import { EnqueueNotificationService } from '../../domain/service/enqueue-notification.service';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
 import { EnqueueController } from '../controller/enqueue.controller';
 
@@ -34,9 +34,9 @@ import { EnqueueController } from '../controller/enqueue.controller';
       inject: [DynamoClient],
     },
     {
-      provide: NotificationService,
+      provide: EnqueueNotificationService,
       useFactory: (db: NotificationDbRepository) =>
-        new NotificationService(
+        new EnqueueNotificationService(
           envConfig.defaultEmailProvider as NotificationProvider,
           envConfig.defaultSmsProvider as NotificationProvider,
           db,
@@ -45,9 +45,9 @@ import { EnqueueController } from '../controller/enqueue.controller';
     },
     {
       provide: EnqueueNotificationUseCase,
-      useFactory: (svc: NotificationService, templateRepo: TemplateDbRepository) =>
+      useFactory: (svc: EnqueueNotificationService, templateRepo: TemplateDbRepository) =>
         new EnqueueNotificationUseCase(svc, templateRepo, new TemplateRenderService()),
-      inject: [NotificationService, TemplateDbRepository],
+      inject: [EnqueueNotificationService, TemplateDbRepository],
     },
     {
       provide: EnqueueController,

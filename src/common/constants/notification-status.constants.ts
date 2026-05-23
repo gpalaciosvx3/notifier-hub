@@ -1,4 +1,5 @@
 export enum NotificationStatus {
+  SCHEDULED = 'SCHEDULED',
   PENDING = 'PENDING',
   PROCESSING = 'PROCESSING',
   DONE = 'DONE',

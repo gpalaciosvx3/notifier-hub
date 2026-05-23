@@ -26,6 +26,14 @@ const REGLAS_POR_CANAL: Record<NotificationChannel, ReglaCanalConfig> = {
   },
 };
 
+const scheduledAtField = z
+  .string()
+  .datetime({ offset: true })
+  .refine((val) => new Date(val) > new Date(), {
+    message: 'La fecha programada debe ser una fecha futura',
+  })
+  .optional();
+
 const InlineSchema = z
   .object({
     channel: z.nativeEnum(NotificationChannel),
@@ -34,6 +42,7 @@ const InlineSchema = z
     subject: z.string().optional(),
     body: z.string().min(1),
     callbackUrl: z.string().url(),
+    scheduledAt: scheduledAtField,
   })
   .superRefine((data, ctx) => {
     const config = REGLAS_POR_CANAL[data.channel];
@@ -58,6 +67,7 @@ const TemplateSchema = z.object({
   to: z.string().min(1),
   variables: z.record(z.unknown()).optional(),
   callbackUrl: z.string().url(),
+  scheduledAt: scheduledAtField,
 });
 
 export const EnqueueNotificationSchema = z.union([InlineSchema, TemplateSchema]);

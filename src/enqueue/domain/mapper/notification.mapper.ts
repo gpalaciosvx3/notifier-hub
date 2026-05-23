@@ -15,4 +15,21 @@ export class NotificationMapper {
       callbackUrl: input.callbackUrl,
     });
   }
+
+  static fromScheduledInput(
+    input: NotificationInput,
+    provider: NotificationProvider,
+  ): NotificationEntity {
+    return NotificationEntity.buildScheduled({
+      channel: input.channel,
+      provider,
+      to: input.to,
+      subject: input.subject,
+      body: input.body,
+      templateId: input.templateId,
+      templateVersion: input.templateVersion,
+      callbackUrl: input.callbackUrl,
+      scheduledAt: input.scheduledAt!,
+    });
+  }
 }

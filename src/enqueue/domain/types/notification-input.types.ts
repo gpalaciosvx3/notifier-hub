@@ -10,4 +10,5 @@ export type NotificationInput = {
   subject?: string;
   templateId?: string;
   templateVersion?: number;
+  scheduledAt?: string;
 };

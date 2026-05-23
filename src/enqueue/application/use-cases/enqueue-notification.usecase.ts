@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ZodIssue } from 'zod';
-import { NotificationService } from '../../domain/service/notification.service';
+import { EnqueueNotificationService } from '../../domain/service/enqueue-notification.service';
 import { TemplateDbRepository } from '../../domain/repository/template.db.repository';
-import { TemplateRenderService } from '../../domain/service/template.render.service';
+import { TemplateRenderService } from '../../domain/service/template-render.service';
 import {
   EnqueueNotificationSchema,
   isTemplateRequest,
@@ -15,7 +15,7 @@ export class EnqueueNotificationUseCase {
   private readonly logger = new Logger(EnqueueNotificationUseCase.name);
 
   constructor(
-    private readonly service: NotificationService,
+    private readonly service: EnqueueNotificationService,
     private readonly templateRepository: TemplateDbRepository,
     private readonly templateRenderService: TemplateRenderService,
   ) {}
@@ -47,7 +47,7 @@ export class EnqueueNotificationUseCase {
         dto.variables ?? {},
         dto.callbackUrl,
       );
-      const notificationId = await this.service.enqueue(input);
+      const notificationId = await this.service.enqueue({ ...input, scheduledAt: dto.scheduledAt });
       this.logger.log(
         `Resultado => notificationId: ${notificationId} | templateId: ${template.templateId}`,
       );

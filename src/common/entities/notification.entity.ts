@@ -49,6 +49,7 @@ export class NotificationEntity {
     public readonly failureReason?: string,
     public readonly templateId?: string,
     public readonly templateVersion?: number,
+    public readonly scheduledAt?: string,
   ) {}
 
   static build(params: {
@@ -79,6 +80,39 @@ export class NotificationEntity {
       undefined,
       params.templateId,
       params.templateVersion,
+    );
+  }
+
+  static buildScheduled(params: {
+    channel: NotificationChannel;
+    provider: NotificationProvider;
+    to: string;
+    body: string;
+    subject?: string;
+    templateId?: string;
+    templateVersion?: number;
+    callbackUrl: string;
+    scheduledAt: string;
+  }): NotificationEntity {
+    NotificationEntity.validateInvariants(params);
+    const now = new Date().toISOString();
+    return new NotificationEntity(
+      ulid(),
+      params.channel,
+      params.provider,
+      params.to,
+      params.body,
+      NotificationStatus.SCHEDULED,
+      WebhookStatus.PENDING,
+      Math.floor(Date.now() / 1000) + NotificationConstants.TTL_SECONDS,
+      now,
+      now,
+      params.callbackUrl,
+      params.subject,
+      undefined,
+      params.templateId,
+      params.templateVersion,
+      params.scheduledAt,
     );
   }
 

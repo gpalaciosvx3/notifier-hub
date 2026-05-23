@@ -22,11 +22,17 @@ export class ProcessingService {
     this.logger.log(
       `[PASO 1] Tomando control de notificación => notificationId: ${notification.notificationId}`,
     );
-    const taken = await this.dbRepository.updateStatusConditional(
-      notification.notificationId,
-      NotificationStatus.PROCESSING,
-      NotificationStatus.PENDING,
-    );
+    const taken =
+      (await this.dbRepository.updateStatusConditional(
+        notification.notificationId,
+        NotificationStatus.PROCESSING,
+        NotificationStatus.PENDING,
+      )) ||
+      (await this.dbRepository.updateStatusConditional(
+        notification.notificationId,
+        NotificationStatus.PROCESSING,
+        NotificationStatus.SCHEDULED,
+      ));
     if (!taken) return;
     await this.sendAndFinalize(notification);
   }

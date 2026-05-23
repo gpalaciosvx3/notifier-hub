@@ -10,8 +10,8 @@ import { NotificationInput } from '../types/notification-input.types';
 import { NotificationMapper } from '../mapper/notification.mapper';
 
 @Injectable()
-export class NotificationService {
-  private readonly logger = new Logger(NotificationService.name);
+export class EnqueueNotificationService {
+  private readonly logger = new Logger(EnqueueNotificationService.name);
   private readonly defaultProviderByChannel: Record<NotificationChannel, NotificationProvider>;
 
   constructor(
@@ -26,22 +26,15 @@ export class NotificationService {
   }
 
   async enqueue(input: NotificationInput): Promise<string> {
-    this.logger.log(
-      `[PASO 1] Construyendo entidad de notificación => channel: ${input.channel} | to: ${input.to}`,
-    );
-    const notification = this.build(input);
+    const provider = input.provider ?? this.defaultProviderByChannel[input.channel];
 
     this.logger.log(
-      `[PASO 2] Construyendo evento de outbox => notificationId: ${notification.notificationId}`,
+      `[PASO 1] Construyendo entidades => channel: ${input.channel} | to: ${input.to}`,
     );
-    const outboxEvent = OutboxEventEntity.build({
-      eventType: OutboxEventType.NOTIFICATION_CREATED,
-      brokerType: OutboxEventBrokerType.SQS_NOTIFICATION,
-      payload: notification as unknown as Record<string, unknown>,
-    });
+    const { notification, outboxEvent } = this.buildPayload(input, provider);
 
     this.logger.log(
-      `[PASO 3] Persistiendo notificación + evento de outbox atómicamente => notificationId: ${notification.notificationId} | eventId: ${outboxEvent.eventId}`,
+      `[PASO 2] Persistiendo notificación + evento de outbox atómicamente => notificationId: ${notification.notificationId} | eventId: ${outboxEvent.eventId}`,
     );
     await this.dbRepository.createWithOutboxEvent(notification, outboxEvent);
 
@@ -51,5 +44,35 @@ export class NotificationService {
   build(input: NotificationInput): NotificationEntity {
     const provider = input.provider ?? this.defaultProviderByChannel[input.channel];
     return NotificationMapper.fromInput(input, provider);
+  }
+
+  private buildPayload(
+    input: NotificationInput,
+    provider: NotificationProvider,
+  ): { notification: NotificationEntity; outboxEvent: OutboxEventEntity } {
+    if (input.scheduledAt) {
+      const notification = NotificationMapper.fromScheduledInput(input, provider);
+      return {
+        notification,
+        outboxEvent: OutboxEventEntity.build({
+          eventType: OutboxEventType.NOTIFICATION_SCHEDULED,
+          brokerType: OutboxEventBrokerType.SQS_NOTIFICATION,
+          payload: {
+            notification: notification as unknown as Record<string, unknown>,
+            scheduledAt: input.scheduledAt,
+          },
+        }),
+      };
+    }
+
+    const notification = NotificationMapper.fromInput(input, provider);
+    return {
+      notification,
+      outboxEvent: OutboxEventEntity.build({
+        eventType: OutboxEventType.NOTIFICATION_CREATED,
+        brokerType: OutboxEventBrokerType.SQS_NOTIFICATION,
+        payload: notification as unknown as Record<string, unknown>,
+      }),
+    };
   }
 }

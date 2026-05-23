@@ -37,3 +37,15 @@ Característica: Encolar Notificación
     Dado un payload de encolar sin el campo canal
     Cuando el caso de uso de encolar se ejecuta
     Entonces se lanza una ValidationException con código "NTF-009"
+
+  Escenario: Encolar una notificación con scheduledAt futuro la persiste con estado SCHEDULED
+    Dado un payload de encolar con canal "email", destinatario "user@example.com", asunto "Hello", cuerpo "Test body" y scheduledAt en el futuro
+    Cuando el caso de uso de encolar se ejecuta
+    Entonces se retorna un ID de notificación
+    Y la notificación es guardada con estado "SCHEDULED"
+    Y el evento de outbox es de tipo "NOTIFICATION_SCHEDULED"
+
+  Escenario: Encolar una notificación con scheduledAt pasado lanza ValidationException
+    Dado un payload de encolar con scheduledAt en el pasado
+    Cuando el caso de uso de encolar se ejecuta
+    Entonces se lanza una ValidationException con código "NTF-009"
