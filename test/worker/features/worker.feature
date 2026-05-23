@@ -11,12 +11,12 @@ Característica: Procesamiento Worker
     Cuando el router de canal resuelve canal "email" y proveedor "unknown"
     Entonces se lanza una CustomException con código "NTF-006"
 
-  Escenario: El servicio de procesamiento envía y marca DONE cuando toma el lock
+  Escenario: El servicio de procesamiento envía y marca SENT cuando toma el lock
     Dado una notificación PENDING con ID "NOTIF-001" para canal "email:ses"
     Y la actualización condicional para "NOTIF-001" tiene éxito
     Cuando el servicio de procesamiento procesa la notificación
     Entonces el método send del remitente es invocado
-    Y la notificación es marcada como "DONE"
+    Y la notificación es marcada como "SENT"
 
   Escenario: El servicio de procesamiento omite cuando no toma el lock
     Dado una notificación PENDING con ID "NOTIF-001" para canal "email:ses"

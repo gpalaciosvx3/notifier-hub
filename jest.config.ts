@@ -7,14 +7,10 @@ export default {
   testMatch: ['**/*.steps.ts'],
   collectCoverage: true,
   collectCoverageFrom: [
-    'src/enqueue/domain/**/*.ts',
-    'src/enqueue/application/**/*.ts',
-    'src/query/domain/**/*.ts',
-    'src/query/application/**/*.ts',
-    'src/worker/domain/**/*.ts',
-    'src/worker/application/**/*.ts',
-    'src/dlq/domain/**/*.ts',
-    'src/dlq/application/**/*.ts',
+    'src/emission/{domain,application}/**/*.ts',
+    '!src/emission/**/*.{types,dto,constants,error,mapper,repository}.ts',
+    '!src/emission/**/*.module.ts',
+    '!src/emission/**/index.ts',
   ],
   coverageThreshold: {
     global: {

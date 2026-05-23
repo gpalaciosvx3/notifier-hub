@@ -4,7 +4,6 @@ import { QueryService } from '../../src/query/domain/service/query.service';
 import { GetNotificationUseCase } from '../../src/query/application/use-cases/get-notification.usecase';
 import { GetNotificationsByRecipientUseCase } from '../../src/query/application/use-cases/get-notifications-by-recipient.usecase';
 import { NotificationDbRepository } from '../../src/query/domain/repository/notification.db.repository';
-import { SearchNotificationCommand } from '../../src/query/domain/commands/search-notification.command';
 import { NotificationEntity } from '../../src/common/entities/notification.entity';
 import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../src/common/constants/notification-provider.constants';
@@ -39,7 +38,7 @@ defineFeature(feature, test => {
     });
 
     when('el servicio de consulta busca por ID "NOTIF-001"', async () => {
-      result = await service.search(SearchNotificationCommand.byId('NOTIF-001'));
+      result = await service.search({ id: 'NOTIF-001' });
     });
 
     then('la entidad de notificación es retornada', () => {
@@ -60,7 +59,7 @@ defineFeature(feature, test => {
     });
 
     when('el servicio de consulta busca por ID "NOTIF-999"', async () => {
-      try { await service.search(SearchNotificationCommand.byId('NOTIF-999')); } catch (e) { error = e as CustomException; }
+      try { await service.search({ id: 'NOTIF-999' }); } catch (e) { error = e as CustomException; }
     });
 
     then('se lanza una CustomException con código "NTF-005"', () => {
@@ -83,7 +82,7 @@ defineFeature(feature, test => {
     });
 
     when('el servicio de consulta busca por estado "PENDING"', async () => {
-      result = await service.search(SearchNotificationCommand.byStatus(NotificationStatus.PENDING));
+      result = await service.search({ status: NotificationStatus.PENDING });
     });
 
     then('se retorna una lista de 2 notificaciones', () => {

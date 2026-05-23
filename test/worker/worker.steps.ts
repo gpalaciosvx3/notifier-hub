@@ -64,7 +64,7 @@ defineFeature(feature, test => {
     });
   });
 
-  test('El servicio de procesamiento envía y marca DONE cuando toma el lock', ({ given, and, when, then }) => {
+  test('El servicio de procesamiento envía y marca SENT cuando toma el lock', ({ given, and, when, then }) => {
     const mockSender = { send: jest.fn().mockResolvedValue(undefined) } as unknown as NotificationSenderRepository;
     const mockDb = {
       updateStatusConditional: jest.fn().mockResolvedValue(true),
@@ -92,8 +92,8 @@ defineFeature(feature, test => {
       expect(mockSender.send).toHaveBeenCalledTimes(1);
     });
 
-    and('la notificación es marcada como "DONE"', () => {
-      expect(mockDb.updateStatus).toHaveBeenCalledWith(notification.notificationId, NotificationStatus.SENT);
+    and('la notificación es marcada como "SENT"', () => {
+      expect(mockDb.updateStatusWithOutboxEvent).toHaveBeenCalledWith(notification.notificationId, NotificationStatus.SENT, expect.anything());
     });
   });
 
