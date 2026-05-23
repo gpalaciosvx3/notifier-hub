@@ -26,7 +26,7 @@ const buildNotification = (): NotificationEntity =>
     callbackUrl: 'https://example.com/callback',
   });
 
-defineFeature(feature, test => {
+defineFeature(feature, (test) => {
   test('El router de canal resuelve un remitente conocido', ({ given, when, then }) => {
     let router: ChannelRouterService;
     let mockSender: NotificationSenderRepository;
@@ -46,7 +46,11 @@ defineFeature(feature, test => {
     });
   });
 
-  test('El router de canal lanza NTF-006 para una combinación desconocida', ({ given, when, then }) => {
+  test('El router de canal lanza NTF-006 para una combinación desconocida', ({
+    given,
+    when,
+    then,
+  }) => {
     let router: ChannelRouterService;
     let error: CustomException;
 
@@ -55,7 +59,11 @@ defineFeature(feature, test => {
     });
 
     when('el router de canal resuelve canal "email" y proveedor "unknown"', () => {
-      try { router.resolve('email', 'unknown'); } catch (e) { error = e as CustomException; }
+      try {
+        router.resolve('email', 'unknown');
+      } catch (e) {
+        error = e as CustomException;
+      }
     });
 
     then('se lanza una CustomException con código "NTF-006"', () => {
@@ -64,8 +72,15 @@ defineFeature(feature, test => {
     });
   });
 
-  test('El servicio de procesamiento envía y marca SENT cuando toma el lock', ({ given, and, when, then }) => {
-    const mockSender = { send: jest.fn().mockResolvedValue(undefined) } as unknown as NotificationSenderRepository;
+  test('El servicio de procesamiento envía y marca SENT cuando toma el lock', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const mockSender = {
+      send: jest.fn().mockResolvedValue(undefined),
+    } as unknown as NotificationSenderRepository;
     const mockDb = {
       updateStatusConditional: jest.fn().mockResolvedValue(true),
       updateStatus: jest.fn().mockResolvedValue(undefined),
@@ -76,7 +91,9 @@ defineFeature(feature, test => {
 
     given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
       notification = buildNotification();
-      const router = new ChannelRouterService(new Map([[`${notification.channel}:${notification.provider}`, mockSender]]));
+      const router = new ChannelRouterService(
+        new Map([[`${notification.channel}:${notification.provider}`, mockSender]]),
+      );
       service = new ProcessingService(mockDb, router);
     });
 
@@ -93,11 +110,20 @@ defineFeature(feature, test => {
     });
 
     and('la notificación es marcada como "SENT"', () => {
-      expect(mockDb.updateStatusWithOutboxEvent).toHaveBeenCalledWith(notification.notificationId, NotificationStatus.SENT, expect.anything());
+      expect(mockDb.updateStatusWithOutboxEvent).toHaveBeenCalledWith(
+        notification.notificationId,
+        NotificationStatus.SENT,
+        expect.anything(),
+      );
     });
   });
 
-  test('El servicio de procesamiento omite cuando no toma el lock', ({ given, and, when, then }) => {
+  test('El servicio de procesamiento omite cuando no toma el lock', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
     const mockSender = { send: jest.fn() } as unknown as NotificationSenderRepository;
     const mockDb = {
       updateStatusConditional: jest.fn().mockResolvedValue(false),
@@ -108,7 +134,9 @@ defineFeature(feature, test => {
 
     given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
       notification = buildNotification();
-      const router = new ChannelRouterService(new Map([[`${notification.channel}:${notification.provider}`, mockSender]]));
+      const router = new ChannelRouterService(
+        new Map([[`${notification.channel}:${notification.provider}`, mockSender]]),
+      );
       service = new ProcessingService(mockDb, router);
     });
 
@@ -125,7 +153,12 @@ defineFeature(feature, test => {
     });
   });
 
-  test('handleFault revierte la notificación a PENDING independientemente del tipo de error', ({ given, when, then, and }) => {
+  test('handleFault revierte la notificación a PENDING independientemente del tipo de error', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
     const mockDb = {
       updateStatusConditional: jest.fn(),
       updateStatus: jest.fn().mockResolvedValue(undefined),
@@ -148,7 +181,10 @@ defineFeature(feature, test => {
     });
 
     then('la notificación es revertida a "PENDING"', () => {
-      expect(mockDb.updateStatus).toHaveBeenCalledWith(notification.notificationId, NotificationStatus.PENDING);
+      expect(mockDb.updateStatus).toHaveBeenCalledWith(
+        notification.notificationId,
+        NotificationStatus.PENDING,
+      );
     });
 
     and('se retorna false', () => {
@@ -156,7 +192,11 @@ defineFeature(feature, test => {
     });
   });
 
-  test('El caso de uso de batch no retorna registros reintentables cuando todos tienen éxito', ({ given, when, then }) => {
+  test('El caso de uso de batch no retorna registros reintentables cuando todos tienen éxito', ({
+    given,
+    when,
+    then,
+  }) => {
     const mockProcessingService = {
       processSafe: jest.fn().mockResolvedValue(undefined),
     } as unknown as ProcessingService;
@@ -177,11 +217,15 @@ defineFeature(feature, test => {
     });
 
     then('la lista de registros reintentables está vacía', () => {
-      expect(result.filter(r => r.retry)).toHaveLength(0);
+      expect(result.filter((r) => r.retry)).toHaveLength(0);
     });
   });
 
-  test('El caso de uso de batch incluye el registro fallido como reintentable', ({ given, when, then }) => {
+  test('El caso de uso de batch incluye el registro fallido como reintentable', ({
+    given,
+    when,
+    then,
+  }) => {
     const mockProcessingService = {
       processSafe: jest.fn().mockRejectedValue(new Error('SES error')),
     } as unknown as ProcessingService;
@@ -191,7 +235,9 @@ defineFeature(feature, test => {
 
     given('un batch de 1 registro SQS donde el procesamiento falla', () => {
       useCase = new ProcessBatchUseCase(mockProcessingService);
-      records = [{ messageId: 'msg-001', sequenceNumber: 'msg-001', body: { notificationId: 'NOTIF-001' } }];
+      records = [
+        { messageId: 'msg-001', sequenceNumber: 'msg-001', body: { notificationId: 'NOTIF-001' } },
+      ];
     });
 
     when('el caso de uso de procesamiento de batch se ejecuta', async () => {
@@ -199,8 +245,8 @@ defineFeature(feature, test => {
     });
 
     then('la lista de registros reintentables contiene 1 elemento', () => {
-      expect(result.filter(r => r.retry)).toHaveLength(1);
-      expect(result.filter(r => r.retry)[0].sequenceNumber).toBe('msg-001');
+      expect(result.filter((r) => r.retry)).toHaveLength(1);
+      expect(result.filter((r) => r.retry)[0].sequenceNumber).toBe('msg-001');
     });
   });
 });

@@ -39,8 +39,14 @@ const InlineSchema = z
     const config = REGLAS_POR_CANAL[data.channel];
     const reglas: Array<[boolean, { path: string[]; message: string }]> = [
       [!config.validarDestinatario(data.to), { path: ['to'], message: config.errorDestinatario }],
-      [config.requiereSubject && !data.subject, { path: ['subject'], message: 'El asunto es requerido para notificaciones de correo' }],
-      [!!data.provider && !config.proveedoresValidos.includes(data.provider), { path: ['provider'], message: 'Proveedor incompatible con el canal especificado' }],
+      [
+        config.requiereSubject && !data.subject,
+        { path: ['subject'], message: 'El asunto es requerido para notificaciones de correo' },
+      ],
+      [
+        !!data.provider && !config.proveedoresValidos.includes(data.provider),
+        { path: ['provider'], message: 'Proveedor incompatible con el canal especificado' },
+      ],
     ];
     reglas
       .filter(([fallo]) => fallo)
@@ -56,10 +62,10 @@ const TemplateSchema = z.object({
 
 export const EnqueueNotificationSchema = z.union([InlineSchema, TemplateSchema]);
 
-export type InlineNotificationDto   = z.infer<typeof InlineSchema>;
+export type InlineNotificationDto = z.infer<typeof InlineSchema>;
 export type TemplateNotificationDto = z.infer<typeof TemplateSchema>;
 export type EnqueueNotificationRequestDto = z.infer<typeof EnqueueNotificationSchema>;
 
-export const isTemplateRequest = (dto: EnqueueNotificationRequestDto): dto is TemplateNotificationDto =>
-  'templateId' in dto;
-
+export const isTemplateRequest = (
+  dto: EnqueueNotificationRequestDto,
+): dto is TemplateNotificationDto => 'templateId' in dto;

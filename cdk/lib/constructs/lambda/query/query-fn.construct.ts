@@ -27,7 +27,10 @@ export class QueryFnConstruct extends Construct {
       functionName: ResourceConstants.LAMBDA_QUERY,
       description: 'Consulta el estado e historial de notificaciones desde DynamoDB',
       logGroup,
-      entry: path.join(__dirname, '../../../../../src/query/infrastructure/bootstrap/query.handler.ts'),
+      entry: path.join(
+        __dirname,
+        '../../../../../src/query/infrastructure/bootstrap/query.handler.ts',
+      ),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_DEFAULT_SECONDS),

@@ -30,7 +30,7 @@ export class NotificationDbRepositoryImpl extends NotificationDbRepository {
 
   async findByRecipient(to: string, pageToken?: string): Promise<PagedResult<NotificationEntity>> {
     const exclusiveStartKey = pageToken
-      ? JSON.parse(Buffer.from(pageToken, 'base64').toString('utf-8')) as Record<string, unknown>
+      ? (JSON.parse(Buffer.from(pageToken, 'base64').toString('utf-8')) as Record<string, unknown>)
       : undefined;
     const result = await this.dynamo.queryPaged<NotificationEntity>(this.tableName, {
       index: 'to-index',

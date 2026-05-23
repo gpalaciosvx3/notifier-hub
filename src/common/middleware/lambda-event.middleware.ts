@@ -1,4 +1,9 @@
-import { APIGatewayProxyEvent, APIGatewayProxyEventV2, SQSEvent, DynamoDBStreamEvent } from 'aws-lambda';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyEventV2,
+  SQSEvent,
+  DynamoDBStreamEvent,
+} from 'aws-lambda';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { LambdaExtracted } from './types/lambda-event.types';
@@ -29,7 +34,7 @@ export class LambdaEventMiddleware {
       const e = event as SQSEvent;
       return {
         source: 'sqs',
-        records: e.Records.map(r => ({
+        records: e.Records.map((r) => ({
           body: JSON.parse(r.body),
           messageId: r.messageId,
           sequenceNumber: r.messageId,
@@ -41,12 +46,12 @@ export class LambdaEventMiddleware {
       const e = event as DynamoDBStreamEvent;
       return {
         source: 'dynamodb-stream',
-        records: e.Records
-          .filter(r => r.eventName === 'INSERT' && r.dynamodb?.NewImage)
-          .map(r => ({
+        records: e.Records.filter((r) => r.eventName === 'INSERT' && r.dynamodb?.NewImage).map(
+          (r) => ({
             sequenceNumber: r.dynamodb!.SequenceNumber!,
             newImage: unmarshall(r.dynamodb!.NewImage! as Record<string, AttributeValue>),
-          })),
+          }),
+        ),
       };
     }
 

@@ -14,7 +14,10 @@ export class NotificationDbRepositoryImpl extends NotificationDbRepository {
     super();
   }
 
-  async createWithOutboxEvent(notification: NotificationEntity, outboxEvent: OutboxEventEntity): Promise<void> {
+  async createWithOutboxEvent(
+    notification: NotificationEntity,
+    outboxEvent: OutboxEventEntity,
+  ): Promise<void> {
     await this.dynamo.transactWrite([
       { type: 'put', table: this.tableName, item: notification },
       { type: 'put', table: this.outboxTableName, item: outboxEvent },

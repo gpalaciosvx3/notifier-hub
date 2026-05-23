@@ -23,7 +23,7 @@ const buildNotification = (): NotificationEntity =>
     callbackUrl: 'https://example.com/callback',
   });
 
-defineFeature(feature, test => {
+defineFeature(feature, (test) => {
   test('Buscar por ID retorna la notificación cuando existe', ({ given, when, then }) => {
     let service: QueryService;
     let result: NotificationEntity | NotificationEntity[];
@@ -59,7 +59,11 @@ defineFeature(feature, test => {
     });
 
     when('el servicio de consulta busca por ID "NOTIF-999"', async () => {
-      try { await service.search({ id: 'NOTIF-999' }); } catch (e) { error = e as CustomException; }
+      try {
+        await service.search({ id: 'NOTIF-999' });
+      } catch (e) {
+        error = e as CustomException;
+      }
     });
 
     then('se lanza una CustomException con código "NTF-005"', () => {
@@ -68,7 +72,11 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Buscar por estado retorna una lista de notificaciones coincidentes', ({ given, when, then }) => {
+  test('Buscar por estado retorna una lista de notificaciones coincidentes', ({
+    given,
+    when,
+    then,
+  }) => {
     let service: QueryService;
     let result: NotificationEntity | NotificationEntity[];
     const notifications = [buildNotification(), buildNotification()];
@@ -91,17 +99,28 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Ejecutar el caso de uso con un payload inválido lanza ValidationException', ({ given, when, then }) => {
+  test('Ejecutar el caso de uso con un payload inválido lanza ValidationException', ({
+    given,
+    when,
+    then,
+  }) => {
     let useCase: GetNotificationUseCase;
     let error: ValidationException;
-    const mockDb = { findById: jest.fn(), findByStatus: jest.fn() } as unknown as NotificationDbRepository;
+    const mockDb = {
+      findById: jest.fn(),
+      findByStatus: jest.fn(),
+    } as unknown as NotificationDbRepository;
 
     given('un payload de consulta inválido sin campos reconocidos', () => {
       useCase = new GetNotificationUseCase(new QueryService(mockDb));
     });
 
     when('el caso de uso de consulta se ejecuta', async () => {
-      try { await useCase.execute({}); } catch (e) { error = e as ValidationException; }
+      try {
+        await useCase.execute({});
+      } catch (e) {
+        error = e as ValidationException;
+      }
     });
 
     then('se lanza una ValidationException con código "NTF-009"', () => {
@@ -110,7 +129,11 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Ejecutar el caso de uso con un ID válido delega al servicio de consulta', ({ given, when, then }) => {
+  test('Ejecutar el caso de uso con un ID válido delega al servicio de consulta', ({
+    given,
+    when,
+    then,
+  }) => {
     let useCase: GetNotificationUseCase;
     let result: NotificationEntity | NotificationEntity[];
     const notification = buildNotification();
@@ -133,23 +156,32 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Consulta por destinatario con resultados retorna la lista ordenada de más reciente a más antigua', ({ given, when, then }) => {
+  test('Consulta por destinatario con resultados retorna la lista ordenada de más reciente a más antigua', ({
+    given,
+    when,
+    then,
+  }) => {
     let useCase: GetNotificationsByRecipientUseCase;
     let result: PagedResult<NotificationSummary>;
     const notifications = [buildNotification(), buildNotification(), buildNotification()];
     const mockDb = {
       findById: jest.fn(),
       findByStatus: jest.fn(),
-      findByRecipient: jest.fn().mockResolvedValue({ items: notifications, nextPageToken: undefined }),
+      findByRecipient: jest
+        .fn()
+        .mockResolvedValue({ items: notifications, nextPageToken: undefined }),
     } as unknown as NotificationDbRepository;
 
     given('que existen 3 notificaciones para el destinatario "user@acme.com"', () => {
       useCase = new GetNotificationsByRecipientUseCase(new QueryService(mockDb));
     });
 
-    when('el caso de uso de consulta por destinatario se ejecuta con to "user@acme.com"', async () => {
-      result = await useCase.execute({ to: 'user@acme.com' });
-    });
+    when(
+      'el caso de uso de consulta por destinatario se ejecuta con to "user@acme.com"',
+      async () => {
+        result = await useCase.execute({ to: 'user@acme.com' });
+      },
+    );
 
     then('se retorna una lista paginada con 3 elementos sin token de siguiente página', () => {
       expect(result.items).toHaveLength(3);
@@ -171,9 +203,12 @@ defineFeature(feature, test => {
       useCase = new GetNotificationsByRecipientUseCase(new QueryService(mockDb));
     });
 
-    when('el caso de uso de consulta por destinatario se ejecuta con to "nuevo@acme.com"', async () => {
-      result = await useCase.execute({ to: 'nuevo@acme.com' });
-    });
+    when(
+      'el caso de uso de consulta por destinatario se ejecuta con to "nuevo@acme.com"',
+      async () => {
+        result = await useCase.execute({ to: 'nuevo@acme.com' });
+      },
+    );
 
     then('se retorna una lista paginada vacía sin error', () => {
       expect(result.items).toHaveLength(0);
@@ -181,23 +216,35 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Consulta paginada retorna los primeros resultados y un token de siguiente página', ({ given, when, then }) => {
+  test('Consulta paginada retorna los primeros resultados y un token de siguiente página', ({
+    given,
+    when,
+    then,
+  }) => {
     let useCase: GetNotificationsByRecipientUseCase;
     let result: PagedResult<NotificationSummary>;
     const notifications = Array.from({ length: 20 }, () => buildNotification());
     const mockDb = {
       findById: jest.fn(),
       findByStatus: jest.fn(),
-      findByRecipient: jest.fn().mockResolvedValue({ items: notifications, nextPageToken: 'NEXT-TOKEN' }),
+      findByRecipient: jest
+        .fn()
+        .mockResolvedValue({ items: notifications, nextPageToken: 'NEXT-TOKEN' }),
     } as unknown as NotificationDbRepository;
 
-    given('que existen 25 notificaciones para el destinatario "user@acme.com" y el repositorio indica que hay más resultados', () => {
-      useCase = new GetNotificationsByRecipientUseCase(new QueryService(mockDb));
-    });
+    given(
+      'que existen 25 notificaciones para el destinatario "user@acme.com" y el repositorio indica que hay más resultados',
+      () => {
+        useCase = new GetNotificationsByRecipientUseCase(new QueryService(mockDb));
+      },
+    );
 
-    when('el caso de uso de consulta por destinatario se ejecuta con to "user@acme.com"', async () => {
-      result = await useCase.execute({ to: 'user@acme.com' });
-    });
+    when(
+      'el caso de uso de consulta por destinatario se ejecuta con to "user@acme.com"',
+      async () => {
+        result = await useCase.execute({ to: 'user@acme.com' });
+      },
+    );
 
     then('se retorna una lista paginada con 20 elementos y un token de siguiente página', () => {
       expect(result.items).toHaveLength(20);
@@ -205,23 +252,35 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Consulta con token de página retorna el siguiente bloque de resultados', ({ given, when, then }) => {
+  test('Consulta con token de página retorna el siguiente bloque de resultados', ({
+    given,
+    when,
+    then,
+  }) => {
     let useCase: GetNotificationsByRecipientUseCase;
     let result: PagedResult<NotificationSummary>;
     const notifications = Array.from({ length: 5 }, () => buildNotification());
     const mockDb = {
       findById: jest.fn(),
       findByStatus: jest.fn(),
-      findByRecipient: jest.fn().mockResolvedValue({ items: notifications, nextPageToken: undefined }),
+      findByRecipient: jest
+        .fn()
+        .mockResolvedValue({ items: notifications, nextPageToken: undefined }),
     } as unknown as NotificationDbRepository;
 
-    given('que existen 5 notificaciones en la segunda página para el destinatario "user@acme.com"', () => {
-      useCase = new GetNotificationsByRecipientUseCase(new QueryService(mockDb));
-    });
+    given(
+      'que existen 5 notificaciones en la segunda página para el destinatario "user@acme.com"',
+      () => {
+        useCase = new GetNotificationsByRecipientUseCase(new QueryService(mockDb));
+      },
+    );
 
-    when('el caso de uso de consulta por destinatario se ejecuta con to "user@acme.com" y pageToken "TOKEN-002"', async () => {
-      result = await useCase.execute({ to: 'user@acme.com', pageToken: 'TOKEN-002' });
-    });
+    when(
+      'el caso de uso de consulta por destinatario se ejecuta con to "user@acme.com" y pageToken "TOKEN-002"',
+      async () => {
+        result = await useCase.execute({ to: 'user@acme.com', pageToken: 'TOKEN-002' });
+      },
+    );
 
     then('se retorna una lista paginada con 5 elementos sin token de siguiente página', () => {
       expect(result.items).toHaveLength(5);

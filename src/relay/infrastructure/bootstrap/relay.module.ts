@@ -69,7 +69,12 @@ import { RelayController } from '../controller/relay.controller';
         notificationScheduled: NotificationScheduledStrategy,
         webhookRequested: WebhookRequestedStrategy,
       ) => new RelayService(outboxDb, notificationCreated, notificationScheduled, webhookRequested),
-      inject: [OutboxEventDbRepository, NotificationCreatedStrategy, NotificationScheduledStrategy, WebhookRequestedStrategy],
+      inject: [
+        OutboxEventDbRepository,
+        NotificationCreatedStrategy,
+        NotificationScheduledStrategy,
+        WebhookRequestedStrategy,
+      ],
     },
     {
       provide: RelayEventUseCase,

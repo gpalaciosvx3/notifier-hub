@@ -15,9 +15,15 @@ export class GetNotificationUseCase {
   async execute(raw: unknown): Promise<NotificationEntity | NotificationEntity[]> {
     this.logger.log(`Body recibido: ${JSON.stringify(raw)}`);
     const result = QueryRawSchema.safeParse(raw);
-    if (!result.success) throw new ValidationException(ErrorDictionary.VALIDATION_ERROR, result.error.issues as ZodIssue[]);
+    if (!result.success)
+      throw new ValidationException(
+        ErrorDictionary.VALIDATION_ERROR,
+        result.error.issues as ZodIssue[],
+      );
 
-    this.logger.log(`Consulta validada => id: ${result.data.id ?? '-'} | status: ${result.data.status ?? '-'}`);
+    this.logger.log(
+      `Consulta validada => id: ${result.data.id ?? '-'} | status: ${result.data.status ?? '-'}`,
+    );
     const response = await this.service.search(result.data);
     this.logger.log(`Resultado => count: ${Array.isArray(response) ? response.length : 1}`);
     return response;

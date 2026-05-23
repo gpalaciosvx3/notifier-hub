@@ -11,7 +11,7 @@ export async function executeChunkedBatch<TRecord extends SequencedRecord>(
   const results: ProcessRecordResult[] = [];
 
   for (const chunk of chunkRecords(records, chunkSize)) {
-    const settled = await Promise.allSettled(chunk.map(record => executeOne(record)));
+    const settled = await Promise.allSettled(chunk.map((record) => executeOne(record)));
     settled.forEach((outcome, index) => {
       const sequenceNumber = chunk[index].sequenceNumber;
       results.push(toProcessRecordResult(sequenceNumber, outcome, onRejected));
@@ -21,20 +21,19 @@ export async function executeChunkedBatch<TRecord extends SequencedRecord>(
   return results;
 }
 
-export function classifyBatchFailure(
-  sequenceNumber: string,
-  error: unknown,
-): ProcessRecordResult {
+export function classifyBatchFailure(sequenceNumber: string, error: unknown): ProcessRecordResult {
   if (error instanceof ValidationException) return { sequenceNumber, retry: false, error };
   if (error instanceof CustomException) return { sequenceNumber, retry: true, error };
 
   return { sequenceNumber, retry: true };
 }
 
-export function summarizeBatchResults(results: readonly ProcessRecordResult[]): BatchProcessSummary {
-  const success = results.filter(result => !result.retry && !result.error).length;
-  const discarded = results.filter(result => !result.retry && result.error).length;
-  const retryable = results.filter(result => result.retry).length;
+export function summarizeBatchResults(
+  results: readonly ProcessRecordResult[],
+): BatchProcessSummary {
+  const success = results.filter((result) => !result.retry && !result.error).length;
+  const discarded = results.filter((result) => !result.retry && result.error).length;
+  const retryable = results.filter((result) => result.retry).length;
 
   return {
     total: results.length,

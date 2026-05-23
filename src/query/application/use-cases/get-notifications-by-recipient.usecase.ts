@@ -15,7 +15,11 @@ export class GetNotificationsByRecipientUseCase {
   async execute(raw: unknown): Promise<PagedResult<NotificationSummary>> {
     this.logger.log(`Body recibido: ${JSON.stringify(raw)}`);
     const result = QueryByRecipientRawSchema.safeParse(raw);
-    if (!result.success) throw new ValidationException(ErrorDictionary.VALIDATION_ERROR, result.error.issues as ZodIssue[]);
+    if (!result.success)
+      throw new ValidationException(
+        ErrorDictionary.VALIDATION_ERROR,
+        result.error.issues as ZodIssue[],
+      );
 
     this.logger.log(`Consulta validada => to: ${result.data.to}`);
     const response = await this.service.searchByRecipient(result.data.to, result.data.pageToken);

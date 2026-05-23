@@ -12,10 +12,6 @@ export class OutboxEventDbRepositoryImpl extends OutboxEventDbRepository {
   }
 
   async markPublished(eventId: string, publishedAt: string): Promise<void> {
-    await this.dynamo.updateFields(
-      this.tableName,
-      { eventId },
-      { publishedAt },
-    );
+    await this.dynamo.updateFields(this.tableName, { eventId }, { publishedAt });
   }
 }

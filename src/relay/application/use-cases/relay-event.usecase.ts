@@ -7,7 +7,11 @@ import { RelayService } from '../../domain/service/relay.service';
 import { ValidationException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 import { ProcessRecordResult } from '../../../common/types/process-record-result.types';
-import { executeChunkedBatch, classifyBatchFailure, summarizeBatchResults } from '../../../common/helpers/batch-processing.helper';
+import {
+  executeChunkedBatch,
+  classifyBatchFailure,
+  summarizeBatchResults,
+} from '../../../common/helpers/batch-processing.helper';
 import { RelayConstants } from '../constants/relay.constants';
 
 @Injectable()
@@ -21,19 +25,27 @@ export class RelayEventUseCase {
     const results = await executeChunkedBatch(
       records,
       RelayConstants.DYNAMO_STREAM_CHUNK_SIZE,
-      record => this.executeOne(record),
+      (record) => this.executeOne(record),
       (sequenceNumber, error) => this.classifyFailure(sequenceNumber, error),
     );
     const summary = summarizeBatchResults(results);
-    this.logger.log(`Resultado batch => total: ${summary.total} | success: ${summary.success} | discarded: ${summary.discarded} | retryable: ${summary.retryable}`);
+    this.logger.log(
+      `Resultado batch => total: ${summary.total} | success: ${summary.success} | discarded: ${summary.discarded} | retryable: ${summary.retryable}`,
+    );
     return results;
   }
 
   private async executeOne(record: DynamoStreamRecord): Promise<void> {
-    this.logger.log(`Procesando imagen DDB Stream => sequenceNumber: ${record.sequenceNumber} | eventId: ${String(record.newImage['eventId'] ?? 'unknown')}`);
+    this.logger.log(
+      `Procesando imagen DDB Stream => sequenceNumber: ${record.sequenceNumber} | eventId: ${String(record.newImage['eventId'] ?? 'unknown')}`,
+    );
 
     const result = OutboxEventRecordSchema.safeParse(record.newImage);
-    if (!result.success) throw new ValidationException(ErrorDictionary.VALIDATION_ERROR, result.error.issues as ZodIssue[]);
+    if (!result.success)
+      throw new ValidationException(
+        ErrorDictionary.VALIDATION_ERROR,
+        result.error.issues as ZodIssue[],
+      );
 
     const dto = result.data;
 
@@ -49,7 +61,9 @@ export class RelayEventUseCase {
 
   private classifyFailure(sequenceNumber: string, error: unknown): ProcessRecordResult {
     const reason = error instanceof Error ? error.message : String(error);
-    this.logger.warn(`Error al procesar registro => sequenceNumber: ${sequenceNumber} | reason: ${reason}`);
+    this.logger.warn(
+      `Error al procesar registro => sequenceNumber: ${sequenceNumber} | reason: ${reason}`,
+    );
     return classifyBatchFailure(sequenceNumber, error);
   }
 }

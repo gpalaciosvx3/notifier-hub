@@ -9,12 +9,15 @@ import { Email } from '../value-objects/email.vo';
 import { PhoneNumber } from '../value-objects/phone-number.vo';
 
 export class NotificationEntity {
-  private static readonly CONFIG_CANAL: Record<NotificationChannel, {
-    validarDestinatario: (to: string) => boolean;
-    errorDestinatario: InputError;
-    requiereSubject: boolean;
-    proveedoresValidos: NotificationProvider[];
-  }> = {
+  private static readonly CONFIG_CANAL: Record<
+    NotificationChannel,
+    {
+      validarDestinatario: (to: string) => boolean;
+      errorDestinatario: InputError;
+      requiereSubject: boolean;
+      proveedoresValidos: NotificationProvider[];
+    }
+  > = {
     [NotificationChannel.EMAIL]: {
       validarDestinatario: Email.isValid.bind(Email),
       errorDestinatario: ErrorDictionary.INVALID_EMAIL,
@@ -91,6 +94,8 @@ export class NotificationEntity {
     reglas
       .filter(([fallo]) => fallo)
       .slice(0, 1)
-      .forEach(([, entrada]) => { throw new CustomException(entrada); });
+      .forEach(([, entrada]) => {
+        throw new CustomException(entrada);
+      });
   }
 }

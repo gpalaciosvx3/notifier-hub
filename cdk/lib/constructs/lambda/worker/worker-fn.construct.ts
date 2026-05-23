@@ -31,9 +31,13 @@ export class WorkerFnConstruct extends Construct {
 
     const fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_WORKER,
-      description: 'Procesa notificaciones desde SQS y las envía por el canal correspondiente (SES/SNS)',
+      description:
+        'Procesa notificaciones desde SQS y las envía por el canal correspondiente (SES/SNS)',
       logGroup,
-      entry: path.join(__dirname, '../../../../../src/worker/infrastructure/bootstrap/worker.handler.ts'),
+      entry: path.join(
+        __dirname,
+        '../../../../../src/worker/infrastructure/bootstrap/worker.handler.ts',
+      ),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_WORKER_SECONDS),
@@ -41,20 +45,22 @@ export class WorkerFnConstruct extends Construct {
       bundling: lambdaBundling,
       role,
       environment: {
-        NOTIFICATIONS_TABLE:    props.table.tableName,
-        OUTBOX_TABLE:           props.outboxTable.tableName,
-        SES_SOURCE_EMAIL:       props.sesSourceEmail,
+        NOTIFICATIONS_TABLE: props.table.tableName,
+        OUTBOX_TABLE: props.outboxTable.tableName,
+        SES_SOURCE_EMAIL: props.sesSourceEmail,
         EMAIL_DEFAULT_PROVIDER: 'ses',
-        SMS_DEFAULT_PROVIDER:   'sns',
+        SMS_DEFAULT_PROVIDER: 'sns',
       },
     });
 
     props.table.grantReadWriteData(fn);
     props.outboxTable.grantWriteData(fn);
 
-    fn.addEventSource(new SqsEventSource(props.queue, {
-      batchSize: InfraConstants.SQS_BATCH_SIZE,
-      reportBatchItemFailures: true,
-    }));
+    fn.addEventSource(
+      new SqsEventSource(props.queue, {
+        batchSize: InfraConstants.SQS_BATCH_SIZE,
+        reportBatchItemFailures: true,
+      }),
+    );
   }
 }

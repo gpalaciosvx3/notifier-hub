@@ -41,7 +41,7 @@ export class HttpApiConstruct extends Construct {
     usagePlan.addApiKey(apiKey);
 
     const enqueueIntegration = new apigateway.LambdaIntegration(props.enqueueFn);
-    const queryIntegration   = new apigateway.LambdaIntegration(props.queryFn);
+    const queryIntegration = new apigateway.LambdaIntegration(props.queryFn);
 
     const v1 = api.root.addResource('v1');
 

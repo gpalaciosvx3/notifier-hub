@@ -20,17 +20,26 @@ export class QueryService {
     this.logger.log(`[PASO 1] Resolviendo búsqueda => tipo: ${input.type}`);
     return this.handlers[input.type](input);
   }
-  
-  private readonly handlers: Record<QueryType, (input: SearchQueryInput) => Promise<NotificationEntity | NotificationEntity[]>> = {
+
+  private readonly handlers: Record<
+    QueryType,
+    (input: SearchQueryInput) => Promise<NotificationEntity | NotificationEntity[]>
+  > = {
     [QueryType.BY_ID]: (input) => this.getById(input.notificationId!),
     [QueryType.BY_STATUS]: (input) => this.dbRepository.findByStatus(input.status!),
   };
 
-  async searchByRecipient(to: string, pageToken?: string): Promise<PagedResult<NotificationSummary>> {
+  async searchByRecipient(
+    to: string,
+    pageToken?: string,
+  ): Promise<PagedResult<NotificationSummary>> {
     this.logger.log(`[PASO 1] Consultando notificaciones por destinatario => to: ${to}`);
     const paged = await this.dbRepository.findByRecipient(to, pageToken);
     this.logger.log(`[PASO 2] Mapeando resultados => count: ${paged.items.length}`);
-    return { items: paged.items.map(NotificationSummaryMapper.fromEntity), nextPageToken: paged.nextPageToken };
+    return {
+      items: paged.items.map(NotificationSummaryMapper.fromEntity),
+      nextPageToken: paged.nextPageToken,
+    };
   }
 
   private async getById(notificationId: string): Promise<NotificationEntity> {

@@ -3,7 +3,10 @@ import { ZodIssue } from 'zod';
 import { NotificationService } from '../../domain/service/notification.service';
 import { TemplateDbRepository } from '../../domain/repository/template.db.repository';
 import { TemplateRenderService } from '../../domain/service/template.render.service';
-import { EnqueueNotificationSchema, isTemplateRequest } from '../dtos/enqueue-notification.request.dto';
+import {
+  EnqueueNotificationSchema,
+  isTemplateRequest,
+} from '../dtos/enqueue-notification.request.dto';
 import { ValidationException, CustomException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 
@@ -20,7 +23,11 @@ export class EnqueueNotificationUseCase {
   async execute(raw: unknown): Promise<string> {
     this.logger.log(`Body recibido: ${JSON.stringify(raw)}`);
     const result = EnqueueNotificationSchema.safeParse(raw);
-    if (!result.success) throw new ValidationException(ErrorDictionary.VALIDATION_ERROR, result.error.issues as ZodIssue[]);
+    if (!result.success)
+      throw new ValidationException(
+        ErrorDictionary.VALIDATION_ERROR,
+        result.error.issues as ZodIssue[],
+      );
 
     const dto = result.data;
 
@@ -30,11 +37,20 @@ export class EnqueueNotificationUseCase {
       const template = await this.templateRepository.findActiveByTemplateId(dto.templateId);
       if (!template) throw new CustomException(ErrorDictionary.TEMPLATE_NOT_FOUND);
 
-      this.logger.log(`Template resuelto => templateId: ${template.templateId} | version: ${template.version}`);
+      this.logger.log(
+        `Template resuelto => templateId: ${template.templateId} | version: ${template.version}`,
+      );
 
-      const input = this.templateRenderService.buildInput(template, dto.to, dto.variables ?? {}, dto.callbackUrl);
+      const input = this.templateRenderService.buildInput(
+        template,
+        dto.to,
+        dto.variables ?? {},
+        dto.callbackUrl,
+      );
       const notificationId = await this.service.enqueue(input);
-      this.logger.log(`Resultado => notificationId: ${notificationId} | templateId: ${template.templateId}`);
+      this.logger.log(
+        `Resultado => notificationId: ${notificationId} | templateId: ${template.templateId}`,
+      );
       return notificationId;
     }
 
@@ -44,4 +60,3 @@ export class EnqueueNotificationUseCase {
     return notificationId;
   }
 }
-

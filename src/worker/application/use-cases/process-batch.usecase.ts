@@ -4,7 +4,11 @@ import { NotificationEntity } from '../../../common/entities/notification.entity
 import { ProcessingService } from '../../domain/service/processing.service';
 import { WorkerConstants } from '../constants/worker.constants';
 import { ProcessRecordResult } from '../../../common/types/process-record-result.types';
-import { executeChunkedBatch, classifyBatchFailure, summarizeBatchResults } from '../../../common/helpers/batch-processing.helper';
+import {
+  executeChunkedBatch,
+  classifyBatchFailure,
+  summarizeBatchResults,
+} from '../../../common/helpers/batch-processing.helper';
 
 @Injectable()
 export class ProcessBatchUseCase {
@@ -17,11 +21,13 @@ export class ProcessBatchUseCase {
     const results = await executeChunkedBatch(
       records,
       WorkerConstants.SQS_CHUNK_SIZE,
-      record => this.executeOne(record),
+      (record) => this.executeOne(record),
       (sequenceNumber, error) => this.classifyFailure(sequenceNumber, error),
     );
     const summary = summarizeBatchResults(results);
-    this.logger.log(`Resultado batch => total: ${summary.total} | success: ${summary.success} | discarded: ${summary.discarded} | retryable: ${summary.retryable}`);
+    this.logger.log(
+      `Resultado batch => total: ${summary.total} | success: ${summary.success} | discarded: ${summary.discarded} | retryable: ${summary.retryable}`,
+    );
     return results;
   }
 
@@ -33,8 +39,9 @@ export class ProcessBatchUseCase {
 
   private classifyFailure(sequenceNumber: string, error: unknown): ProcessRecordResult {
     const reason = error instanceof Error ? error.message : String(error);
-    this.logger.warn(`Error al procesar registro => sequenceNumber: ${sequenceNumber} | reason: ${reason}`);
+    this.logger.warn(
+      `Error al procesar registro => sequenceNumber: ${sequenceNumber} | reason: ${reason}`,
+    );
     return classifyBatchFailure(sequenceNumber, error);
   }
 }
-

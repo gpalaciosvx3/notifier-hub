@@ -6,7 +6,12 @@ import { ErrorDictionary } from '../errors/error.dictionary';
 
 @Injectable()
 export class SesClient {
-  async sendEmail(source: string, to: string, subject: string | undefined, body: string): Promise<void> {
+  async sendEmail(
+    source: string,
+    to: string,
+    subject: string | undefined,
+    body: string,
+  ): Promise<void> {
     await awsError(
       () =>
         sesClient.send(

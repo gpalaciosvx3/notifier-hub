@@ -14,7 +14,7 @@ export class EnvValidationMiddleware implements OnApplicationBootstrap {
   }
 
   onApplicationBootstrap(): void {
-    const faltante = this.required.find(nombre => !process.env[nombre]);
+    const faltante = this.required.find((nombre) => !process.env[nombre]);
     if (faltante) throw new CustomException(ErrorDictionary.ENV_VAR_MISSING, faltante);
   }
 }

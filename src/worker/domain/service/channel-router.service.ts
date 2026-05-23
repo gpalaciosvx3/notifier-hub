@@ -7,9 +7,7 @@ import { CustomException } from '../../../common/errors/custom.exception';
 export class ChannelRouterService {
   private readonly logger = new Logger(ChannelRouterService.name);
 
-  constructor(
-    private readonly senders: Map<string, NotificationSenderRepository>,
-  ) {}
+  constructor(private readonly senders: Map<string, NotificationSenderRepository>) {}
 
   resolve(channel: string, provider: string): NotificationSenderRepository {
     const key = `${channel}:${provider}`;

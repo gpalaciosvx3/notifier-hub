@@ -18,7 +18,10 @@ import { AwsErrorCodes } from '../constants/aws-errors.constants';
 export class DynamoClient {
   async put(table: string, item: object): Promise<void> {
     await awsError(
-      () => dynamoDbClient.send(new PutCommand({ TableName: table, Item: item as Record<string, NativeAttributeValue> })),
+      () =>
+        dynamoDbClient.send(
+          new PutCommand({ TableName: table, Item: item as Record<string, NativeAttributeValue> }),
+        ),
       ErrorDictionary.DYNAMO_UNAVAILABLE,
     );
   }
@@ -30,13 +33,16 @@ export class DynamoClient {
   ): Promise<void> {
     const expression = this.buildUpdateExpression(fields);
     await awsError(
-      () => dynamoDbClient.send(new UpdateCommand({
-        TableName: table,
-        Key: key,
-        UpdateExpression: expression.update,
-        ExpressionAttributeNames: expression.names,
-        ExpressionAttributeValues: expression.values,
-      })),
+      () =>
+        dynamoDbClient.send(
+          new UpdateCommand({
+            TableName: table,
+            Key: key,
+            UpdateExpression: expression.update,
+            ExpressionAttributeNames: expression.names,
+            ExpressionAttributeValues: expression.values,
+          }),
+        ),
       ErrorDictionary.DYNAMO_UNAVAILABLE,
     );
   }
@@ -53,14 +59,16 @@ export class DynamoClient {
     }
     return awsError(
       async () => {
-        await dynamoDbClient.send(new UpdateCommand({
-          TableName: table,
-          Key: key,
-          UpdateExpression: expression.update,
-          ConditionExpression: `#${condition.field} = :condValue`,
-          ExpressionAttributeNames: expression.names,
-          ExpressionAttributeValues: { ...expression.values, ':condValue': condition.value },
-        }));
+        await dynamoDbClient.send(
+          new UpdateCommand({
+            TableName: table,
+            Key: key,
+            UpdateExpression: expression.update,
+            ConditionExpression: `#${condition.field} = :condValue`,
+            ExpressionAttributeNames: expression.names,
+            ExpressionAttributeValues: { ...expression.values, ':condValue': condition.value },
+          }),
+        );
         return true;
       },
       ErrorDictionary.DYNAMO_UNAVAILABLE,
@@ -78,14 +86,16 @@ export class DynamoClient {
     expression.names['#__pk'] = pkField;
     return awsError(
       async () => {
-        await dynamoDbClient.send(new UpdateCommand({
-          TableName: table,
-          Key: key,
-          UpdateExpression: expression.update,
-          ConditionExpression: 'attribute_exists(#__pk)',
-          ExpressionAttributeNames: expression.names,
-          ExpressionAttributeValues: expression.values,
-        }));
+        await dynamoDbClient.send(
+          new UpdateCommand({
+            TableName: table,
+            Key: key,
+            UpdateExpression: expression.update,
+            ConditionExpression: 'attribute_exists(#__pk)',
+            ExpressionAttributeNames: expression.names,
+            ExpressionAttributeValues: expression.values,
+          }),
+        );
         return true;
       },
       ErrorDictionary.DYNAMO_UNAVAILABLE,
@@ -102,39 +112,50 @@ export class DynamoClient {
 
   async query<T>(table: string, options: QueryOptions): Promise<T[]> {
     return awsError(async () => {
-      const result = await dynamoDbClient.send(new QueryCommand({
-        TableName: table,
-        IndexName: options.index,
-        KeyConditionExpression: options.keyCondition,
-        ExpressionAttributeNames: options.attributeNames,
-        ExpressionAttributeValues: options.attributeValues,
-        Limit: options.limit,
-        ScanIndexForward: options.scanIndexForward,
-      }));
+      const result = await dynamoDbClient.send(
+        new QueryCommand({
+          TableName: table,
+          IndexName: options.index,
+          KeyConditionExpression: options.keyCondition,
+          ExpressionAttributeNames: options.attributeNames,
+          ExpressionAttributeValues: options.attributeValues,
+          Limit: options.limit,
+          ScanIndexForward: options.scanIndexForward,
+        }),
+      );
       return (result.Items as T[]) ?? [];
     }, ErrorDictionary.DYNAMO_UNAVAILABLE);
   }
 
-  async queryPaged<T>(table: string, options: QueryOptions): Promise<{ items: T[]; lastEvaluatedKey?: Record<string, NativeAttributeValue> }> {
+  async queryPaged<T>(
+    table: string,
+    options: QueryOptions,
+  ): Promise<{ items: T[]; lastEvaluatedKey?: Record<string, NativeAttributeValue> }> {
     return awsError(async () => {
-      const result = await dynamoDbClient.send(new QueryCommand({
-        TableName: table,
-        IndexName: options.index,
-        KeyConditionExpression: options.keyCondition,
-        ExpressionAttributeNames: options.attributeNames,
-        ExpressionAttributeValues: options.attributeValues,
-        Limit: options.limit,
-        ExclusiveStartKey: options.exclusiveStartKey as Record<string, NativeAttributeValue> | undefined,
-        ScanIndexForward: options.scanIndexForward,
-      }));
+      const result = await dynamoDbClient.send(
+        new QueryCommand({
+          TableName: table,
+          IndexName: options.index,
+          KeyConditionExpression: options.keyCondition,
+          ExpressionAttributeNames: options.attributeNames,
+          ExpressionAttributeValues: options.attributeValues,
+          Limit: options.limit,
+          ExclusiveStartKey: options.exclusiveStartKey as
+            | Record<string, NativeAttributeValue>
+            | undefined,
+          ScanIndexForward: options.scanIndexForward,
+        }),
+      );
       return { items: (result.Items as T[]) ?? [], lastEvaluatedKey: result.LastEvaluatedKey };
     }, ErrorDictionary.DYNAMO_UNAVAILABLE);
   }
 
   async transactWrite(operations: TransactWriteOperation[]): Promise<void> {
-    const transactItems = operations.map(op => {
+    const transactItems = operations.map((op) => {
       if (op.type === 'put') {
-        return { Put: { TableName: op.table, Item: op.item as Record<string, NativeAttributeValue> } };
+        return {
+          Put: { TableName: op.table, Item: op.item as Record<string, NativeAttributeValue> },
+        };
       }
       const expression = this.buildUpdateExpression(op.fields);
       return {
@@ -153,7 +174,11 @@ export class DynamoClient {
     );
   }
 
-  private buildUpdateExpression(fields: Record<string, unknown>): { update: string; names: Record<string, string>; values: Record<string, unknown> } {
+  private buildUpdateExpression(fields: Record<string, unknown>): {
+    update: string;
+    names: Record<string, string>;
+    values: Record<string, unknown>;
+  } {
     const names: Record<string, string> = {};
     const values: Record<string, unknown> = {};
     const parts: string[] = [];

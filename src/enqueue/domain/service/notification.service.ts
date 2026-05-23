@@ -26,17 +26,23 @@ export class NotificationService {
   }
 
   async enqueue(input: NotificationInput): Promise<string> {
-    this.logger.log(`[PASO 1] Construyendo entidad de notificación => channel: ${input.channel} | to: ${input.to}`);
+    this.logger.log(
+      `[PASO 1] Construyendo entidad de notificación => channel: ${input.channel} | to: ${input.to}`,
+    );
     const notification = this.build(input);
 
-    this.logger.log(`[PASO 2] Construyendo evento de outbox => notificationId: ${notification.notificationId}`);
+    this.logger.log(
+      `[PASO 2] Construyendo evento de outbox => notificationId: ${notification.notificationId}`,
+    );
     const outboxEvent = OutboxEventEntity.build({
       eventType: OutboxEventType.NOTIFICATION_CREATED,
       brokerType: OutboxEventBrokerType.SQS_NOTIFICATION,
       payload: notification as unknown as Record<string, unknown>,
     });
 
-    this.logger.log(`[PASO 3] Persistiendo notificación + evento de outbox atómicamente => notificationId: ${notification.notificationId} | eventId: ${outboxEvent.eventId}`);
+    this.logger.log(
+      `[PASO 3] Persistiendo notificación + evento de outbox atómicamente => notificationId: ${notification.notificationId} | eventId: ${outboxEvent.eventId}`,
+    );
     await this.dbRepository.createWithOutboxEvent(notification, outboxEvent);
 
     return notification.notificationId;

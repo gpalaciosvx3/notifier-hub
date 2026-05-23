@@ -14,8 +14,12 @@ const buildRecord = (notificationId: string): SqsMessage => ({
   body: { notificationId, callbackUrl: 'https://example.com/callback' },
 });
 
-defineFeature(feature, test => {
-  test('markFailed marca el registro como fallido permanente y retorna true', ({ given, when, then }) => {
+defineFeature(feature, (test) => {
+  test('markFailed marca el registro como fallido permanente y retorna true', ({
+    given,
+    when,
+    then,
+  }) => {
     const mockDb = {
       updateStatusWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
     } as unknown as NotificationDbRepository;
@@ -37,8 +41,14 @@ defineFeature(feature, test => {
     });
   });
 
-  test('El caso de uso completa cuando todos los registros son actualizados', ({ given, when, then }) => {
-    const mockDlqBatchService = { markFailed: jest.fn().mockResolvedValue(true) } as unknown as DlqBatchService;
+  test('El caso de uso completa cuando todos los registros son actualizados', ({
+    given,
+    when,
+    then,
+  }) => {
+    const mockDlqBatchService = {
+      markFailed: jest.fn().mockResolvedValue(true),
+    } as unknown as DlqBatchService;
     let useCase: MarkBatchFailedPermanentUseCase;
     let records: SqsMessage[];
     let error: Error | undefined;
@@ -49,7 +59,11 @@ defineFeature(feature, test => {
     });
 
     when('el caso de uso de marcar batch fallido permanente se ejecuta', async () => {
-      try { await useCase.executeBatch(records); } catch (e) { error = e as Error; }
+      try {
+        await useCase.executeBatch(records);
+      } catch (e) {
+        error = e as Error;
+      }
     });
 
     then('no se lanza ninguna excepción', () => {
@@ -57,9 +71,16 @@ defineFeature(feature, test => {
     });
   });
 
-  test('El caso de uso marca el registro como reintentable cuando ocurre un error de infraestructura', ({ given, when, then }) => {
+  test('El caso de uso marca el registro como reintentable cuando ocurre un error de infraestructura', ({
+    given,
+    when,
+    then,
+  }) => {
     const mockDlqBatchService = {
-      markFailed: jest.fn().mockResolvedValueOnce(true).mockRejectedValueOnce(new Error('DynamoDB unavailable')),
+      markFailed: jest
+        .fn()
+        .mockResolvedValueOnce(true)
+        .mockRejectedValueOnce(new Error('DynamoDB unavailable')),
     } as unknown as DlqBatchService;
     let useCase: MarkBatchFailedPermanentUseCase;
     let records: SqsMessage[];
@@ -75,7 +96,7 @@ defineFeature(feature, test => {
     });
 
     then('el resultado contiene 1 registro reintentable', () => {
-      expect(results.filter(r => r.retry)).toHaveLength(1);
+      expect(results.filter((r) => r.retry)).toHaveLength(1);
     });
   });
 });

@@ -16,8 +16,14 @@ export class QueryController {
   @HandleExecution('QueryNotification', ApiGwHelper.error)
   async handle(event: ApiGwExtracted): Promise<APIGatewayProxyResult> {
     if (event.queryStringParameters.to) {
-      return ApiGwHelper.success(HttpStatus.OK, await this.byRecipientUseCase.execute(event.queryStringParameters));
+      return ApiGwHelper.success(
+        HttpStatus.OK,
+        await this.byRecipientUseCase.execute(event.queryStringParameters),
+      );
     }
-    return ApiGwHelper.success(HttpStatus.OK, await this.useCase.execute({ ...event.pathParameters, ...event.queryStringParameters }));
+    return ApiGwHelper.success(
+      HttpStatus.OK,
+      await this.useCase.execute({ ...event.pathParameters, ...event.queryStringParameters }),
+    );
   }
 }

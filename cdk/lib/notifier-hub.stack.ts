@@ -21,12 +21,12 @@ export class NotifierHubStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: NotifierHubStackProps) {
     super(scope, id, props);
 
-    const notifications   = new NotificationsTableConstruct(this, 'NotificationsTable');
-    const templates       = new TemplatesTableConstruct(this, 'TemplatesTable');
-    const outbox          = new OutboxTableConstruct(this, 'OutboxTable');
-    const dlq             = new DeadLetterQueueConstruct(this, 'DeadLetterQueue');
-    const queue           = new MainQueueConstruct(this, 'MainQueue', { dlq: dlq.queue });
-    const webhooksQueue   = new WebhooksQueueConstruct(this, 'WebhooksQueue', { dlq: dlq.queue });
+    const notifications = new NotificationsTableConstruct(this, 'NotificationsTable');
+    const templates = new TemplatesTableConstruct(this, 'TemplatesTable');
+    const outbox = new OutboxTableConstruct(this, 'OutboxTable');
+    const dlq = new DeadLetterQueueConstruct(this, 'DeadLetterQueue');
+    const queue = new MainQueueConstruct(this, 'MainQueue', { dlq: dlq.queue });
+    const webhooksQueue = new WebhooksQueueConstruct(this, 'WebhooksQueue', { dlq: dlq.queue });
 
     const enqueueFn = new EnqueueFnConstruct(this, 'EnqueueFn', {
       table: notifications.table,
@@ -61,11 +61,26 @@ export class NotifierHubStack extends cdk.Stack {
       queryFn: queryFn.fn,
     });
 
-    new cdk.CfnOutput(this, 'ApiUrl',           { value: api.url, description: 'API Gateway URL' });
-    new cdk.CfnOutput(this, 'QueueUrl',         { value: queue.queue.queueUrl, description: 'Main SQS Queue URL' });
-    new cdk.CfnOutput(this, 'DlqUrl',           { value: dlq.queue.queueUrl, description: 'Dead Letter Queue URL' });
-    new cdk.CfnOutput(this, 'WebhooksQueueUrl', { value: webhooksQueue.queue.queueUrl, description: 'Webhooks Queue URL' });
-    new cdk.CfnOutput(this, 'OutboxTableName',  { value: outbox.table.tableName, description: 'Outbox Table Name' });
-    new cdk.CfnOutput(this, 'TemplatesTableName', { value: templates.table.tableName, description: 'Templates Table Name' });
+    new cdk.CfnOutput(this, 'ApiUrl', { value: api.url, description: 'API Gateway URL' });
+    new cdk.CfnOutput(this, 'QueueUrl', {
+      value: queue.queue.queueUrl,
+      description: 'Main SQS Queue URL',
+    });
+    new cdk.CfnOutput(this, 'DlqUrl', {
+      value: dlq.queue.queueUrl,
+      description: 'Dead Letter Queue URL',
+    });
+    new cdk.CfnOutput(this, 'WebhooksQueueUrl', {
+      value: webhooksQueue.queue.queueUrl,
+      description: 'Webhooks Queue URL',
+    });
+    new cdk.CfnOutput(this, 'OutboxTableName', {
+      value: outbox.table.tableName,
+      description: 'Outbox Table Name',
+    });
+    new cdk.CfnOutput(this, 'TemplatesTableName', {
+      value: templates.table.tableName,
+      description: 'Templates Table Name',
+    });
   }
 }

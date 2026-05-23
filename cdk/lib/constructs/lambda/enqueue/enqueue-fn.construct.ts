@@ -29,7 +29,10 @@ export class EnqueueFnConstruct extends Construct {
       functionName: ResourceConstants.LAMBDA_ENQUEUE,
       description: 'Recibe peticiones HTTP del API Gateway y encola notificaciones en SQS',
       logGroup,
-      entry: path.join(__dirname, '../../../../../src/enqueue/infrastructure/bootstrap/enqueue.handler.ts'),
+      entry: path.join(
+        __dirname,
+        '../../../../../src/enqueue/infrastructure/bootstrap/enqueue.handler.ts',
+      ),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_DEFAULT_SECONDS),
@@ -37,10 +40,10 @@ export class EnqueueFnConstruct extends Construct {
       bundling: lambdaBundling,
       environment: {
         NOTIFICATIONS_TABLE: props.table.tableName,
-        OUTBOX_TABLE:        props.outboxTable.tableName,
-        SES_SOURCE_EMAIL:    props.sesSourceEmail,
+        OUTBOX_TABLE: props.outboxTable.tableName,
+        SES_SOURCE_EMAIL: props.sesSourceEmail,
         EMAIL_DEFAULT_PROVIDER: 'ses',
-        SMS_DEFAULT_PROVIDER:   'sns',
+        SMS_DEFAULT_PROVIDER: 'sns',
       },
     });
 

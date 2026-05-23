@@ -16,7 +16,11 @@ import { DlqController } from '../controller/dlq.controller';
     {
       provide: NotificationDbRepository,
       useFactory: (dynamo: DynamoClient) =>
-        new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable, envConfig.outboxTable),
+        new NotificationDbRepositoryImpl(
+          dynamo,
+          envConfig.notificationsTable,
+          envConfig.outboxTable,
+        ),
       inject: [DynamoClient],
     },
     {

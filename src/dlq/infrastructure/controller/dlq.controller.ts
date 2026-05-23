@@ -13,4 +13,3 @@ export class DlqController {
     return this.useCase.executeBatch(event.records);
   }
 }
-

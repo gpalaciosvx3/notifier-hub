@@ -9,6 +9,7 @@ export const envConfig = {
   webhooksQueueUrl: process.env[EnvConstants.WEBHOOKS_QUEUE_URL] as string,
   sesSourceEmail: process.env[EnvConstants.SES_SOURCE_EMAIL] as string,
   awsRegion: process.env[EnvConstants.AWS_REGION] ?? 'us-east-1',
-  defaultEmailProvider: process.env[EnvConstants.EMAIL_DEFAULT_PROVIDER] ?? NotificationProvider.SES,
+  defaultEmailProvider:
+    process.env[EnvConstants.EMAIL_DEFAULT_PROVIDER] ?? NotificationProvider.SES,
   defaultSmsProvider: process.env[EnvConstants.SMS_DEFAULT_PROVIDER] ?? NotificationProvider.SNS,
 };

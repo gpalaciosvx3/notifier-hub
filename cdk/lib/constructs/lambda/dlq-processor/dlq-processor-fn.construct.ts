@@ -27,7 +27,8 @@ export class DlqProcessorFnConstruct extends Construct {
 
     const fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_DLQ_PROCESSOR,
-      description: 'Procesa mensajes fallidos de la DLQ y marca las notificaciones como FAILED_PERMANENT',
+      description:
+        'Procesa mensajes fallidos de la DLQ y marca las notificaciones como FAILED_PERMANENT',
       logGroup,
       entry: path.join(__dirname, '../../../../../src/dlq/infrastructure/bootstrap/dlq.handler.ts'),
       handler: 'handler',
@@ -37,16 +38,20 @@ export class DlqProcessorFnConstruct extends Construct {
       bundling: lambdaBundling,
       environment: {
         NOTIFICATIONS_TABLE: props.table.tableName,
-        OUTBOX_TABLE:        props.outboxTable.tableName,
+        OUTBOX_TABLE: props.outboxTable.tableName,
       },
     });
 
     props.table.grantWriteData(fn);
     props.outboxTable.grantWriteData(fn);
 
-    fn.addEventSource(new SqsEventSource(props.dlq, {
-      batchSize: InfraConstants.SQS_BATCH_SIZE,
-      maxBatchingWindow: cdk.Duration.minutes(InfraConstants.SQS_DLQ_PROCESSOR_BATCH_WINDOW_MINUTES),
-    }));
+    fn.addEventSource(
+      new SqsEventSource(props.dlq, {
+        batchSize: InfraConstants.SQS_BATCH_SIZE,
+        maxBatchingWindow: cdk.Duration.minutes(
+          InfraConstants.SQS_DLQ_PROCESSOR_BATCH_WINDOW_MINUTES,
+        ),
+      }),
+    );
   }
 }

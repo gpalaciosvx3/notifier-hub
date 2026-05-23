@@ -12,7 +12,7 @@ export async function awsError<T>(
     return await fn();
   } catch (error: unknown) {
     if (error instanceof CustomException) throw error;
-    const handler = handlers.find(h => isAwsError(error, h.code));
+    const handler = handlers.find((h) => isAwsError(error, h.code));
     if (handler) return handler.result;
     throw new CustomException(fallback);
   }

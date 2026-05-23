@@ -13,4 +13,3 @@ export class WorkerController {
     return this.useCase.executeBatch(event.records);
   }
 }
-

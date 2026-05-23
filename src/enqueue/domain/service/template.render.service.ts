@@ -6,10 +6,21 @@ import { NotificationInput } from '../types/notification-input.types';
 import { NotificationInputMapper } from '../mapper/notification-input.mapper';
 
 export class TemplateRenderService {
-  buildInput(template: TemplateRecord, to: string, variables: Record<string, unknown>, callbackUrl: string): NotificationInput {
+  buildInput(
+    template: TemplateRecord,
+    to: string,
+    variables: Record<string, unknown>,
+    callbackUrl: string,
+  ): NotificationInput {
     const renderedSubject = template.subject ? this.render(template.subject, variables) : undefined;
     const renderedBody = this.render(template.body, variables);
-    return NotificationInputMapper.fromTemplate(template, to, renderedSubject, renderedBody, callbackUrl);
+    return NotificationInputMapper.fromTemplate(
+      template,
+      to,
+      renderedSubject,
+      renderedBody,
+      callbackUrl,
+    );
   }
 
   private render(template: string, variables: Record<string, unknown>): string {
@@ -23,7 +34,8 @@ export class TemplateRenderService {
 
   private resolvePath(path: string, variables: Record<string, unknown>): unknown {
     return path.split('.').reduce<unknown>((current, key) => {
-      if (current === null || current === undefined || typeof current !== 'object') return undefined;
+      if (current === null || current === undefined || typeof current !== 'object')
+        return undefined;
       return (current as Record<string, unknown>)[key];
     }, variables);
   }

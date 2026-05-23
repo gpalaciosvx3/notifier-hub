@@ -14,17 +14,36 @@ import { CustomException, ValidationException } from '../../src/common/errors/cu
 
 const feature = loadFeature('./test/enqueue/features/enqueue.feature');
 
-defineFeature(feature, test => {
-  test('Construir una notificación de email válida crea una entidad PENDING', ({ given, when, then, and }) => {
+defineFeature(feature, (test) => {
+  test('Construir una notificación de email válida crea una entidad PENDING', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
     let service: NotificationService;
     let input: NotificationInput;
     let entity: NotificationEntity;
     const mockDb = { createWithOutboxEvent: jest.fn() } as unknown as NotificationDbRepository;
 
-    given('un comando de construcción para canal "email", destinatario "user@example.com", asunto "Hello", proveedor "ses" y cuerpo "Test body"', () => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb);
-      input = { channel: NotificationChannel.EMAIL, to: 'user@example.com', body: 'Test body', callbackUrl: 'https://example.com/callback', provider: NotificationProvider.SES, subject: 'Hello' };
-    });
+    given(
+      'un comando de construcción para canal "email", destinatario "user@example.com", asunto "Hello", proveedor "ses" y cuerpo "Test body"',
+      () => {
+        service = new NotificationService(
+          NotificationProvider.SES,
+          NotificationProvider.SNS,
+          mockDb,
+        );
+        input = {
+          channel: NotificationChannel.EMAIL,
+          to: 'user@example.com',
+          body: 'Test body',
+          callbackUrl: 'https://example.com/callback',
+          provider: NotificationProvider.SES,
+          subject: 'Hello',
+        };
+      },
+    );
 
     when('el servicio de notificación construye la entidad', () => {
       entity = service.build(input);
@@ -43,26 +62,41 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Construir una notificación con datos inválidos lanza la excepción correspondiente', ({ given, when, then }) => {
+  test('Construir una notificación con datos inválidos lanza la excepción correspondiente', ({
+    given,
+    when,
+    then,
+  }) => {
     let service: NotificationService;
     let input: NotificationInput;
     let error: CustomException;
     const mockDb = { createWithOutboxEvent: jest.fn() } as unknown as NotificationDbRepository;
 
-    given(/un comando de construcción para canal "(.+)", destinatario "(.+)", asunto "(.*)", proveedor "(.+)" y cuerpo "Test body"/, (canal, destinatario, asunto, proveedor) => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb);
-      input = {
-        channel: canal as NotificationChannel,
-        to: destinatario,
-        body: 'Test body',
-        callbackUrl: 'https://example.com/callback',
-        provider: proveedor as NotificationProvider,
-        subject: asunto || undefined,
-      };
-    });
+    given(
+      /un comando de construcción para canal "(.+)", destinatario "(.+)", asunto "(.*)", proveedor "(.+)" y cuerpo "Test body"/,
+      (canal, destinatario, asunto, proveedor) => {
+        service = new NotificationService(
+          NotificationProvider.SES,
+          NotificationProvider.SNS,
+          mockDb,
+        );
+        input = {
+          channel: canal as NotificationChannel,
+          to: destinatario,
+          body: 'Test body',
+          callbackUrl: 'https://example.com/callback',
+          provider: proveedor as NotificationProvider,
+          subject: asunto || undefined,
+        };
+      },
+    );
 
     when('el servicio de notificación intenta construir la entidad', () => {
-      try { service.build(input); } catch (e) { error = e as CustomException; }
+      try {
+        service.build(input);
+      } catch (e) {
+        error = e as CustomException;
+      }
     });
 
     then(/se lanza una CustomException con código "(.+)"/, (codigo) => {
@@ -71,16 +105,34 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Construir una notificación de SMS válida crea una entidad PENDING', ({ given, when, then, and }) => {
+  test('Construir una notificación de SMS válida crea una entidad PENDING', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
     let service: NotificationService;
     let input: NotificationInput;
     let entity: NotificationEntity;
     const mockDb = { createWithOutboxEvent: jest.fn() } as unknown as NotificationDbRepository;
 
-    given('un comando de construcción para canal "sms", destinatario "+15551234567", proveedor "sns" y cuerpo "Test body"', () => {
-      service = new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb);
-      input = { channel: NotificationChannel.SMS, to: '+15551234567', body: 'Test body', callbackUrl: 'https://example.com/callback', provider: NotificationProvider.SNS };
-    });
+    given(
+      'un comando de construcción para canal "sms", destinatario "+15551234567", proveedor "sns" y cuerpo "Test body"',
+      () => {
+        service = new NotificationService(
+          NotificationProvider.SES,
+          NotificationProvider.SNS,
+          mockDb,
+        );
+        input = {
+          channel: NotificationChannel.SMS,
+          to: '+15551234567',
+          body: 'Test body',
+          callbackUrl: 'https://example.com/callback',
+          provider: NotificationProvider.SNS,
+        };
+      },
+    );
 
     when('el servicio de notificación construye la entidad', () => {
       entity = service.build(input);
@@ -95,17 +147,40 @@ defineFeature(feature, test => {
     });
   });
 
-  test('Encolar una notificación válida la persiste y registra el evento de outbox', ({ given, when, then, and }) => {
-    const mockDb = { createWithOutboxEvent: jest.fn().mockResolvedValue(undefined) } as unknown as NotificationDbRepository;
+  test('Encolar una notificación válida la persiste y registra el evento de outbox', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    const mockDb = {
+      createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+    } as unknown as NotificationDbRepository;
     let useCase: EnqueueNotificationUseCase;
     let payload: unknown;
     let notificationId: string;
 
-    given('un payload de encolar válido con canal "email", destinatario "user@example.com", asunto "Hello" y cuerpo "Test body"', () => {
-      const mockTemplateRepo = { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository;
-      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb), mockTemplateRepo, new TemplateRenderService());
-      payload = { channel: 'email', to: 'user@example.com', subject: 'Hello', body: 'Test body', provider: 'ses', callbackUrl: 'https://example.com/callback' };
-    });
+    given(
+      'un payload de encolar válido con canal "email", destinatario "user@example.com", asunto "Hello" y cuerpo "Test body"',
+      () => {
+        const mockTemplateRepo = {
+          findActiveByTemplateId: jest.fn(),
+        } as unknown as TemplateDbRepository;
+        useCase = new EnqueueNotificationUseCase(
+          new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb),
+          mockTemplateRepo,
+          new TemplateRenderService(),
+        );
+        payload = {
+          channel: 'email',
+          to: 'user@example.com',
+          subject: 'Hello',
+          body: 'Test body',
+          provider: 'ses',
+          callbackUrl: 'https://example.com/callback',
+        };
+      },
+    );
 
     when('el caso de uso de encolar se ejecuta', async () => {
       notificationId = await useCase.execute(payload);
@@ -133,13 +208,23 @@ defineFeature(feature, test => {
     let error: ValidationException;
 
     given('un payload de encolar sin el campo canal', () => {
-      const mockTemplateRepo = { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository;
-      useCase = new EnqueueNotificationUseCase(new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb), mockTemplateRepo, new TemplateRenderService());
+      const mockTemplateRepo = {
+        findActiveByTemplateId: jest.fn(),
+      } as unknown as TemplateDbRepository;
+      useCase = new EnqueueNotificationUseCase(
+        new NotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb),
+        mockTemplateRepo,
+        new TemplateRenderService(),
+      );
       payload = { to: 'user@example.com', body: 'Test body' };
     });
 
     when('el caso de uso de encolar se ejecuta', async () => {
-      try { await useCase.execute(payload); } catch (e) { error = e as ValidationException; }
+      try {
+        await useCase.execute(payload);
+      } catch (e) {
+        error = e as ValidationException;
+      }
     });
 
     then('se lanza una ValidationException con código "NTF-009"', () => {

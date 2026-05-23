@@ -2,7 +2,11 @@ import { NotificationStatus } from '../../../common/constants/notification-statu
 import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity';
 
 export abstract class NotificationDbRepository {
-  abstract updateStatus(notificationId: string, status: NotificationStatus, motivoFallo?: string): Promise<void>;
+  abstract updateStatus(
+    notificationId: string,
+    status: NotificationStatus,
+    motivoFallo?: string,
+  ): Promise<void>;
   abstract updateStatusConditional(
     notificationId: string,
     nuevoStatus: NotificationStatus,

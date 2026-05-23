@@ -28,18 +28,22 @@ export class RelayFnConstruct extends Construct {
 
     const fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_RELAY,
-      description: 'Lee el stream de la tabla outbox y publica eventos en los brokers correspondientes (SQS / Scheduler)',
+      description:
+        'Lee el stream de la tabla outbox y publica eventos en los brokers correspondientes (SQS / Scheduler)',
       logGroup,
-      entry: path.join(__dirname, '../../../../../src/relay/infrastructure/bootstrap/relay.handler.ts'),
+      entry: path.join(
+        __dirname,
+        '../../../../../src/relay/infrastructure/bootstrap/relay.handler.ts',
+      ),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_RELAY_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_DEFAULT_MB,
       bundling: lambdaBundling,
       environment: {
-        OUTBOX_TABLE:            props.outboxTable.tableName,
+        OUTBOX_TABLE: props.outboxTable.tableName,
         NOTIFICATIONS_QUEUE_URL: props.notificationsQueue.queueUrl,
-        WEBHOOKS_QUEUE_URL:      props.webhooksQueue.queueUrl,
+        WEBHOOKS_QUEUE_URL: props.webhooksQueue.queueUrl,
       },
     });
 
@@ -47,10 +51,12 @@ export class RelayFnConstruct extends Construct {
     props.notificationsQueue.grantSendMessages(fn);
     props.webhooksQueue.grantSendMessages(fn);
 
-    fn.addEventSource(new DynamoEventSource(props.outboxTable, {
-      startingPosition: lambda.StartingPosition.TRIM_HORIZON,
-      batchSize: 10,
-      retryAttempts: 3,
-    }));
+    fn.addEventSource(
+      new DynamoEventSource(props.outboxTable, {
+        startingPosition: lambda.StartingPosition.TRIM_HORIZON,
+        batchSize: 10,
+        retryAttempts: 3,
+      }),
+    );
   }
 }

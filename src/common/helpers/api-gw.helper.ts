@@ -4,7 +4,11 @@ import { ErrorDictionary } from '../errors/error.dictionary';
 import { ApiSuccessBody, ApiErrorBody } from '../types/api-response.types';
 
 export class ApiGwHelper {
-  static success<T>(statusCode: number, data: T, meta?: Record<string, unknown>): APIGatewayProxyResult {
+  static success<T>(
+    statusCode: number,
+    data: T,
+    meta?: Record<string, unknown>,
+  ): APIGatewayProxyResult {
     const body: ApiSuccessBody<T> = { data, ...(meta && { meta }) };
     return {
       statusCode,

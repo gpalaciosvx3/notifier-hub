@@ -6,12 +6,16 @@ import { ProcessRecordResult } from '../../../common/types/process-record-result
 import { RelayModule } from './relay.module';
 import { RelayController } from '../controller/relay.controller';
 
-export const handler = createLambdaHandler<RelayController, DynamoDBStreamEvent, DynamoDBBatchResponse>(
-  RelayModule,
+export const handler = createLambdaHandler<
   RelayController,
-  async (ctrl, event) => {
-    const extracted = LambdaEventMiddleware.extract(event) as DynamoStreamExtracted;
-    const results: ProcessRecordResult[] = await ctrl.handle(extracted);
-    return { batchItemFailures: results.filter(r => r.retry).map(r => ({ itemIdentifier: r.sequenceNumber })) };
-  },
-);
+  DynamoDBStreamEvent,
+  DynamoDBBatchResponse
+>(RelayModule, RelayController, async (ctrl, event) => {
+  const extracted = LambdaEventMiddleware.extract(event) as DynamoStreamExtracted;
+  const results: ProcessRecordResult[] = await ctrl.handle(extracted);
+  return {
+    batchItemFailures: results
+      .filter((r) => r.retry)
+      .map((r) => ({ itemIdentifier: r.sequenceNumber })),
+  };
+});

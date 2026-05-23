@@ -5,11 +5,11 @@ import { ApiGwExtracted } from '../../../common/middleware/types/lambda-event.ty
 import { EnqueueModule } from './enqueue.module';
 import { EnqueueController } from '../controller/enqueue.controller';
 
-export const handler = createLambdaHandler<EnqueueController, APIGatewayProxyEventV2, APIGatewayProxyResult>(
-  EnqueueModule,
+export const handler = createLambdaHandler<
   EnqueueController,
-  (ctrl, event) => {
-    const extracted = LambdaEventMiddleware.extract(event) as ApiGwExtracted;
-    return ctrl.handle(extracted.body);
-  },
-);
+  APIGatewayProxyEventV2,
+  APIGatewayProxyResult
+>(EnqueueModule, EnqueueController, (ctrl, event) => {
+  const extracted = LambdaEventMiddleware.extract(event) as ApiGwExtracted;
+  return ctrl.handle(extracted.body);
+});

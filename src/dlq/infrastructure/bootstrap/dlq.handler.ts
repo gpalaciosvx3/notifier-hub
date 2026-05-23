@@ -12,6 +12,10 @@ export const handler = createLambdaHandler<DlqController, SQSEvent, SQSBatchResp
   async (ctrl, event) => {
     const extracted = LambdaEventMiddleware.extract(event) as SqsExtracted;
     const results: ProcessRecordResult[] = await ctrl.handle(extracted);
-    return { batchItemFailures: results.filter(r => r.retry).map(r => ({ itemIdentifier: r.sequenceNumber })) };
+    return {
+      batchItemFailures: results
+        .filter((r) => r.retry)
+        .map((r) => ({ itemIdentifier: r.sequenceNumber })),
+    };
   },
 );

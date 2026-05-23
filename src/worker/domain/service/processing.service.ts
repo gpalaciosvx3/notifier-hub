@@ -19,7 +19,9 @@ export class ProcessingService {
   ) {}
 
   async process(notification: NotificationEntity): Promise<void> {
-    this.logger.log(`[PASO 1] Tomando control de notificación => notificationId: ${notification.notificationId}`);
+    this.logger.log(
+      `[PASO 1] Tomando control de notificación => notificationId: ${notification.notificationId}`,
+    );
     const taken = await this.dbRepository.updateStatusConditional(
       notification.notificationId,
       NotificationStatus.PROCESSING,
@@ -39,21 +41,35 @@ export class ProcessingService {
   }
 
   async handleFault(notification: NotificationEntity, error: unknown): Promise<boolean> {
-    const exception = error instanceof CustomException
-      ? error
-      : new CustomException(ErrorDictionary.NOTIFICATION_SEND_FAILED, error instanceof Error ? error.message : String(error));
-    this.logger.error(`[PASO 1] Manejando fallo => notificationId: ${notification.notificationId} | [${exception.code}] ${exception.description}`);
-    this.logger.log(`[PASO 2] Revirtiendo estado a PENDING => notificationId: ${notification.notificationId}`);
+    const exception =
+      error instanceof CustomException
+        ? error
+        : new CustomException(
+            ErrorDictionary.NOTIFICATION_SEND_FAILED,
+            error instanceof Error ? error.message : String(error),
+          );
+    this.logger.error(
+      `[PASO 1] Manejando fallo => notificationId: ${notification.notificationId} | [${exception.code}] ${exception.description}`,
+    );
+    this.logger.log(
+      `[PASO 2] Revirtiendo estado a PENDING => notificationId: ${notification.notificationId}`,
+    );
     await this.dbRepository.updateStatus(notification.notificationId, NotificationStatus.PENDING);
     return false;
   }
 
   private async sendAndFinalize(notification: NotificationEntity): Promise<void> {
-    this.logger.log(`[PASO 2] Resolviendo remitente => channel: ${notification.channel} | provider: ${notification.provider}`);
+    this.logger.log(
+      `[PASO 2] Resolviendo remitente => channel: ${notification.channel} | provider: ${notification.provider}`,
+    );
     const sender = this.channelRouter.resolve(notification.channel, notification.provider);
-    this.logger.log(`[PASO 3] Enviando notificación => notificationId: ${notification.notificationId} | to: ${notification.to}`);
+    this.logger.log(
+      `[PASO 3] Enviando notificación => notificationId: ${notification.notificationId} | to: ${notification.to}`,
+    );
     await sender.send(notification.to, notification.subject, notification.body);
-    this.logger.log(`[PASO 4] Marcando notificación como SENT => notificationId: ${notification.notificationId}`);
+    this.logger.log(
+      `[PASO 4] Marcando notificación como SENT => notificationId: ${notification.notificationId}`,
+    );
     const outboxEvent = OutboxEventEntity.build({
       eventType: OutboxEventType.WEBHOOK_REQUESTED,
       brokerType: OutboxEventBrokerType.SQS_WEBHOOK,
@@ -63,6 +79,10 @@ export class ProcessingService {
         callbackUrl: notification.callbackUrl,
       },
     });
-    await this.dbRepository.updateStatusWithOutboxEvent(notification.notificationId, NotificationStatus.SENT, outboxEvent);
+    await this.dbRepository.updateStatusWithOutboxEvent(
+      notification.notificationId,
+      NotificationStatus.SENT,
+      outboxEvent,
+    );
   }
 }

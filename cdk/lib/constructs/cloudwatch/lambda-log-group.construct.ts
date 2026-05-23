@@ -15,7 +15,7 @@ export class LambdaLogGroupConstruct extends Construct {
     this.logGroup = new logs.LogGroup(this, 'LogGroup', {
       logGroupName: `/aws/lambda/${props.functionName}`,
       retention: logs.RetentionDays.ONE_WEEK,
-      removalPolicy: cdk.RemovalPolicy.DESTROY
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
   }
 }

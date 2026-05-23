@@ -8,7 +8,11 @@ import { envConfig } from '../../../common/config/env.config';
 import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
-import { NotificationSenderRepository, SesSenderRepository, SnsSenderRepository } from '../../domain/repository/notification.sender.repository';
+import {
+  NotificationSenderRepository,
+  SesSenderRepository,
+  SnsSenderRepository,
+} from '../../domain/repository/notification.sender.repository';
 import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
 import { SesSenderRepositoryImpl } from '../repository/ses.sender.repository.impl';
 import { SnsSenderRepositoryImpl } from '../repository/sns.sender.repository.impl';
@@ -26,7 +30,11 @@ import { WorkerController } from '../controller/worker.controller';
     {
       provide: NotificationDbRepository,
       useFactory: (dynamo: DynamoClient) =>
-        new NotificationDbRepositoryImpl(dynamo, envConfig.notificationsTable, envConfig.outboxTable),
+        new NotificationDbRepositoryImpl(
+          dynamo,
+          envConfig.notificationsTable,
+          envConfig.outboxTable,
+        ),
       inject: [DynamoClient],
     },
     {
@@ -34,7 +42,11 @@ import { WorkerController } from '../controller/worker.controller';
       useFactory: (ses: SesClient) => new SesSenderRepositoryImpl(ses, envConfig.sesSourceEmail),
       inject: [SesClient],
     },
-    { provide: SnsSenderRepository, useFactory: (sns: SnsClient) => new SnsSenderRepositoryImpl(sns), inject: [SnsClient] },
+    {
+      provide: SnsSenderRepository,
+      useFactory: (sns: SnsClient) => new SnsSenderRepositoryImpl(sns),
+      inject: [SnsClient],
+    },
     {
       provide: ChannelRouterService,
       useFactory: (ses: SesSenderRepository, sns: SnsSenderRepository) => {

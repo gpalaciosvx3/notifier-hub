@@ -8,7 +8,8 @@ import { ErrorDictionary } from '../errors/error.dictionary';
 export class SqsClient {
   async sendMessage(queueUrl: string, messageBody: string): Promise<void> {
     await awsError(
-      () => sqsClient.send(new SendMessageCommand({ QueueUrl: queueUrl, MessageBody: messageBody })),
+      () =>
+        sqsClient.send(new SendMessageCommand({ QueueUrl: queueUrl, MessageBody: messageBody })),
       ErrorDictionary.SQS_UNAVAILABLE,
     );
   }
