@@ -11,12 +11,14 @@ export class OutboxEventEntity {
     public readonly payload: Record<string, unknown>,
     public readonly createdAt: string,
     public readonly ttl: number,
+    public readonly notificationId: string,
   ) {}
 
   static build(params: {
     eventType: OutboxEventType;
     brokerType: OutboxEventBrokerType;
     payload: Record<string, unknown>;
+    notificationId: string;
   }): OutboxEventEntity {
     const now = new Date().toISOString();
     return new OutboxEventEntity(
@@ -26,6 +28,7 @@ export class OutboxEventEntity {
       params.payload,
       now,
       Math.floor(Date.now() / 1000) + OutboxEventConstants.TTL_SECONDS,
+      params.notificationId,
     );
   }
 
@@ -36,6 +39,7 @@ export class OutboxEventEntity {
     payload: Record<string, unknown>;
     createdAt: string;
     ttl: number;
+    notificationId: string;
   }): OutboxEventEntity {
     return new OutboxEventEntity(
       record.eventId,
@@ -44,6 +48,7 @@ export class OutboxEventEntity {
       record.payload,
       record.createdAt,
       record.ttl,
+      record.notificationId,
     );
   }
 }

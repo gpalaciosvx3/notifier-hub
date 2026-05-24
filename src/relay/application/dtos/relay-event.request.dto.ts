@@ -10,6 +10,7 @@ export const OutboxEventRecordSchema = z.object({
   createdAt: z.string().min(1),
   ttl: z.number(),
   publishedAt: z.string().optional(),
+  notificationId: z.string().min(1),
 });
 
 export type OutboxEventRecordDto = z.infer<typeof OutboxEventRecordSchema>;

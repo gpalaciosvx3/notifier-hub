@@ -1,14 +1,12 @@
-import { DlqMessageType } from '../constants/dlq-message-type.constants';
+import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 
 export type NotificationFailedMessage = {
-  messageType: DlqMessageType.NOTIFICATION_FAILED;
   notificationId: string;
+  channel: NotificationChannel;
   callbackUrl: string;
 };
 
 export type WebhookFailedMessage = {
-  messageType: DlqMessageType.WEBHOOK_FAILED;
   notificationId: string;
+  sentAt: string;
 };
-
-export type DlqMessage = NotificationFailedMessage | WebhookFailedMessage;

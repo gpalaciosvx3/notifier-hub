@@ -3,11 +3,10 @@ import { OutboxEventType } from '../../../common/constants/outbox-event-type.con
 import { OutboxEventBrokerType } from '../../../common/constants/outbox-event-broker-type.constants';
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
 
-export class WebhookOutboxEventMapper {
-  static fromSent(params: {
+export class DlqOutboxEventMapper {
+  static fromNotificationFailed(params: {
     notificationId: string;
     callbackUrl: string;
-    sentAt: string;
   }): OutboxEventEntity {
     return OutboxEventEntity.build({
       eventType: OutboxEventType.WEBHOOK_REQUESTED,
@@ -15,9 +14,8 @@ export class WebhookOutboxEventMapper {
       notificationId: params.notificationId,
       payload: {
         notificationId: params.notificationId,
-        status: NotificationStatus.SENT,
+        status: NotificationStatus.FAILED_PERMANENT,
         callbackUrl: params.callbackUrl,
-        sentAt: params.sentAt,
       },
     });
   }

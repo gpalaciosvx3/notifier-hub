@@ -8,7 +8,10 @@ import {
   classifyBatchFailure,
   summarizeBatchResults,
 } from '../../../common/helpers/batch-processing.helper';
-import { DlqMessageSchema } from '../dtos/dlq-message.request.dto';
+import {
+  NotificationFailedMessageSchema,
+  WebhookFailedMessageSchema,
+} from '../dtos/dlq-message.request.dto';
 
 @Injectable()
 export class MarkBatchFailedPermanentUseCase {
@@ -33,19 +36,28 @@ export class MarkBatchFailedPermanentUseCase {
 
   private async executeOne(record: SqsMessage): Promise<void> {
     this.logger.log(`Body recibido: ${JSON.stringify(record.body)}`);
-    const result = DlqMessageSchema.safeParse(record.body);
-    if (!result.success) {
-      this.logger.warn(
-        `Mensaje con messageType desconocido — descartando => sequenceNumber: ${record.sequenceNumber}`,
+
+    const notifResult = NotificationFailedMessageSchema.safeParse(record.body);
+    if (notifResult.success) {
+      this.logger.log(
+        `Mensaje identificado como NOTIFICATION_FAILED => notificationId: ${notifResult.data.notificationId}`,
       );
+      await this.dlqBatchService.handleNotificationFailed(notifResult.data);
       return;
     }
-    const msg = result.data;
-    this.logger.log(
-      `Mensaje validado => notificationId: ${msg.notificationId} | messageType: ${msg.messageType}`,
+
+    const webhookResult = WebhookFailedMessageSchema.safeParse(record.body);
+    if (webhookResult.success) {
+      this.logger.log(
+        `Mensaje identificado como WEBHOOK_FAILED => notificationId: ${webhookResult.data.notificationId}`,
+      );
+      await this.dlqBatchService.handleWebhookFailed(webhookResult.data);
+      return;
+    }
+
+    this.logger.warn(
+      `Mensaje con formato desconocido — descartando => sequenceNumber: ${record.sequenceNumber}`,
     );
-    await this.dlqBatchService.handle(msg);
-    this.logger.log(`Resultado => notificationId: ${msg.notificationId} | processed`);
   }
 
   private classifyFailure(sequenceNumber: string, error: unknown): ProcessRecordResult {

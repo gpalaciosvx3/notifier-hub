@@ -17,5 +17,11 @@ export class OutboxTableConstruct extends Construct {
       timeToLiveAttribute: 'ttl',
       stream: dynamodb.StreamViewType.NEW_IMAGE,
     });
+
+    this.table.addGlobalSecondaryIndex({
+      indexName: ResourceConstants.OUTBOX_NOTIFICATION_ID_INDEX,
+      partitionKey: { name: 'notificationId', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
   }
 }

@@ -1,12 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity';
-import { OutboxEventType } from '../../../common/constants/outbox-event-type.constants';
-import { OutboxEventBrokerType } from '../../../common/constants/outbox-event-broker-type.constants';
 import { NotificationDbRepository } from '../repository/notification.db.repository';
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
 import { WebhookStatus } from '../../../common/constants/webhook-status.constants';
-import { DlqMessage } from '../types/dlq-message.types';
-import { DlqMessageType } from '../constants/dlq-message-type.constants';
+import { NotificationFailedMessage, WebhookFailedMessage } from '../types/dlq-message.types';
+import { DlqOutboxEventMapper } from '../mapper/dlq-outbox-event.mapper';
 
 @Injectable()
 export class DlqBatchService {
@@ -14,30 +11,12 @@ export class DlqBatchService {
 
   constructor(private readonly dbRepository: NotificationDbRepository) {}
 
-  async handle(msg: DlqMessage): Promise<void> {
-    if (msg.messageType === DlqMessageType.NOTIFICATION_FAILED) {
-      await this.handleNotificationFailed(msg.notificationId, msg.callbackUrl);
-      return;
-    }
-    await this.handleWebhookFailed(msg.notificationId);
-  }
-
-  private async handleNotificationFailed(
-    notificationId: string,
-    callbackUrl: string,
-  ): Promise<void> {
+  async handleNotificationFailed(msg: NotificationFailedMessage): Promise<void> {
+    const { notificationId, callbackUrl } = msg;
     this.logger.log(
       `[PASO 1] Marcando notificación como fallida permanente => notificationId: ${notificationId}`,
     );
-    const outboxEvent = OutboxEventEntity.build({
-      eventType: OutboxEventType.WEBHOOK_REQUESTED,
-      brokerType: OutboxEventBrokerType.SQS_WEBHOOK,
-      payload: {
-        notificationId,
-        status: NotificationStatus.FAILED_PERMANENT,
-        callbackUrl,
-      },
-    });
+    const outboxEvent = DlqOutboxEventMapper.fromNotificationFailed({ notificationId, callbackUrl });
     this.logger.log(
       `[PASO 2] Persistiendo estado FAILED_PERMANENT y evento outbox atómicamente => notificationId: ${notificationId}`,
     );
@@ -48,7 +27,8 @@ export class DlqBatchService {
     );
   }
 
-  private async handleWebhookFailed(notificationId: string): Promise<void> {
+  async handleWebhookFailed(msg: WebhookFailedMessage): Promise<void> {
+    const { notificationId } = msg;
     this.logger.log(
       `[PASO 1] Actualizando webhookStatus a FAILED => notificationId: ${notificationId}`,
     );
