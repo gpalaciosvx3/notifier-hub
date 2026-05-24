@@ -6,7 +6,7 @@ import {
 } from '@aws-sdk/client-scheduler';
 import { ulid } from 'ulid';
 import { envConfig } from '../../../common/config/env.config';
-import { SchedulerRepository } from '../../domain/repository/scheduler.repository';
+import { SchedulerRepository } from '../../domain/repository/relay-scheduler.repository';
 
 @Injectable()
 export class SchedulerRepositoryImpl extends SchedulerRepository {

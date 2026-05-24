@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CallbackHttpRepository } from '../../domain/repository/callback.http.repository';
-import { WebhookCallbackPayload } from '../../domain/types/webhook-event.types';
+import { CallbackHttpRepository } from '../../domain/repository/webhook-dispatcher-callback.http.repository';
+import { WebhookCallbackPayload } from '../../domain/types/webhook-dispatcher-event.types';
 import { WebhookDispatcherConstants } from '../constants/webhook-dispatcher.constants';
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SqsHandlerEvent } from '../../../common/middleware/types/lambda-event.types';
-import { ProcessBatchUseCase } from '../../application/use-cases/process-batch.usecase';
+import { ProcessBatchUseCase } from '../../application/use-cases/worker.usecase';
 import { ProcessRecordResult } from '../../../common/types/process-record-result.types';
 import { HandleExecution } from '../../../common/decorator/handle-execution.decorator';
 

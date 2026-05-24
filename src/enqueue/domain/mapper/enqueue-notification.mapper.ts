@@ -1,5 +1,5 @@
 import { NotificationEntity } from '../../../common/entities/notification.entity';
-import { NotificationInput } from '../types/notification-input.types';
+import { NotificationInput } from '../types/enqueue-notification-input.types';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
 
 export class NotificationMapper {

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity';
 import { OutboxEventType } from '../../../common/constants/outbox-event-type.constants';
-import { OutboxEventDbRepository } from '../repository/outbox-event.db.repository';
-import { BrokerPublishStrategy } from '../strategy/broker-publish.strategy';
+import { OutboxEventDbRepository } from '../repository/relay-outbox-event.db.repository';
+import { BrokerPublishStrategy } from '../strategy/relay-broker-publish.strategy';
 import { CustomException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 

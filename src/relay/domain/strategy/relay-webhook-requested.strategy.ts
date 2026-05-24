@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity';
-import { WebhookQueueSqsRepository } from '../repository/webhook-queue.sqs.repository';
-import { BrokerPublishStrategy } from './broker-publish.strategy';
+import { WebhookQueueSqsRepository } from '../repository/relay-webhook-queue.sqs.repository';
+import { BrokerPublishStrategy } from './relay-broker-publish.strategy';
 
 @Injectable()
 export class WebhookRequestedStrategy extends BrokerPublishStrategy {

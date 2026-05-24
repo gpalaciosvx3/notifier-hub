@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SqsHandlerEvent } from '../../../common/middleware/types/lambda-event.types';
-import { MarkBatchFailedPermanentUseCase } from '../../application/use-cases/mark-batch-failed-permanent.usecase';
+import { MarkBatchFailedPermanentUseCase } from '../../application/use-cases/dlq.usecase';
 import { ProcessRecordResult } from '../../../common/types/process-record-result.types';
 import { HandleExecution } from '../../../common/decorator/handle-execution.decorator';
 

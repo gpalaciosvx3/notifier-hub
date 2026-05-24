@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
-import { TemplateDbRepository } from '../../domain/repository/template.db.repository';
-import { TemplateRecord } from '../../domain/types/template-record.types';
+import { TemplateDbRepository } from '../../domain/repository/enqueue-template.db.repository';
+import { TemplateRecord } from '../../domain/types/enqueue-template-record.types';
 
 @Injectable()
 export class TemplateDbRepositoryImpl extends TemplateDbRepository {

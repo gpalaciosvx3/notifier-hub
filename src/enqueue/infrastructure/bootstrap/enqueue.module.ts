@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { envConfig } from '../../../common/config/env.config';
-import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
-import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
-import { TemplateDbRepository } from '../../domain/repository/template.db.repository';
-import { TemplateDbRepositoryImpl } from '../repository/template.db.repository.impl';
-import { TemplateRenderService } from '../../domain/service/template-render.service';
+import { NotificationDbRepository } from '../../domain/repository/enqueue-notification.db.repository';
+import { NotificationDbRepositoryImpl } from '../repository/enqueue-notification.db.repository.impl';
+import { TemplateDbRepository } from '../../domain/repository/enqueue-template.db.repository';
+import { TemplateDbRepositoryImpl } from '../repository/enqueue-template.db.repository.impl';
+import { TemplateRenderService } from '../../domain/service/enqueue-template-render.service';
 import { EnqueueNotificationUseCase } from '../../application/use-cases/enqueue-notification.usecase';
 import { EnqueueNotificationService } from '../../domain/service/enqueue-notification.service';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';

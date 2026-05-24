@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { envConfig } from '../../../common/config/env.config';
-import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
-import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
+import { NotificationDbRepository } from '../../domain/repository/dlq-notification.db.repository';
+import { NotificationDbRepositoryImpl } from '../repository/dlq-notification.db.repository.impl';
 import { DlqBatchService } from '../../domain/service/dlq-batch.service';
-import { MarkBatchFailedPermanentUseCase } from '../../application/use-cases/mark-batch-failed-permanent.usecase';
+import { MarkBatchFailedPermanentUseCase } from '../../application/use-cases/dlq.usecase';
 import { DlqController } from '../controller/dlq.controller';
 
 @Module({

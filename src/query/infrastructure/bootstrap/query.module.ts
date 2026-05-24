@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { envConfig } from '../../../common/config/env.config';
-import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
-import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
-import { GetNotificationUseCase } from '../../application/use-cases/get-notification.usecase';
-import { GetNotificationsByRecipientUseCase } from '../../application/use-cases/get-notifications-by-recipient.usecase';
+import { NotificationDbRepository } from '../../domain/repository/query-notification.db.repository';
+import { NotificationDbRepositoryImpl } from '../repository/query-notification.db.repository.impl';
+import { GetNotificationUseCase } from '../../application/use-cases/query-get-notification.usecase';
+import { GetNotificationsByRecipientUseCase } from '../../application/use-cases/query-notifications-by-recipient.usecase';
 import { QueryService } from '../../domain/service/query.service';
 import { QueryController } from '../controller/query.controller';
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
-import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
+import { NotificationDbRepository } from '../../domain/repository/query-notification.db.repository';
 import { NotificationEntity } from '../../../common/entities/notification.entity';
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
 import { PagedResult } from '../../domain/types/query-output.types';

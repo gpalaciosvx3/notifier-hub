@@ -1,9 +1,9 @@
 import { CustomException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
-import { TemplateConstants } from '../constants/template.constants';
-import { TemplateRecord } from '../types/template-record.types';
-import { NotificationInput } from '../types/notification-input.types';
-import { NotificationInputMapper } from '../mapper/notification-input.mapper';
+import { TemplateConstants } from '../constants/enqueue-template.constants';
+import { TemplateRecord } from '../types/enqueue-template-record.types';
+import { NotificationInput } from '../types/enqueue-notification-input.types';
+import { NotificationInputMapper } from '../mapper/enqueue-notification-input.mapper';
 
 export class TemplateRenderService {
   buildInput(

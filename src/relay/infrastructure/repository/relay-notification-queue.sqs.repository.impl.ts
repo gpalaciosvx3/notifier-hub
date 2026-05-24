@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { SqsClient } from '../../../common/sqs/sqs.client';
-import { WebhookQueueSqsRepository } from '../../domain/repository/webhook-queue.sqs.repository';
+import { NotificationQueueSqsRepository } from '../../domain/repository/relay-notification-queue.sqs.repository';
 
 @Injectable()
-export class WebhookQueueSqsRepositoryImpl extends WebhookQueueSqsRepository {
+export class NotificationQueueSqsRepositoryImpl extends NotificationQueueSqsRepository {
   constructor(
     private readonly sqsClient: SqsClient,
     private readonly queueUrl: string,

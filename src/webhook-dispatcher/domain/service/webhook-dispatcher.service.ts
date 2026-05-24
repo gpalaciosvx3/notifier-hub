@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WebhookEvent, WebhookCallbackPayload } from '../types/webhook-event.types';
+import { WebhookEvent, WebhookCallbackPayload } from '../types/webhook-dispatcher-event.types';
 import { WebhookStatus } from '../../../common/constants/webhook-status.constants';
-import { NotificationDbRepository } from '../repository/notification.db.repository';
-import { CallbackHttpRepository } from '../repository/callback.http.repository';
+import { NotificationDbRepository } from '../repository/webhook-dispatcher-notification.db.repository';
+import { CallbackHttpRepository } from '../repository/webhook-dispatcher-callback.http.repository';
 import { CustomException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
-import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
+import { NotificationDbRepository } from '../../domain/repository/dlq-notification.db.repository';
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
 import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity';
 import { WebhookStatus } from '../../../common/constants/webhook-status.constants';

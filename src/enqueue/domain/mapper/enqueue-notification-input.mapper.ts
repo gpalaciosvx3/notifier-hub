@@ -1,5 +1,5 @@
-import { NotificationInput } from '../types/notification-input.types';
-import { TemplateRecord } from '../types/template-record.types';
+import { NotificationInput } from '../types/enqueue-notification-input.types';
+import { TemplateRecord } from '../types/enqueue-template-record.types';
 
 export class NotificationInputMapper {
   static fromTemplate(

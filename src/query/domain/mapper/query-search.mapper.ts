@@ -1,6 +1,6 @@
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
 import { QueryType } from '../constants/query-type.constants';
-import { SearchQueryInput } from '../types/search-query-input.types';
+import { SearchQueryInput } from '../types/query-search-input.types';
 
 export class SearchQueryMapper {
   static byId(notificationId: string): SearchQueryInput {

@@ -2,11 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { NotificationEntity } from '../../../common/entities/notification.entity';
 import { CustomException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
-import { NotificationDbRepository } from '../repository/notification.db.repository';
-import { RawSearchQuery, SearchQueryInput } from '../types/search-query-input.types';
+import { NotificationDbRepository } from '../repository/query-notification.db.repository';
+import { RawSearchQuery, SearchQueryInput } from '../types/query-search-input.types';
 import { QueryType } from '../constants/query-type.constants';
-import { SearchQueryMapper } from '../mapper/search-query.mapper';
-import { NotificationSummaryMapper } from '../mapper/notification-summary.mapper';
+import { SearchQueryMapper } from '../mapper/query-search.mapper';
+import { NotificationSummaryMapper } from '../mapper/query-notification-summary.mapper';
 import { NotificationSummary, PagedResult } from '../types/query-output.types';
 
 @Injectable()

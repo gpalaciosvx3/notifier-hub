@@ -1,29 +1,26 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ZodIssue } from 'zod';
 import { SqsMessage } from '../../../common/middleware/types/lambda-event.types';
-import { DispatchService } from '../../domain/service/dispatch.service';
-import { WebhookEventSchema } from '../dtos/webhook-event.request.dto';
-import { ValidationException } from '../../../common/errors/custom.exception';
-import { ErrorDictionary } from '../../../common/errors/error.dictionary';
+import { NotificationEntity } from '../../../common/entities/notification.entity';
+import { ProcessingService } from '../../domain/service/worker.service';
+import { WorkerConstants } from '../constants/worker.constants';
 import { ProcessRecordResult } from '../../../common/types/process-record-result.types';
 import {
   executeChunkedBatch,
   classifyBatchFailure,
   summarizeBatchResults,
 } from '../../../common/helpers/batch-processing.helper';
-import { WebhookEventConstants } from '../constants/webhook-event.constants';
 
 @Injectable()
-export class DispatchBatchUseCase {
-  private readonly logger = new Logger(DispatchBatchUseCase.name);
+export class ProcessBatchUseCase {
+  private readonly logger = new Logger(ProcessBatchUseCase.name);
 
-  constructor(private readonly dispatchService: DispatchService) {}
+  constructor(private readonly processingService: ProcessingService) {}
 
   async executeBatch(records: SqsMessage[]): Promise<ProcessRecordResult[]> {
     this.logger.log(`Lote recibido => total: ${records.length}`);
     const results = await executeChunkedBatch(
       records,
-      WebhookEventConstants.SQS_WEBHOOK_CHUNK_SIZE,
+      WorkerConstants.SQS_CHUNK_SIZE,
       (record) => this.executeOne(record),
       (sequenceNumber, error) => this.classifyFailure(sequenceNumber, error),
     );
@@ -35,19 +32,9 @@ export class DispatchBatchUseCase {
   }
 
   private async executeOne(record: SqsMessage): Promise<void> {
-    this.logger.log(`Body recibido: ${JSON.stringify(record.body)}`);
-    const result = WebhookEventSchema.safeParse(record.body);
-    if (!result.success)
-      throw new ValidationException(
-        ErrorDictionary.VALIDATION_ERROR,
-        result.error.issues as ZodIssue[],
-      );
-    const event = result.data;
-    this.logger.log(
-      `Evento validado => notificationId: ${event.notificationId} | callbackUrl: ${event.callbackUrl}`,
-    );
-    await this.dispatchService.dispatch(event);
-    this.logger.log(`Resultado => notificationId: ${event.notificationId} | dispatched`);
+    const notification = record.body as NotificationEntity;
+    this.logger.log(`Procesando notificación => notificationId: ${notification.notificationId}`);
+    await this.processingService.processSafe(notification);
   }
 
   private classifyFailure(sequenceNumber: string, error: unknown): ProcessRecordResult {

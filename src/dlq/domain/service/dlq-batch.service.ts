@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NotificationDbRepository } from '../repository/notification.db.repository';
+import { NotificationDbRepository } from '../repository/dlq-notification.db.repository';
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
 import { WebhookStatus } from '../../../common/constants/webhook-status.constants';
 import { NotificationFailedMessage, WebhookFailedMessage } from '../types/dlq-message.types';

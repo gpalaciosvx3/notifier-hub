@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity';
-import { SchedulerRepository } from '../repository/scheduler.repository';
-import { BrokerPublishStrategy } from './broker-publish.strategy';
+import { SchedulerRepository } from '../repository/relay-scheduler.repository';
+import { BrokerPublishStrategy } from './relay-broker-publish.strategy';
 import { NotificationScheduledPayload } from '../types/relay-input.types';
 
 @Injectable()

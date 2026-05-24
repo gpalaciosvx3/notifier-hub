@@ -3,9 +3,9 @@ import { NotificationEntity } from '../../../common/entities/notification.entity
 import { NotificationStatus } from '../../../common/constants/notification-status.constants';
 import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
-import { NotificationDbRepository } from '../repository/notification.db.repository';
-import { NotificationSendStrategy } from '../strategy/notification-send.strategy';
-import { WebhookOutboxEventMapper } from '../mapper/webhook-outbox-event.mapper';
+import { NotificationDbRepository } from '../repository/worker-notification.db.repository';
+import { NotificationSendStrategy } from '../strategy/worker-notification-send.strategy';
+import { WebhookOutboxEventMapper } from '../mapper/worker-webhook-outbox-event.mapper';
 import { CustomException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 

@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { envConfig } from '../../../common/config/env.config';
-import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
-import { CallbackHttpRepository } from '../../domain/repository/callback.http.repository';
-import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
-import { CallbackHttpRepositoryImpl } from '../repository/callback.http.repository.impl';
-import { DispatchService } from '../../domain/service/dispatch.service';
-import { DispatchBatchUseCase } from '../../application/use-cases/dispatch-batch.usecase';
+import { NotificationDbRepository } from '../../domain/repository/webhook-dispatcher-notification.db.repository';
+import { CallbackHttpRepository } from '../../domain/repository/webhook-dispatcher-callback.http.repository';
+import { NotificationDbRepositoryImpl } from '../repository/webhook-dispatcher-notification.db.repository.impl';
+import { CallbackHttpRepositoryImpl } from '../repository/webhook-dispatcher-callback.http.repository.impl';
+import { DispatchService } from '../../domain/service/webhook-dispatcher.service';
+import { DispatchBatchUseCase } from '../../application/use-cases/webhook-dispatcher.usecase';
 import { WebhookDispatcherController } from '../controller/webhook-dispatcher.controller';
 
 @Module({

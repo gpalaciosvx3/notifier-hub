@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
-import { OutboxEventDbRepository } from '../../domain/repository/outbox-event.db.repository';
+import { OutboxEventDbRepository } from '../../domain/repository/relay-outbox-event.db.repository';
 
 @Injectable()
 export class OutboxEventDbRepositoryImpl extends OutboxEventDbRepository {

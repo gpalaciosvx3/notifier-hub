@@ -3,18 +3,18 @@ import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { SesClient } from '../../../common/ses/ses.client';
 import { SnsClient } from '../../../common/sns/sns.client';
 import { envConfig } from '../../../common/config/env.config';
-import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
+import { NotificationDbRepository } from '../../domain/repository/worker-notification.db.repository';
 import {
   SesSenderRepository,
   SnsSenderRepository,
-} from '../../domain/repository/notification.sender.repository';
-import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
-import { SesSenderRepositoryImpl } from '../repository/ses.sender.repository.impl';
-import { SnsSenderRepositoryImpl } from '../repository/sns.sender.repository.impl';
-import { SesEmailStrategy } from '../../domain/strategy/ses-email.strategy';
-import { SnsSmsStrategy } from '../../domain/strategy/sns-sms.strategy';
-import { ProcessBatchUseCase } from '../../application/use-cases/process-batch.usecase';
-import { ProcessingService } from '../../domain/service/processing.service';
+} from '../../domain/repository/worker-notification-sender.repository';
+import { NotificationDbRepositoryImpl } from '../repository/worker-notification.db.repository.impl';
+import { SesSenderRepositoryImpl } from '../repository/worker-ses-email.sender.repository.impl';
+import { SnsSenderRepositoryImpl } from '../repository/worker-sns-sms.sender.repository.impl';
+import { SesEmailStrategy } from '../../domain/strategy/worker-ses-email.strategy';
+import { SnsSmsStrategy } from '../../domain/strategy/worker-sns-sms.strategy';
+import { ProcessBatchUseCase } from '../../application/use-cases/worker.usecase';
+import { ProcessingService } from '../../domain/service/worker.service';
 import { WorkerController } from '../controller/worker.controller';
 
 @Module({

@@ -2,9 +2,9 @@ import { OutboxEventEntity } from '../../../common/entities/outbox-event.entity'
 import { OutboxEventType } from '../../../common/constants/outbox-event-type.constants';
 import { OutboxEventBrokerType } from '../../../common/constants/outbox-event-broker-type.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
-import { NotificationInput } from '../types/notification-input.types';
+import { NotificationInput } from '../types/enqueue-notification-input.types';
 import { EnqueuePayload } from '../types/enqueue-payload.types';
-import { NotificationMapper } from './notification.mapper';
+import { NotificationMapper } from './enqueue-notification.mapper';
 
 export class EnqueuePayloadMapper {
   static fromInput(input: NotificationInput, provider: NotificationProvider): EnqueuePayload {
