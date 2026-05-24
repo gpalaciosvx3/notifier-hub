@@ -16,7 +16,10 @@ export class DlqBatchService {
     this.logger.log(
       `[PASO 1] Marcando notificación como fallida permanente => notificationId: ${notificationId}`,
     );
-    const outboxEvent = DlqOutboxEventMapper.fromNotificationFailed({ notificationId, callbackUrl });
+    const outboxEvent = DlqOutboxEventMapper.fromNotificationFailed({
+      notificationId,
+      callbackUrl,
+    });
     this.logger.log(
       `[PASO 2] Persistiendo estado FAILED_PERMANENT y evento outbox atómicamente => notificationId: ${notificationId}`,
     );

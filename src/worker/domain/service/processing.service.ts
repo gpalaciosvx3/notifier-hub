@@ -60,9 +60,7 @@ export class ProcessingService {
 
   private async sendAndFinalize(notification: NotificationEntity): Promise<void> {
     const key = `${notification.channel}:${notification.provider}`;
-    this.logger.log(
-      `[PASO 2] Resolviendo estrategia de envío => key: ${key}`,
-    );
+    this.logger.log(`[PASO 2] Resolviendo estrategia de envío => key: ${key}`);
     const strategy = this.strategies.get(key);
     if (!strategy) throw new CustomException(ErrorDictionary.UNRESOLVABLE_SENDER, key);
     this.logger.log(

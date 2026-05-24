@@ -16,7 +16,10 @@ export class DispatchService {
   ) {}
 
   async dispatch(event: WebhookEvent): Promise<void> {
-    const payload: WebhookCallbackPayload = { notificationId: event.notificationId, status: event.status };
+    const payload: WebhookCallbackPayload = {
+      notificationId: event.notificationId,
+      status: event.status,
+    };
     this.logger.log(
       `[PASO 1] Intentando POST al callbackUrl => notificationId: ${event.notificationId} | callbackUrl: ${event.callbackUrl}`,
     );
