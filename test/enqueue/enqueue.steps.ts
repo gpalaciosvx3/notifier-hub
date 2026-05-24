@@ -3,6 +3,8 @@ import { loadFeature, defineFeature } from 'jest-cucumber';
 import { EnqueueNotificationService } from '../../src/enqueue/domain/service/enqueue-notification.service';
 import { NotificationInput } from '../../src/enqueue/domain/types/notification-input.types';
 import { EnqueueNotificationUseCase } from '../../src/enqueue/application/use-cases/enqueue-notification.usecase';
+import { EnqueueController } from '../../src/enqueue/infrastructure/controller/enqueue.controller';
+import { IdempotencyMiddleware } from '../../src/common/middleware/idempotency.middleware';
 import { NotificationDbRepository } from '../../src/enqueue/domain/repository/notification.db.repository';
 import { TemplateDbRepository } from '../../src/enqueue/domain/repository/template.db.repository';
 import { TemplateRenderService } from '../../src/enqueue/domain/service/template-render.service';
@@ -34,6 +36,8 @@ defineFeature(feature, (test) => {
           NotificationProvider.SES,
           NotificationProvider.SNS,
           mockDb,
+          {} as unknown as TemplateDbRepository,
+          new TemplateRenderService(),
         );
         input = {
           channel: NotificationChannel.EMAIL,
@@ -80,6 +84,8 @@ defineFeature(feature, (test) => {
           NotificationProvider.SES,
           NotificationProvider.SNS,
           mockDb,
+          {} as unknown as TemplateDbRepository,
+          new TemplateRenderService(),
         );
         input = {
           channel: canal as NotificationChannel,
@@ -124,6 +130,8 @@ defineFeature(feature, (test) => {
           NotificationProvider.SES,
           NotificationProvider.SNS,
           mockDb,
+          {} as unknown as TemplateDbRepository,
+          new TemplateRenderService(),
         );
         input = {
           channel: NotificationChannel.SMS,
@@ -164,13 +172,14 @@ defineFeature(feature, (test) => {
     given(
       'un payload de encolar válido con canal "email", destinatario "user@example.com", asunto "Hello" y cuerpo "Test body"',
       () => {
-        const mockTemplateRepo = {
-          findActiveByTemplateId: jest.fn(),
-        } as unknown as TemplateDbRepository;
         useCase = new EnqueueNotificationUseCase(
-          new EnqueueNotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb),
-          mockTemplateRepo,
-          new TemplateRenderService(),
+          new EnqueueNotificationService(
+            NotificationProvider.SES,
+            NotificationProvider.SNS,
+            mockDb,
+            { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository,
+            new TemplateRenderService(),
+          ),
         );
         payload = {
           channel: 'email',
@@ -209,13 +218,14 @@ defineFeature(feature, (test) => {
     let error: ValidationException;
 
     given('un payload de encolar sin el campo canal', () => {
-      const mockTemplateRepo = {
-        findActiveByTemplateId: jest.fn(),
-      } as unknown as TemplateDbRepository;
       useCase = new EnqueueNotificationUseCase(
-        new EnqueueNotificationService(NotificationProvider.SES, NotificationProvider.SNS, mockDb),
-        mockTemplateRepo,
-        new TemplateRenderService(),
+        new EnqueueNotificationService(
+          NotificationProvider.SES,
+          NotificationProvider.SNS,
+          mockDb,
+          { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository,
+          new TemplateRenderService(),
+        ),
       );
       payload = { to: 'user@example.com', body: 'Test body' };
     });
@@ -247,17 +257,14 @@ defineFeature(feature, (test) => {
       given(
         'un payload de encolar con canal "email", destinatario "user@example.com", asunto "Hello", cuerpo "Test body" y scheduledAt en el futuro',
         () => {
-          const mockTemplateRepo = {
-            findActiveByTemplateId: jest.fn(),
-          } as unknown as TemplateDbRepository;
           useCase = new EnqueueNotificationUseCase(
             new EnqueueNotificationService(
               NotificationProvider.SES,
               NotificationProvider.SNS,
               mockDb,
+              { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository,
+              new TemplateRenderService(),
             ),
-            mockTemplateRepo,
-            new TemplateRenderService(),
           );
           const futureDate = new Date(Date.now() + 60 * 60 * 1000).toISOString();
           payload = {
@@ -304,17 +311,14 @@ defineFeature(feature, (test) => {
       let error: ValidationException;
 
       given('un payload de encolar con scheduledAt en el pasado', () => {
-        const mockTemplateRepo = {
-          findActiveByTemplateId: jest.fn(),
-        } as unknown as TemplateDbRepository;
         useCase = new EnqueueNotificationUseCase(
           new EnqueueNotificationService(
             NotificationProvider.SES,
             NotificationProvider.SNS,
             mockDb,
+            { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository,
+            new TemplateRenderService(),
           ),
-          mockTemplateRepo,
-          new TemplateRenderService(),
         );
         const pastDate = new Date(Date.now() - 60 * 60 * 1000).toISOString();
         payload = {
@@ -339,6 +343,292 @@ defineFeature(feature, (test) => {
       then('se lanza una ValidationException con código "NTF-009"', () => {
         expect(error).toBeInstanceOf(ValidationException);
         expect(error.code).toBe('NTF-009');
+      });
+    },
+  );
+
+  test('Solicitud sin callbackUrl es rechazada (gate 1)', ({ given, when, then }) => {
+    const mockDb = {
+      createWithOutboxEvent: jest.fn(),
+    } as unknown as NotificationDbRepository;
+    let useCase: EnqueueNotificationUseCase;
+    let payload: unknown;
+    let error: ValidationException;
+
+    given('un payload de encolar sin el campo callbackUrl', () => {
+      useCase = new EnqueueNotificationUseCase(
+        new EnqueueNotificationService(
+          NotificationProvider.SES,
+          NotificationProvider.SNS,
+          mockDb,
+          { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository,
+          new TemplateRenderService(),
+        ),
+      );
+      payload = {
+        channel: 'email',
+        to: 'user@example.com',
+        subject: 'Hello',
+        body: 'Test body',
+        provider: 'ses',
+      };
+    });
+
+    when('el caso de uso de encolar se ejecuta', async () => {
+      try {
+        await useCase.execute(payload);
+      } catch (e) {
+        error = e as ValidationException;
+      }
+    });
+
+    then('se lanza una ValidationException con código "NTF-009"', () => {
+      expect(error).toBeInstanceOf(ValidationException);
+      expect(error.code).toBe('NTF-009');
+    });
+  });
+
+  test(
+    'Segunda solicitud con la misma Idempotency-Key retorna el resultado original sin reprocesar (gate 2)',
+    ({ given, when, then, and }) => {
+      let ctrl: EnqueueController;
+      let payload: unknown;
+      let result: unknown;
+      const existingId = '01EXISTENTE00000000000000';
+      const idempotencyKey = 'key-duplicada-abc123';
+      const mockExecute = jest.fn();
+
+      given(
+        'un payload válido y una Idempotency-Key ya procesada con notificationId "01EXISTENTE00000000000000"',
+        () => {
+          const mockIdempotency = {
+            check: jest.fn().mockResolvedValue(existingId),
+          } as unknown as IdempotencyMiddleware;
+          const mockUseCase = {
+            execute: mockExecute,
+          } as unknown as EnqueueNotificationUseCase;
+          ctrl = new EnqueueController(mockUseCase, mockIdempotency);
+          payload = {
+            channel: 'email',
+            to: 'user@example.com',
+            subject: 'Hello',
+            body: 'Test body',
+            provider: 'ses',
+            callbackUrl: 'https://example.com/callback',
+          };
+        },
+      );
+
+      when('el caso de uso de encolar se ejecuta con la misma Idempotency-Key', async () => {
+        result = await ctrl.handle(payload, idempotencyKey);
+      });
+
+      then('se retorna el notificationId original "01EXISTENTE00000000000000"', () => {
+        const body = JSON.parse((result as { body: string }).body) as { data: string };
+        expect(body.data).toBe(existingId);
+      });
+
+      and('no se persiste ninguna notificación nueva', () => {
+        expect(mockExecute).not.toHaveBeenCalled();
+      });
+    },
+  );
+
+  test('Idempotency-Key expirada se trata como nueva solicitud', ({ given, when, then, and }) => {
+    const mockDb = {
+      createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+    } as unknown as NotificationDbRepository;
+    let useCase: EnqueueNotificationUseCase;
+    let payload: unknown;
+    let notificationId: string;
+    const idempotencyKey = 'key-expirada-xyz789';
+
+    given('un payload válido y una Idempotency-Key sin registro previo', () => {
+      useCase = new EnqueueNotificationUseCase(
+        new EnqueueNotificationService(
+          NotificationProvider.SES,
+          NotificationProvider.SNS,
+          mockDb,
+          { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository,
+          new TemplateRenderService(),
+        ),
+      );
+      payload = {
+        channel: 'email',
+        to: 'user@example.com',
+        subject: 'Hello',
+        body: 'Test body',
+        provider: 'ses',
+        callbackUrl: 'https://example.com/callback',
+      };
+    });
+
+    when('el caso de uso de encolar se ejecuta con esa Idempotency-Key', async () => {
+      notificationId = await useCase.execute(payload, idempotencyKey);
+    });
+
+    then('se retorna un ID de notificación', () => {
+      expect(typeof notificationId).toBe('string');
+      expect(notificationId.length).toBeGreaterThan(0);
+    });
+
+    and('la notificación es guardada en la base de datos', () => {
+      expect(mockDb.createWithOutboxEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  test('Solicitud con templateId inexistente es rechazada (gate 3)', ({ given, when, then }) => {
+    const mockDb = {
+      createWithOutboxEvent: jest.fn(),
+    } as unknown as NotificationDbRepository;
+    let useCase: EnqueueNotificationUseCase;
+    let payload: unknown;
+    let error: CustomException;
+
+    given('un payload de encolar con templateId "TMPL-NO-EXISTE"', () => {
+      const mockTemplateRepo = {
+        findActiveByTemplateId: jest.fn().mockResolvedValue(null),
+      } as unknown as TemplateDbRepository;
+      useCase = new EnqueueNotificationUseCase(
+        new EnqueueNotificationService(
+          NotificationProvider.SES,
+          NotificationProvider.SNS,
+          mockDb,
+          mockTemplateRepo,
+          new TemplateRenderService(),
+        ),
+      );
+      payload = {
+        templateId: 'TMPL-NO-EXISTE',
+        to: 'user@example.com',
+        callbackUrl: 'https://example.com/callback',
+      };
+    });
+
+    when('el caso de uso de encolar se ejecuta', async () => {
+      try {
+        await useCase.execute(payload);
+      } catch (e) {
+        error = e as CustomException;
+      }
+    });
+
+    then('se lanza una CustomException con código "NTF-013"', () => {
+      expect(error).toBeInstanceOf(CustomException);
+      expect(error.code).toBe('NTF-013');
+    });
+  });
+
+  test(
+    'Solicitud válida con template persiste la notificación con cuerpo renderizado y evento de outbox atómico',
+    ({ given, when, then, and }) => {
+      const mockDb = {
+        createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+      } as unknown as NotificationDbRepository;
+      let useCase: EnqueueNotificationUseCase;
+      let payload: unknown;
+      let notificationId: string;
+
+      given('un payload de encolar con templateId activo "TMPL-001"', () => {
+        const activeTemplate = {
+          templateId: 'TMPL-001',
+          version: 1,
+          channel: NotificationChannel.EMAIL,
+          provider: NotificationProvider.SES,
+          subject: 'Hola {{name}}',
+          body: 'Tu código es {{code}}',
+          active: true,
+          createdAt: new Date().toISOString(),
+        };
+        const mockTemplateRepo = {
+          findActiveByTemplateId: jest.fn().mockResolvedValue(activeTemplate),
+        } as unknown as TemplateDbRepository;
+        useCase = new EnqueueNotificationUseCase(
+          new EnqueueNotificationService(
+            NotificationProvider.SES,
+            NotificationProvider.SNS,
+            mockDb,
+            mockTemplateRepo,
+            new TemplateRenderService(),
+          ),
+        );
+        payload = {
+          templateId: 'TMPL-001',
+          to: 'user@example.com',
+          variables: { name: 'Gustavo', code: '1234' },
+          callbackUrl: 'https://example.com/callback',
+        };
+      });
+
+      when('el caso de uso de encolar se ejecuta', async () => {
+        notificationId = await useCase.execute(payload);
+      });
+
+      then('se retorna un ID de notificación', () => {
+        expect(typeof notificationId).toBe('string');
+        expect(notificationId.length).toBeGreaterThan(0);
+      });
+
+      and('la notificación es guardada en la base de datos', () => {
+        expect(mockDb.createWithOutboxEvent).toHaveBeenCalledTimes(1);
+      });
+
+      and('el evento de outbox es registrado junto a la notificación', () => {
+        const [, outboxEvent] = (mockDb.createWithOutboxEvent as jest.Mock).mock.calls[0];
+        expect(outboxEvent).toBeDefined();
+      });
+    },
+  );
+
+  test(
+    'Solicitud válida en modo inline persiste la notificación con evento de outbox atómico',
+    ({ given, when, then, and }) => {
+      const mockDb = {
+        createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+      } as unknown as NotificationDbRepository;
+      let useCase: EnqueueNotificationUseCase;
+      let payload: unknown;
+      let notificationId: string;
+
+      given(
+        /^un payload de encolar válido con canal "(.*)", destinatario "(.*)", asunto "(.*)" y cuerpo "(.*)"$/,
+        (canal: string, destinatario: string, asunto: string, cuerpo: string) => {
+          useCase = new EnqueueNotificationUseCase(
+            new EnqueueNotificationService(
+              NotificationProvider.SES,
+              NotificationProvider.SNS,
+              mockDb,
+              { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository,
+              new TemplateRenderService(),
+            ),
+          );
+          payload = {
+            channel: canal,
+            to: destinatario,
+            subject: asunto,
+            body: cuerpo,
+            provider: 'ses',
+            callbackUrl: 'https://example.com/callback',
+          };
+        },
+      );
+
+      when('el caso de uso de encolar se ejecuta', async () => {
+        notificationId = await useCase.execute(payload);
+      });
+
+      then('se retorna un ID de notificación', () => {
+        expect(typeof notificationId).toBe('string');
+        expect(notificationId.length).toBeGreaterThan(0);
+      });
+
+      and('la notificación es guardada en la base de datos', () => {
+        expect(mockDb.createWithOutboxEvent).toHaveBeenCalledTimes(1);
+      });
+
+      and('el evento de outbox es registrado junto a la notificación', () => {
+        const [, outboxEvent] = (mockDb.createWithOutboxEvent as jest.Mock).mock.calls[0];
+        expect(outboxEvent).toBeDefined();
       });
     },
   );

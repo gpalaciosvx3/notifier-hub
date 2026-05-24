@@ -26,13 +26,15 @@ export class RelayService {
 
   async relay(event: OutboxEventEntity): Promise<void> {
     this.logger.log(
-      `[PASO 1] Enrutando evento de outbox => eventId: ${event.eventId} | eventType: ${event.eventType}`,
+      `[PASO 1] Validando estrategia de publicación => eventId: ${event.eventId} | eventType: ${event.eventType}`,
     );
     const strategy = this.strategies.get(event.eventType);
     if (!strategy) throw new CustomException(ErrorDictionary.UNRESOLVABLE_SENDER);
-    await strategy.publish(event);
 
-    this.logger.log(`[PASO 2] Marcando evento como publicado => eventId: ${event.eventId}`);
+    this.logger.log(`[PASO 2] Marcando evento como publicado en DB => eventId: ${event.eventId}`);
     await this.outboxEventDbRepository.markPublished(event.eventId, new Date().toISOString());
+
+    this.logger.log(`[PASO 3] Publicando evento al broker => eventId: ${event.eventId} | eventType: ${event.eventType}`);
+    await strategy.publish(event);
   }
 }

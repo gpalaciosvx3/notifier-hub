@@ -17,6 +17,7 @@ export class LambdaEventMiddleware {
         body: JSON.parse(e.body ?? '{}'),
         pathParameters: (e.pathParameters ?? {}) as Record<string, string>,
         queryStringParameters: (e.queryStringParameters ?? {}) as Record<string, string>,
+        headers: LambdaEventMiddleware.normalizeHeaders(e.headers),
       };
     }
 
@@ -27,6 +28,7 @@ export class LambdaEventMiddleware {
         body: JSON.parse(e.body ?? '{}'),
         pathParameters: (e.pathParameters ?? {}) as Record<string, string>,
         queryStringParameters: (e.queryStringParameters ?? {}) as Record<string, string>,
+        headers: LambdaEventMiddleware.normalizeHeaders(e.headers ?? {}),
       };
     }
 
@@ -97,6 +99,14 @@ export class LambdaEventMiddleware {
       e !== null &&
       Array.isArray(e['Records']) &&
       (e['Records'] as Record<string, unknown>[])[0]?.['eventSource'] === 'aws:dynamodb'
+    );
+  }
+
+  private static normalizeHeaders(headers: Record<string, string | undefined>): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(headers)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k.toLowerCase(), v as string]),
     );
   }
 }

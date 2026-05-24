@@ -11,5 +11,6 @@ export const handler = createLambdaHandler<
   APIGatewayProxyResult
 >(EnqueueModule, EnqueueController, (ctrl, event) => {
   const extracted = LambdaEventMiddleware.extract(event) as ApiGwExtracted;
-  return ctrl.handle(extracted.body);
+  const idempotencyKey = extracted.headers['idempotency-key'] || undefined;
+  return ctrl.handle(extracted.body, idempotencyKey);
 });

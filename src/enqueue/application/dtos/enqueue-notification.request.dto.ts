@@ -71,11 +71,3 @@ const TemplateSchema = z.object({
 });
 
 export const EnqueueNotificationSchema = z.union([InlineSchema, TemplateSchema]);
-
-export type InlineNotificationDto = z.infer<typeof InlineSchema>;
-export type TemplateNotificationDto = z.infer<typeof TemplateSchema>;
-export type EnqueueNotificationRequestDto = z.infer<typeof EnqueueNotificationSchema>;
-
-export const isTemplateRequest = (
-  dto: EnqueueNotificationRequestDto,
-): dto is TemplateNotificationDto => 'templateId' in dto;

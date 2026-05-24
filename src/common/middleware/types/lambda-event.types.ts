@@ -3,6 +3,7 @@ export type ApiGwExtracted = {
   body: unknown;
   pathParameters: Record<string, string>;
   queryStringParameters: Record<string, string>;
+  headers: Record<string, string>;
 };
 
 export type SqsMessage = {

@@ -11,4 +11,5 @@ export type NotificationInput = {
   templateId?: string;
   templateVersion?: number;
   scheduledAt?: string;
+  idempotencyKey?: string;
 };

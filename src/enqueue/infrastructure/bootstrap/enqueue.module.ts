@@ -10,6 +10,7 @@ import { TemplateDbRepositoryImpl } from '../repository/template.db.repository.i
 import { TemplateRenderService } from '../../domain/service/template-render.service';
 import { EnqueueNotificationUseCase } from '../../application/use-cases/enqueue-notification.usecase';
 import { EnqueueNotificationService } from '../../domain/service/enqueue-notification.service';
+import { IdempotencyMiddleware } from '../../../common/middleware/idempotency.middleware';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
 import { EnqueueController } from '../controller/enqueue.controller';
 
@@ -35,24 +36,31 @@ import { EnqueueController } from '../controller/enqueue.controller';
     },
     {
       provide: EnqueueNotificationService,
-      useFactory: (db: NotificationDbRepository) =>
+      useFactory: (db: NotificationDbRepository, templateRepo: TemplateDbRepository) =>
         new EnqueueNotificationService(
           envConfig.defaultEmailProvider as NotificationProvider,
           envConfig.defaultSmsProvider as NotificationProvider,
           db,
+          templateRepo,
+          new TemplateRenderService(),
         ),
+      inject: [NotificationDbRepository, TemplateDbRepository],
+    },
+    {
+      provide: IdempotencyMiddleware,
+      useFactory: (db: NotificationDbRepository) => new IdempotencyMiddleware(db),
       inject: [NotificationDbRepository],
     },
     {
       provide: EnqueueNotificationUseCase,
-      useFactory: (svc: EnqueueNotificationService, templateRepo: TemplateDbRepository) =>
-        new EnqueueNotificationUseCase(svc, templateRepo, new TemplateRenderService()),
-      inject: [EnqueueNotificationService, TemplateDbRepository],
+      useFactory: (svc: EnqueueNotificationService) => new EnqueueNotificationUseCase(svc),
+      inject: [EnqueueNotificationService],
     },
     {
       provide: EnqueueController,
-      useFactory: (uc: EnqueueNotificationUseCase) => new EnqueueController(uc),
-      inject: [EnqueueNotificationUseCase],
+      useFactory: (uc: EnqueueNotificationUseCase, idempotency: IdempotencyMiddleware) =>
+        new EnqueueController(uc, idempotency),
+      inject: [EnqueueNotificationUseCase, IdempotencyMiddleware],
     },
   ],
 })

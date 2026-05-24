@@ -49,3 +49,39 @@ Característica: Encolar Notificación
     Dado un payload de encolar con scheduledAt en el pasado
     Cuando el caso de uso de encolar se ejecuta
     Entonces se lanza una ValidationException con código "NTF-009"
+
+  Escenario: Solicitud sin callbackUrl es rechazada (gate 1)
+    Dado un payload de encolar sin el campo callbackUrl
+    Cuando el caso de uso de encolar se ejecuta
+    Entonces se lanza una ValidationException con código "NTF-009"
+
+  Escenario: Segunda solicitud con la misma Idempotency-Key retorna el resultado original sin reprocesar (gate 2)
+    Dado un payload válido y una Idempotency-Key ya procesada con notificationId "01EXISTENTE00000000000000"
+    Cuando el caso de uso de encolar se ejecuta con la misma Idempotency-Key
+    Entonces se retorna el notificationId original "01EXISTENTE00000000000000"
+    Y no se persiste ninguna notificación nueva
+
+  Escenario: Idempotency-Key expirada se trata como nueva solicitud
+    Dado un payload válido y una Idempotency-Key sin registro previo
+    Cuando el caso de uso de encolar se ejecuta con esa Idempotency-Key
+    Entonces se retorna un ID de notificación
+    Y la notificación es guardada en la base de datos
+
+  Escenario: Solicitud con templateId inexistente es rechazada (gate 3)
+    Dado un payload de encolar con templateId "TMPL-NO-EXISTE"
+    Cuando el caso de uso de encolar se ejecuta
+    Entonces se lanza una CustomException con código "NTF-013"
+
+  Escenario: Solicitud válida con template persiste la notificación con cuerpo renderizado y evento de outbox atómico
+    Dado un payload de encolar con templateId activo "TMPL-001"
+    Cuando el caso de uso de encolar se ejecuta
+    Entonces se retorna un ID de notificación
+    Y la notificación es guardada en la base de datos
+    Y el evento de outbox es registrado junto a la notificación
+
+  Escenario: Solicitud válida en modo inline persiste la notificación con evento de outbox atómico
+    Dado un payload de encolar válido con canal "email", destinatario "user@example.com", asunto "Hello" y cuerpo "Test body"
+    Cuando el caso de uso de encolar se ejecuta
+    Entonces se retorna un ID de notificación
+    Y la notificación es guardada en la base de datos
+    Y el evento de outbox es registrado junto a la notificación
