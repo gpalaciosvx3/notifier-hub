@@ -18,13 +18,13 @@ export class ResourceConstants {
   static readonly LAMBDA_ENQUEUE = NamingConstants.LMB_001;
   static readonly LAMBDA_QUERY = NamingConstants.LMB_002;
   static readonly LAMBDA_RELAY = NamingConstants.LMB_003;
-  static readonly LAMBDA_WORKER = NamingConstants.LMB_004;
+  static readonly LAMBDA_SENDER = NamingConstants.LMB_004;
   static readonly LAMBDA_WEBHOOK_DISPATCHER = NamingConstants.LMB_005;
   static readonly LAMBDA_DLQ_PROCESSOR = NamingConstants.LMB_006;
 
   static readonly API_NAME = NamingConstants.APG_001;
 
-  static readonly WORKER_ROLE = NamingConstants.ROL_001;
+  static readonly SENDER_ROLE = NamingConstants.ROL_001;
 
   static readonly ALARM_NOTIFICATION_DLQ = NamingConstants.CWA_001;
   static readonly ALARM_WEBHOOK_DLQ = NamingConstants.CWA_002;

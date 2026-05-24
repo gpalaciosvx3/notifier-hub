@@ -7,7 +7,7 @@ export default {
   testMatch: ['**/*.steps.ts'],
   collectCoverage: true,
   collectCoverageFrom: [
-    'src/{enqueue,worker,relay,dlq,webhook-dispatcher}/{domain,application}/**/*.ts',
+    'src/{enqueue,sender,relay,dlq,webhook-dispatcher}/{domain,application}/**/*.ts',
     '!src/**/**/*.{types,dto,constants,error,mapper,repository}.ts',
     '!src/**/**/*.module.ts',
     '!src/**/**/index.ts',

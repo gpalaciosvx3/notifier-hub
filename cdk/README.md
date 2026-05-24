@@ -194,7 +194,7 @@ awslocal ses list-identities
 | SQS Dead Letter Queue | `DeadLetterQueue` | `UE1NOTIFIERSQS002` |
 | Lambda Enqueue | `EnqueueFn` | `UE1NOTIFIERLMB001` |
 | Lambda Query | `QueryFn` | `UE1NOTIFIERLMB002` |
-| Lambda Worker | `WorkerFn` | `UE1NOTIFIERLMB003` |
+| Lambda Sender | `WorkerFn` | `UE1NOTIFIERLMB003` |
 | Lambda DLQ Processor | `DlqProcessorFn` | `UE1NOTIFIERLMB004` |
 | API Gateway REST | `HttpApi` | `UE1NOTIFIERGTW001` |
 | IAM Role | `WorkerRole` | `UE1NOTIFIERROL001` |

@@ -9,39 +9,39 @@ import * as path from 'path';
 import { lambdaBundling } from '../shared/bundling.config';
 import { InfraConstants } from '../../../../common/constants/infra.constants';
 import { ResourceConstants } from '../../../../common/constants/resource.constants';
-import { WorkerRoleConstruct } from '../../iam/worker-role.construct';
+import { SenderRoleConstruct } from '../../iam/sender-role.construct';
 import { LambdaLogGroupConstruct } from '../../cloudwatch/lambda-log-group.construct';
 
-interface WorkerFnProps {
+interface SenderFnProps {
   table: dynamodb.Table;
   outboxTable: dynamodb.Table;
   queue: sqs.Queue;
   sesSourceEmail: string;
 }
 
-export class WorkerFnConstruct extends Construct {
-  constructor(scope: Construct, id: string, props: WorkerFnProps) {
+export class SenderFnConstruct extends Construct {
+  constructor(scope: Construct, id: string, props: SenderFnProps) {
     super(scope, id);
 
-    const { role } = new WorkerRoleConstruct(this, 'Role');
+    const { role } = new SenderRoleConstruct(this, 'Role');
 
     const { logGroup } = new LambdaLogGroupConstruct(this, 'LogGroup', {
-      functionName: ResourceConstants.LAMBDA_WORKER,
+      functionName: ResourceConstants.LAMBDA_SENDER,
     });
 
     const fn = new NodejsFunction(this, 'Fn', {
-      functionName: ResourceConstants.LAMBDA_WORKER,
+      functionName: ResourceConstants.LAMBDA_SENDER,
       description:
         'Procesa notificaciones desde SQS y las envía por el canal correspondiente (SES/SNS)',
       logGroup,
       entry: path.join(
         __dirname,
-        '../../../../../src/worker/infrastructure/bootstrap/worker.handler.ts',
+        '../../../../../src/sender/infrastructure/bootstrap/sender.handler.ts',
       ),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
-      timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_WORKER_SECONDS),
-      memorySize: InfraConstants.LAMBDA_MEMORY_WORKER_MB,
+      timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_SENDER_SECONDS),
+      memorySize: InfraConstants.LAMBDA_MEMORY_SENDER_MB,
       bundling: lambdaBundling,
       role,
       environment: {

@@ -14,7 +14,7 @@ export class EnvConstants {
     EnvConstants.NOTIFICATIONS_TABLE,
     EnvConstants.OUTBOX_TABLE,
   ];
-  static readonly REQUERIDAS_WORKER: readonly string[] = [
+  static readonly REQUERIDAS_SENDER: readonly string[] = [
     EnvConstants.NOTIFICATIONS_TABLE,
     EnvConstants.OUTBOX_TABLE,
     EnvConstants.SES_SOURCE_EMAIL,

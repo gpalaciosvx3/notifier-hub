@@ -9,7 +9,7 @@ import { WebhooksQueueConstruct } from './constructs/sqs/webhooks-queue.construc
 import { WebhookDeadLetterQueueConstruct } from './constructs/sqs/webhook-dead-letter-queue.construct';
 import { EnqueueFnConstruct } from './constructs/lambda/enqueue/enqueue-fn.construct';
 import { QueryFnConstruct } from './constructs/lambda/query/query-fn.construct';
-import { WorkerFnConstruct } from './constructs/lambda/worker/worker-fn.construct';
+import { SenderFnConstruct } from './constructs/lambda/sender/sender-fn.construct';
 import { DlqProcessorFnConstruct } from './constructs/lambda/dlq-processor/dlq-processor-fn.construct';
 import { RelayFnConstruct } from './constructs/lambda/relay/relay-fn.construct';
 import { WebhookDispatcherFnConstruct } from './constructs/lambda/webhook-dispatcher/webhook-dispatcher-fn.construct';
@@ -43,7 +43,7 @@ export class NotifierHubStack extends cdk.Stack {
 
     const queryFn = new QueryFnConstruct(this, 'QueryFn', { table: notifications.table });
 
-    new WorkerFnConstruct(this, 'WorkerFn', {
+    new SenderFnConstruct(this, 'WorkerFn', {
       table: notifications.table,
       outboxTable: outbox.table,
       queue: queue.queue,

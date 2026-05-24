@@ -34,7 +34,7 @@ API Gateway (REST v1)  ──►  POST /v1/notify
 Lambda enqueue             Lambda query
   │                              ▲
   ▼                              │
-SQS main ──► Lambda worker ──► DynamoDB
+SQS main ──► Lambda sender ──► DynamoDB
   │
   ▼ (on failure)
 SQS DLQ ──► Lambda dlq
@@ -47,7 +47,7 @@ SQS DLQ ──► Lambda dlq
 | API Gateway REST | `UE1NOTIFIERGTW001` | Entry point HTTP con API Key + Usage Plan |
 | Lambda `enqueue` | `UE1NOTIFIERLMB001` | Recibe solicitudes y las encola en SQS |
 | Lambda `query` | `UE1NOTIFIERLMB002` | Consulta el estado de una notificación |
-| Lambda `worker` | `UE1NOTIFIERLMB003` | Consume SQS y despacha la notificación |
+| Lambda `sender` | `UE1NOTIFIERLMB003` | Consume SQS y despacha la notificación |
 | Lambda `dlq` | `UE1NOTIFIERLMB004` | Procesa mensajes en la Dead Letter Queue |
 | SQS `main` | `UE1NOTIFIERSQS001` | Cola principal de notificaciones |
 | SQS `dlq` | `UE1NOTIFIERSQS002` | Cola de mensajes fallidos |

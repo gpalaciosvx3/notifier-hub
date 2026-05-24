@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SqsMessage } from '../../../common/middleware/types/lambda-event.types';
 import { NotificationEntity } from '../../../common/entities/notification.entity';
-import { ProcessingService } from '../../domain/service/worker.service';
-import { WorkerConstants } from '../constants/worker.constants';
+import { ProcessingService } from '../../domain/service/sender.service';
+import { SenderConstants } from '../constants/sender.constants';
 import { ProcessRecordResult } from '../../../common/types/process-record-result.types';
 import {
   executeChunkedBatch,
@@ -20,7 +20,7 @@ export class ProcessBatchUseCase {
     this.logger.log(`Lote recibido => total: ${records.length}`);
     const results = await executeChunkedBatch(
       records,
-      WorkerConstants.SQS_CHUNK_SIZE,
+      SenderConstants.SQS_CHUNK_SIZE,
       (record) => this.executeOne(record),
       (sequenceNumber, error) => this.classifyFailure(sequenceNumber, error),
     );

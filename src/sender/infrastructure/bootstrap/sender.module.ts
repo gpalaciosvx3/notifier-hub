@@ -3,19 +3,19 @@ import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { SesClient } from '../../../common/ses/ses.client';
 import { SnsClient } from '../../../common/sns/sns.client';
 import { envConfig } from '../../../common/config/env.config';
-import { NotificationDbRepository } from '../../domain/repository/worker-notification.db.repository';
+import { NotificationDbRepository } from '../../domain/repository/sender-notification.db.repository';
 import {
   SesSenderRepository,
   SnsSenderRepository,
-} from '../../domain/repository/worker-notification-sender.repository';
-import { NotificationDbRepositoryImpl } from '../repository/worker-notification.db.repository.impl';
-import { SesSenderRepositoryImpl } from '../repository/worker-ses-email.sender.repository.impl';
-import { SnsSenderRepositoryImpl } from '../repository/worker-sns-sms.sender.repository.impl';
-import { SesEmailStrategy } from '../../domain/strategy/worker-ses-email.strategy';
-import { SnsSmsStrategy } from '../../domain/strategy/worker-sns-sms.strategy';
-import { ProcessBatchUseCase } from '../../application/use-cases/worker.usecase';
-import { ProcessingService } from '../../domain/service/worker.service';
-import { WorkerController } from '../controller/worker.controller';
+} from '../../domain/repository/sender-channel.repository';
+import { NotificationDbRepositoryImpl } from '../repository/sender-notification.db.repository.impl';
+import { SesSenderRepositoryImpl } from '../repository/sender-ses-email.repository.impl';
+import { SnsSenderRepositoryImpl } from '../repository/sender-sns-sms.repository.impl';
+import { SesEmailStrategy } from '../../domain/strategy/sender-ses-email.strategy';
+import { SnsSmsStrategy } from '../../domain/strategy/sender-sns-sms.strategy';
+import { ProcessBatchUseCase } from '../../application/use-cases/sender.usecase';
+import { ProcessingService } from '../../domain/service/sender.service';
+import { SenderController } from '../controller/sender.controller';
 
 @Module({
   providers: [
@@ -64,10 +64,10 @@ import { WorkerController } from '../controller/worker.controller';
       inject: [ProcessingService],
     },
     {
-      provide: WorkerController,
-      useFactory: (uc: ProcessBatchUseCase) => new WorkerController(uc),
+      provide: SenderController,
+      useFactory: (uc: ProcessBatchUseCase) => new SenderController(uc),
       inject: [ProcessBatchUseCase],
     },
   ],
 })
-export class WorkerModule {}
+export class SenderModule {}

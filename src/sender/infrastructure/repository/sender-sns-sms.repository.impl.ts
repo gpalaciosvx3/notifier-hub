@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SnsClient } from '../../../common/sns/sns.client';
-import { SnsSenderRepository } from '../../domain/repository/worker-notification-sender.repository';
+import { SnsSenderRepository } from '../../domain/repository/sender-channel.repository';
 
 @Injectable()
 export class SnsSenderRepositoryImpl extends SnsSenderRepository {

@@ -1,10 +1,10 @@
 import { SqsHandlerFactory } from '../../../common/bootstrap';
 import { EnvConstants } from '../../../common/constants/env.constants';
-import { WorkerModule } from './worker.module';
-import { WorkerController } from '../controller/worker.controller';
+import { SenderModule } from './sender.module';
+import { SenderController } from '../controller/sender.controller';
 
 export const handler = new SqsHandlerFactory().build(
-  WorkerModule,
-  WorkerController,
-  EnvConstants.REQUERIDAS_WORKER,
+  SenderModule,
+  SenderController,
+  EnvConstants.REQUERIDAS_SENDER,
 );
