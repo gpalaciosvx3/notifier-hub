@@ -14,7 +14,7 @@ export class EnqueuePayloadMapper {
         notification,
         outboxEvent: OutboxEventEntity.build({
           eventType: OutboxEventType.NOTIFICATION_SCHEDULED,
-          brokerType: OutboxEventBrokerType.SQS_NOTIFICATION,
+          brokerType: OutboxEventBrokerType.SCHEDULER,
           payload: {
             notification: notification as unknown as Record<string, unknown>,
             scheduledAt: input.scheduledAt,

@@ -32,21 +32,19 @@ export class NotificationDbRepositoryImpl extends NotificationDbRepository {
   async createWithOutboxEvent(
     notification: NotificationEntity,
     outboxEvent: OutboxEventEntity,
-    idempotencyKey?: string,
+    idempotencyKey: string,
   ): Promise<void> {
     const operations: TransactWriteOperation[] = [
       { type: 'put', table: this.tableName, item: notification },
       { type: 'put', table: this.outboxTableName, item: outboxEvent },
     ];
 
-    if (idempotencyKey) {
-      const idempotencyRecord: IdempotencyRecord = {
-        notificationId: `${EnqueueConstants.IDEMPOTENCY_KEY_PREFIX}${idempotencyKey}`,
-        result: notification.notificationId,
-        ttl: Math.floor(Date.now() / 1000) + EnqueueConstants.IDEMPOTENCY_TTL_SECONDS,
-      };
-      operations.push({ type: 'put', table: this.tableName, item: idempotencyRecord });
-    }
+    const idempotencyRecord: IdempotencyRecord = {
+      notificationId: `${EnqueueConstants.IDEMPOTENCY_KEY_PREFIX}${idempotencyKey}`,
+      result: notification.notificationId,
+      ttl: Math.floor(Date.now() / 1000) + EnqueueConstants.IDEMPOTENCY_TTL_SECONDS,
+    };
+    operations.push({ type: 'put', table: this.tableName, item: idempotencyRecord });
 
     await this.dynamo.transactWrite(operations);
   }
