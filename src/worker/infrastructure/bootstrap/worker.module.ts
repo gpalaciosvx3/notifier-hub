@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { EnvValidationMiddleware } from '../../../common/middleware/env-validation.middleware';
-import { EnvConstants } from '../../../common/constants/env.constants';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { SesClient } from '../../../common/ses/ses.client';
 import { SnsClient } from '../../../common/sns/sns.client';
@@ -26,7 +24,6 @@ import { WorkerController } from '../controller/worker.controller';
     { provide: DynamoClient, useFactory: () => new DynamoClient() },
     { provide: SesClient, useFactory: () => new SesClient() },
     { provide: SnsClient, useFactory: () => new SnsClient() },
-    EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_WORKER),
     {
       provide: NotificationDbRepository,
       useFactory: (dynamo: DynamoClient) =>

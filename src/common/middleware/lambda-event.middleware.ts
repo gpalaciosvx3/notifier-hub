@@ -1,12 +1,7 @@
 import { MiddlewareObj } from '@middy/core';
-import { APIGatewayProxyEventV2, SQSEvent, DynamoDBStreamEvent } from 'aws-lambda';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { ApiGwExtracted, SqsExtracted, DynamoStreamExtracted } from './types/lambda-event.types';
-
-export type ApiGwHandlerEvent = APIGatewayProxyEventV2 & { parsed: ApiGwExtracted };
-export type SqsHandlerEvent = SQSEvent & { parsed: SqsExtracted };
-export type DynamoStreamHandlerEvent = DynamoDBStreamEvent & { parsed: DynamoStreamExtracted };
+import { ApiGwExtracted, SqsExtracted, DynamoStreamExtracted, ApiGwHandlerEvent, SqsHandlerEvent, DynamoStreamHandlerEvent } from './types/lambda-event.types';
 
 export const parseApiGwEventMiddleware = <TResult>(): MiddlewareObj<ApiGwHandlerEvent, TResult> => ({
   before: (request) => {

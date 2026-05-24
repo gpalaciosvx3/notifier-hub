@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { EnvValidationMiddleware } from '../../../common/middleware/env-validation.middleware';
-import { EnvConstants } from '../../../common/constants/env.constants';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { SqsClient } from '../../../common/sqs/sqs.client';
 import { envConfig } from '../../../common/config/env.config';
@@ -23,7 +21,6 @@ import { RelayController } from '../controller/relay.controller';
   providers: [
     { provide: DynamoClient, useFactory: () => new DynamoClient() },
     { provide: SqsClient, useFactory: () => new SqsClient() },
-    EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_RELAY),
     {
       provide: OutboxEventDbRepository,
       useFactory: (dynamo: DynamoClient) =>

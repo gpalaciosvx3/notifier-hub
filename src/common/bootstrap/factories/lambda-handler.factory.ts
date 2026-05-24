@@ -1,11 +1,14 @@
-import { Type } from '@nestjs/common';
 import { MiddyfiedHandler } from '@middy/core';
+import { Type } from '@nestjs/common';
+import { requireEnvVarsMiddleware } from '../../middleware/env-validation.middleware';
 import { createNestController } from '../nest-app.context';
 
 export abstract class LambdaHandlerFactory<TEvent, TResult, TController> {
-  build(Module: Type, Controller: Type<TController>): MiddyfiedHandler<TEvent, TResult> {
+  build(Module: Type, Controller: Type<TController>, required: readonly string[]): MiddyfiedHandler<TEvent, TResult> {
     const getController = createNestController(Module, Controller);
-    return this.createHandler(getController);
+    const chain = this.createHandler(getController);
+    chain.use(requireEnvVarsMiddleware<TEvent, TResult>(required));
+    return chain;
   }
 
   protected abstract createHandler(

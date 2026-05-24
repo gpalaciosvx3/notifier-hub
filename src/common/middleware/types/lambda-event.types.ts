@@ -1,3 +1,5 @@
+import { APIGatewayProxyEventV2, SQSEvent, DynamoDBStreamEvent } from 'aws-lambda';
+
 export type ApiGwExtracted = {
   source: 'api-gw';
   body: unknown;
@@ -28,3 +30,8 @@ export type DynamoStreamExtracted = {
 };
 
 export type LambdaExtracted = ApiGwExtracted | SqsExtracted | DynamoStreamExtracted;
+
+export type ApiGwHandlerEvent = APIGatewayProxyEventV2 & { parsed: ApiGwExtracted };
+export type SqsHandlerEvent = SQSEvent & { parsed: SqsExtracted };
+export type DynamoStreamHandlerEvent = DynamoDBStreamEvent & { parsed: DynamoStreamExtracted };
+export type EnqueueHandlerEvent = ApiGwHandlerEvent & { idempotencyKey: string };

@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { APIGatewayProxyResult } from 'aws-lambda';
-import { ApiGwExtracted } from '../../../common/middleware/types/lambda-event.types';
+import { ApiGwHandlerEvent } from '../../../common/middleware/types/lambda-event.types';
 import { GetNotificationUseCase } from '../../application/use-cases/get-notification.usecase';
 import { GetNotificationsByRecipientUseCase } from '../../application/use-cases/get-notifications-by-recipient.usecase';
 import { ApiGwHelper } from '../../../common/helpers/api-gw.helper';
@@ -14,16 +14,16 @@ export class QueryController {
   ) {}
 
   @HandleExecution('QueryNotification', ApiGwHelper.error)
-  async handle(event: ApiGwExtracted): Promise<APIGatewayProxyResult> {
-    if (event.queryStringParameters.to) {
+  async handle(event: ApiGwHandlerEvent): Promise<APIGatewayProxyResult> {
+    if (event.parsed.queryStringParameters.to) {
       return ApiGwHelper.success(
         HttpStatus.OK,
-        await this.byRecipientUseCase.execute(event.queryStringParameters),
+        await this.byRecipientUseCase.execute(event.parsed.queryStringParameters),
       );
     }
     return ApiGwHelper.success(
       HttpStatus.OK,
-      await this.useCase.execute({ ...event.pathParameters, ...event.queryStringParameters }),
+      await this.useCase.execute({ ...event.parsed.pathParameters, ...event.parsed.queryStringParameters }),
     );
   }
 }

@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { EnvValidationMiddleware } from '../../../common/middleware/env-validation.middleware';
-import { EnvConstants } from '../../../common/constants/env.constants';
 import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { envConfig } from '../../../common/config/env.config';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
@@ -13,7 +11,6 @@ import { QueryController } from '../controller/query.controller';
 @Module({
   providers: [
     { provide: DynamoClient, useFactory: () => new DynamoClient() },
-    EnvValidationMiddleware.register(EnvConstants.REQUERIDAS_QUERY),
     {
       provide: NotificationDbRepository,
       useFactory: (dynamo: DynamoClient) =>
