@@ -24,5 +24,4 @@ export class NamingConstants {
 
   static readonly CWA_001 = `${NamingConstants.REGION}${NamingConstants.PROJECT}CWA001`;
   static readonly CWA_002 = `${NamingConstants.REGION}${NamingConstants.PROJECT}CWA002`;
-
 }

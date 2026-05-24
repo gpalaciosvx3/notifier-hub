@@ -49,7 +49,11 @@ export class EnqueueNotificationService {
         request.variables ?? {},
         request.callbackUrl,
       );
-      return this.persistWithOutbox({ ...resolvedInput, scheduledAt: request.scheduledAt, idempotencyKey });
+      return this.persistWithOutbox({
+        ...resolvedInput,
+        scheduledAt: request.scheduledAt,
+        idempotencyKey,
+      });
     }
 
     this.logger.log(

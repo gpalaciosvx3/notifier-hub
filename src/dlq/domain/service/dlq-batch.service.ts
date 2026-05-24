@@ -22,7 +22,10 @@ export class DlqBatchService {
     await this.handleWebhookFailed(msg.notificationId);
   }
 
-  private async handleNotificationFailed(notificationId: string, callbackUrl: string): Promise<void> {
+  private async handleNotificationFailed(
+    notificationId: string,
+    callbackUrl: string,
+  ): Promise<void> {
     this.logger.log(
       `[PASO 1] Marcando notificación como fallida permanente => notificationId: ${notificationId}`,
     );

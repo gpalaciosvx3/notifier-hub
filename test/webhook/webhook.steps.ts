@@ -147,9 +147,7 @@ defineFeature(feature, (test) => {
     let result: ProcessRecordResult[];
 
     given('un batch con un mensaje SQS sin campo callbackUrl', () => {
-      useCase = new DispatchBatchUseCase(
-        { dispatch: jest.fn() } as unknown as DispatchService,
-      );
+      useCase = new DispatchBatchUseCase({ dispatch: jest.fn() } as unknown as DispatchService);
       records = [
         {
           messageId: 'msg-001',
@@ -180,9 +178,9 @@ defineFeature(feature, (test) => {
     let result: ProcessRecordResult[];
 
     given('un batch de 2 mensajes SQS con callbackUrl válido', () => {
-      useCase = new DispatchBatchUseCase(
-        { dispatch: jest.fn().mockResolvedValue(undefined) } as unknown as DispatchService,
-      );
+      useCase = new DispatchBatchUseCase({
+        dispatch: jest.fn().mockResolvedValue(undefined),
+      } as unknown as DispatchService);
       records = [
         {
           messageId: 'msg-001',

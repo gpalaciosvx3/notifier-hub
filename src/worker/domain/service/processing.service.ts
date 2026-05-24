@@ -18,7 +18,6 @@ export class ProcessingService {
     private readonly channelRouter: ChannelRouterService,
   ) {}
 
-  
   async processSafe(notification: NotificationEntity): Promise<void> {
     try {
       await this.process(notification);
@@ -46,11 +45,9 @@ export class ProcessingService {
     if (!taken) return;
     await this.sendAndFinalize(notification);
   }
-  
+
   private async handleFault(notification: NotificationEntity, error: unknown): Promise<boolean> {
-    this.logger.error(
-      `[PASO 1] Manejando fallo => notificationId: ${notification.notificationId}`,
-    );
+    this.logger.error(`[PASO 1] Manejando fallo => notificationId: ${notification.notificationId}`);
     const exception =
       error instanceof CustomException
         ? error

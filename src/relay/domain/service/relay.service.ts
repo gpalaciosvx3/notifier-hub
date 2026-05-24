@@ -34,7 +34,9 @@ export class RelayService {
     this.logger.log(`[PASO 2] Marcando evento como publicado en DB => eventId: ${event.eventId}`);
     await this.outboxEventDbRepository.markPublished(event.eventId, new Date().toISOString());
 
-    this.logger.log(`[PASO 3] Publicando evento al broker => eventId: ${event.eventId} | eventType: ${event.eventType}`);
+    this.logger.log(
+      `[PASO 3] Publicando evento al broker => eventId: ${event.eventId} | eventType: ${event.eventType}`,
+    );
     await strategy.publish(event);
   }
 }

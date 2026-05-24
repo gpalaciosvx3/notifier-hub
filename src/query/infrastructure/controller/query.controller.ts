@@ -23,7 +23,10 @@ export class QueryController {
     }
     return ApiGwHelper.success(
       HttpStatus.OK,
-      await this.useCase.execute({ ...event.parsed.pathParameters, ...event.parsed.queryStringParameters }),
+      await this.useCase.execute({
+        ...event.parsed.pathParameters,
+        ...event.parsed.queryStringParameters,
+      }),
     );
   }
 }

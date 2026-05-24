@@ -8,4 +8,3 @@ import { EnqueueController } from '../controller/enqueue.controller';
 export const handler = new ApiGwHandlerFactory<EnqueueHandlerEvent>()
   .build(EnqueueModule, EnqueueController, EnvConstants.REQUERIDAS_ENQUEUE)
   .use(requireIdempotencyKeyMiddleware());
-

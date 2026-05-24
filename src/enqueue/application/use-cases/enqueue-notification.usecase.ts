@@ -21,7 +21,10 @@ export class EnqueueNotificationUseCase {
         result.error.issues as ZodIssue[],
       );
 
-    const notificationId = await this.service.enqueue(result.data as EnqueueRequest, idempotencyKey);
+    const notificationId = await this.service.enqueue(
+      result.data as EnqueueRequest,
+      idempotencyKey,
+    );
     this.logger.log(`Resultado => notificationId: ${notificationId}`);
     return notificationId;
   }

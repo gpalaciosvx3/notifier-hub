@@ -1,9 +1,19 @@
 import { MiddlewareObj } from '@middy/core';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { ApiGwExtracted, SqsExtracted, DynamoStreamExtracted, ApiGwHandlerEvent, SqsHandlerEvent, DynamoStreamHandlerEvent } from './types/lambda-event.types';
+import {
+  ApiGwExtracted,
+  SqsExtracted,
+  DynamoStreamExtracted,
+  ApiGwHandlerEvent,
+  SqsHandlerEvent,
+  DynamoStreamHandlerEvent,
+} from './types/lambda-event.types';
 
-export const parseApiGwEventMiddleware = <TResult>(): MiddlewareObj<ApiGwHandlerEvent, TResult> => ({
+export const parseApiGwEventMiddleware = <TResult>(): MiddlewareObj<
+  ApiGwHandlerEvent,
+  TResult
+> => ({
   before: (request) => {
     const e = request.event;
     request.event.parsed = {
@@ -30,15 +40,20 @@ export const parseSqsEventMiddleware = <TResult>(): MiddlewareObj<SqsHandlerEven
   },
 });
 
-export const parseDynamoStreamEventMiddleware = <TResult>(): MiddlewareObj<DynamoStreamHandlerEvent, TResult> => ({
+export const parseDynamoStreamEventMiddleware = <TResult>(): MiddlewareObj<
+  DynamoStreamHandlerEvent,
+  TResult
+> => ({
   before: (request) => {
     const e = request.event;
     request.event.parsed = {
       source: 'dynamodb-stream',
-      records: e.Records.filter((r) => r.eventName === 'INSERT' && r.dynamodb?.NewImage).map((r) => ({
-        sequenceNumber: r.dynamodb!.SequenceNumber!,
-        newImage: unmarshall(r.dynamodb!.NewImage! as Record<string, AttributeValue>),
-      })),
+      records: e.Records.filter((r) => r.eventName === 'INSERT' && r.dynamodb?.NewImage).map(
+        (r) => ({
+          sequenceNumber: r.dynamodb!.SequenceNumber!,
+          newImage: unmarshall(r.dynamodb!.NewImage! as Record<string, AttributeValue>),
+        }),
+      ),
     };
   },
 });
@@ -49,4 +64,3 @@ const normalizeHeaders = (headers: Record<string, string | undefined>): Record<s
       .filter(([, v]) => v !== undefined)
       .map(([k, v]) => [k.toLowerCase(), v as string]),
   );
-

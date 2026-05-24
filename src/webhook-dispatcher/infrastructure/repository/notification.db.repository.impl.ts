@@ -13,9 +13,13 @@ export class NotificationDbRepositoryImpl extends NotificationDbRepository {
   }
 
   async updateWebhookStatus(notificationId: string, status: WebhookStatus): Promise<void> {
-    await this.dynamo.updateFields(this.tableName, { notificationId }, {
-      webhookStatus: status,
-      updatedAt: new Date().toISOString(),
-    });
+    await this.dynamo.updateFields(
+      this.tableName,
+      { notificationId },
+      {
+        webhookStatus: status,
+        updatedAt: new Date().toISOString(),
+      },
+    );
   }
 }

@@ -1,5 +1,9 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
-import { ApiGwHandlerEvent, SqsHandlerEvent, DynamoStreamHandlerEvent } from '../../middleware/types/lambda-event.types';
+import {
+  ApiGwHandlerEvent,
+  SqsHandlerEvent,
+  DynamoStreamHandlerEvent,
+} from '../../middleware/types/lambda-event.types';
 import { ProcessRecordResult } from '../../types/process-record-result.types';
 
 export interface ApiGwController<TEvent extends ApiGwHandlerEvent = ApiGwHandlerEvent> {

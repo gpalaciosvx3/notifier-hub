@@ -11,6 +11,9 @@ export class EnqueueController {
 
   @HandleExecution('EnqueueNotification', ApiGwHelper.error)
   async handle(event: EnqueueHandlerEvent): Promise<APIGatewayProxyResult> {
-    return ApiGwHelper.success(HttpStatus.ACCEPTED, await this.useCase.execute(event.parsed.body, event.idempotencyKey));
+    return ApiGwHelper.success(
+      HttpStatus.ACCEPTED,
+      await this.useCase.execute(event.parsed.body, event.idempotencyKey),
+    );
   }
 }

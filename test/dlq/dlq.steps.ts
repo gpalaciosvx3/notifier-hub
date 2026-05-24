@@ -9,7 +9,10 @@ import { DlqMessageType } from '../../src/dlq/domain/constants/dlq-message-type.
 
 const feature = loadFeature('./test/dlq/features/dlq.feature');
 
-const buildNotificationFailedRecord = (notificationId: string, callbackUrl: string): SqsMessage => ({
+const buildNotificationFailedRecord = (
+  notificationId: string,
+  callbackUrl: string,
+): SqsMessage => ({
   messageId: `msg-${notificationId}`,
   sequenceNumber: `msg-${notificationId}`,
   body: { messageType: DlqMessageType.NOTIFICATION_FAILED, notificationId, callbackUrl },
@@ -38,12 +41,19 @@ defineFeature(feature, (test) => {
     );
 
     when('el servicio de batch DLQ maneja el fallo de notificación', async () => {
-      await service.handle({ messageType: DlqMessageType.NOTIFICATION_FAILED, notificationId, callbackUrl });
+      await service.handle({
+        messageType: DlqMessageType.NOTIFICATION_FAILED,
+        notificationId,
+        callbackUrl,
+      });
     });
 
-    then('se realiza la escritura atómica de estado FAILED_PERMANENT y evento outbox WEBHOOK_REQUESTED', () => {
-      expect(mockDb.updateStatusWithOutboxEvent).toHaveBeenCalledTimes(1);
-    });
+    then(
+      'se realiza la escritura atómica de estado FAILED_PERMANENT y evento outbox WEBHOOK_REQUESTED',
+      () => {
+        expect(mockDb.updateStatusWithOutboxEvent).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 
   test('El caso de uso completa cuando todos los registros son actualizados', ({
@@ -58,13 +68,16 @@ defineFeature(feature, (test) => {
     let records: SqsMessage[];
     let error: Error | undefined;
 
-    given('un batch DLQ de 2 registros NOTIFICATION_FAILED donde todas las actualizaciones tienen éxito', () => {
-      useCase = new MarkBatchFailedPermanentUseCase(mockDlqBatchService);
-      records = [
-        buildNotificationFailedRecord('NOTIF-001', 'https://cb.example.com/1'),
-        buildNotificationFailedRecord('NOTIF-002', 'https://cb.example.com/2'),
-      ];
-    });
+    given(
+      'un batch DLQ de 2 registros NOTIFICATION_FAILED donde todas las actualizaciones tienen éxito',
+      () => {
+        useCase = new MarkBatchFailedPermanentUseCase(mockDlqBatchService);
+        records = [
+          buildNotificationFailedRecord('NOTIF-001', 'https://cb.example.com/1'),
+          buildNotificationFailedRecord('NOTIF-002', 'https://cb.example.com/2'),
+        ];
+      },
+    );
 
     when('el caso de uso de marcar batch fallido permanente se ejecuta', async () => {
       try {
@@ -94,13 +107,16 @@ defineFeature(feature, (test) => {
     let records: SqsMessage[];
     let results: ProcessRecordResult[];
 
-    given('un batch DLQ de 2 registros NOTIFICATION_FAILED donde uno causa un error de infraestructura', () => {
-      useCase = new MarkBatchFailedPermanentUseCase(mockDlqBatchService);
-      records = [
-        buildNotificationFailedRecord('NOTIF-001', 'https://cb.example.com/1'),
-        buildNotificationFailedRecord('NOTIF-002', 'https://cb.example.com/2'),
-      ];
-    });
+    given(
+      'un batch DLQ de 2 registros NOTIFICATION_FAILED donde uno causa un error de infraestructura',
+      () => {
+        useCase = new MarkBatchFailedPermanentUseCase(mockDlqBatchService);
+        records = [
+          buildNotificationFailedRecord('NOTIF-001', 'https://cb.example.com/1'),
+          buildNotificationFailedRecord('NOTIF-002', 'https://cb.example.com/2'),
+        ];
+      },
+    );
 
     when('el caso de uso de marcar batch fallido permanente se ejecuta', async () => {
       results = await useCase.executeBatch(records);
@@ -175,4 +191,3 @@ defineFeature(feature, (test) => {
     });
   });
 });
-

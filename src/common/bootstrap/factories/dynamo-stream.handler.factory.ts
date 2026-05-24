@@ -5,12 +5,18 @@ import { DynamoStreamHandlerEvent } from '../../middleware/types/lambda-event.ty
 import { DynamoStreamBatchController } from '../interfaces/lambda-controller.interfaces';
 import { LambdaHandlerFactory } from './lambda-handler.factory';
 
-export class DynamoStreamHandlerFactory extends LambdaHandlerFactory<DynamoStreamHandlerEvent, DynamoDBBatchResponse, DynamoStreamBatchController> {
+export class DynamoStreamHandlerFactory extends LambdaHandlerFactory<
+  DynamoStreamHandlerEvent,
+  DynamoDBBatchResponse,
+  DynamoStreamBatchController
+> {
   protected createHandler(getController: () => Promise<DynamoStreamBatchController>) {
     return middy<DynamoStreamHandlerEvent, DynamoDBBatchResponse>(async (event) => {
       const results = await (await getController()).handle(event);
       return {
-        batchItemFailures: results.filter((r) => r.retry).map((r) => ({ itemIdentifier: r.sequenceNumber })),
+        batchItemFailures: results
+          .filter((r) => r.retry)
+          .map((r) => ({ itemIdentifier: r.sequenceNumber })),
       };
     }).use(parseDynamoStreamEventMiddleware<DynamoDBBatchResponse>());
   }
