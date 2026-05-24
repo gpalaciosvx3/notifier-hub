@@ -3,8 +3,6 @@ import { loadFeature, defineFeature } from 'jest-cucumber';
 import { EnqueueNotificationService } from '../../src/enqueue/domain/service/enqueue-notification.service';
 import { NotificationInput } from '../../src/enqueue/domain/types/notification-input.types';
 import { EnqueueNotificationUseCase } from '../../src/enqueue/application/use-cases/enqueue-notification.usecase';
-import { EnqueueController } from '../../src/enqueue/infrastructure/controller/enqueue.controller';
-import { IdempotencyMiddleware } from '../../src/common/middleware/idempotency.middleware';
 import { NotificationDbRepository } from '../../src/enqueue/domain/repository/notification.db.repository';
 import { TemplateDbRepository } from '../../src/enqueue/domain/repository/template.db.repository';
 import { TemplateRenderService } from '../../src/enqueue/domain/service/template-render.service';
@@ -164,6 +162,7 @@ defineFeature(feature, (test) => {
   }) => {
     const mockDb = {
       createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+      findNotificationIdByIdempotencyKey: jest.fn().mockResolvedValue(null),
     } as unknown as NotificationDbRepository;
     let useCase: EnqueueNotificationUseCase;
     let payload: unknown;
@@ -193,7 +192,7 @@ defineFeature(feature, (test) => {
     );
 
     when('el caso de uso de encolar se ejecuta', async () => {
-      notificationId = await useCase.execute(payload);
+      notificationId = await useCase.execute(payload, 'test-key');
     });
 
     then('se retorna un ID de notificación', () => {
@@ -232,7 +231,7 @@ defineFeature(feature, (test) => {
 
     when('el caso de uso de encolar se ejecuta', async () => {
       try {
-        await useCase.execute(payload);
+        await useCase.execute(payload, 'test-key');
       } catch (e) {
         error = e as ValidationException;
       }
@@ -249,6 +248,7 @@ defineFeature(feature, (test) => {
     ({ given, when, then, and }) => {
       const mockDb = {
         createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+        findNotificationIdByIdempotencyKey: jest.fn().mockResolvedValue(null),
       } as unknown as NotificationDbRepository;
       let useCase: EnqueueNotificationUseCase;
       let payload: unknown;
@@ -280,7 +280,7 @@ defineFeature(feature, (test) => {
       );
 
       when('el caso de uso de encolar se ejecuta', async () => {
-        notificationId = await useCase.execute(payload);
+        notificationId = await useCase.execute(payload, 'test-key');
       });
 
       then('se retorna un ID de notificación', () => {
@@ -334,7 +334,7 @@ defineFeature(feature, (test) => {
 
       when('el caso de uso de encolar se ejecuta', async () => {
         try {
-          await useCase.execute(payload);
+          await useCase.execute(payload, 'test-key');
         } catch (e) {
           error = e as ValidationException;
         }
@@ -376,7 +376,7 @@ defineFeature(feature, (test) => {
 
     when('el caso de uso de encolar se ejecuta', async () => {
       try {
-        await useCase.execute(payload);
+        await useCase.execute(payload, 'test-key');
       } catch (e) {
         error = e as ValidationException;
       }
@@ -391,23 +391,28 @@ defineFeature(feature, (test) => {
   test(
     'Segunda solicitud con la misma Idempotency-Key retorna el resultado original sin reprocesar (gate 2)',
     ({ given, when, then, and }) => {
-      let ctrl: EnqueueController;
-      let payload: unknown;
-      let result: unknown;
       const existingId = '01EXISTENTE00000000000000';
       const idempotencyKey = 'key-duplicada-abc123';
-      const mockExecute = jest.fn();
+      const mockDb = {
+        createWithOutboxEvent: jest.fn(),
+        findNotificationIdByIdempotencyKey: jest.fn().mockResolvedValue(existingId),
+      } as unknown as NotificationDbRepository;
+      let useCase: EnqueueNotificationUseCase;
+      let payload: unknown;
+      let notificationId: string;
 
       given(
         'un payload válido y una Idempotency-Key ya procesada con notificationId "01EXISTENTE00000000000000"',
         () => {
-          const mockIdempotency = {
-            check: jest.fn().mockResolvedValue(existingId),
-          } as unknown as IdempotencyMiddleware;
-          const mockUseCase = {
-            execute: mockExecute,
-          } as unknown as EnqueueNotificationUseCase;
-          ctrl = new EnqueueController(mockUseCase, mockIdempotency);
+          useCase = new EnqueueNotificationUseCase(
+            new EnqueueNotificationService(
+              NotificationProvider.SES,
+              NotificationProvider.SNS,
+              mockDb,
+              { findActiveByTemplateId: jest.fn() } as unknown as TemplateDbRepository,
+              new TemplateRenderService(),
+            ),
+          );
           payload = {
             channel: 'email',
             to: 'user@example.com',
@@ -420,16 +425,15 @@ defineFeature(feature, (test) => {
       );
 
       when('el caso de uso de encolar se ejecuta con la misma Idempotency-Key', async () => {
-        result = await ctrl.handle(payload, idempotencyKey);
+        notificationId = await useCase.execute(payload, idempotencyKey);
       });
 
       then('se retorna el notificationId original "01EXISTENTE00000000000000"', () => {
-        const body = JSON.parse((result as { body: string }).body) as { data: string };
-        expect(body.data).toBe(existingId);
+        expect(notificationId).toBe(existingId);
       });
 
       and('no se persiste ninguna notificación nueva', () => {
-        expect(mockExecute).not.toHaveBeenCalled();
+        expect(mockDb.createWithOutboxEvent).not.toHaveBeenCalled();
       });
     },
   );
@@ -437,6 +441,7 @@ defineFeature(feature, (test) => {
   test('Idempotency-Key expirada se trata como nueva solicitud', ({ given, when, then, and }) => {
     const mockDb = {
       createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+      findNotificationIdByIdempotencyKey: jest.fn().mockResolvedValue(null),
     } as unknown as NotificationDbRepository;
     let useCase: EnqueueNotificationUseCase;
     let payload: unknown;
@@ -480,6 +485,7 @@ defineFeature(feature, (test) => {
   test('Solicitud con templateId inexistente es rechazada (gate 3)', ({ given, when, then }) => {
     const mockDb = {
       createWithOutboxEvent: jest.fn(),
+      findNotificationIdByIdempotencyKey: jest.fn().mockResolvedValue(null),
     } as unknown as NotificationDbRepository;
     let useCase: EnqueueNotificationUseCase;
     let payload: unknown;
@@ -507,7 +513,7 @@ defineFeature(feature, (test) => {
 
     when('el caso de uso de encolar se ejecuta', async () => {
       try {
-        await useCase.execute(payload);
+        await useCase.execute(payload, 'test-key');
       } catch (e) {
         error = e as CustomException;
       }
@@ -524,6 +530,7 @@ defineFeature(feature, (test) => {
     ({ given, when, then, and }) => {
       const mockDb = {
         createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+        findNotificationIdByIdempotencyKey: jest.fn().mockResolvedValue(null),
       } as unknown as NotificationDbRepository;
       let useCase: EnqueueNotificationUseCase;
       let payload: unknown;
@@ -561,7 +568,7 @@ defineFeature(feature, (test) => {
       });
 
       when('el caso de uso de encolar se ejecuta', async () => {
-        notificationId = await useCase.execute(payload);
+        notificationId = await useCase.execute(payload, 'test-key');
       });
 
       then('se retorna un ID de notificación', () => {
@@ -585,6 +592,7 @@ defineFeature(feature, (test) => {
     ({ given, when, then, and }) => {
       const mockDb = {
         createWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+        findNotificationIdByIdempotencyKey: jest.fn().mockResolvedValue(null),
       } as unknown as NotificationDbRepository;
       let useCase: EnqueueNotificationUseCase;
       let payload: unknown;
@@ -614,7 +622,7 @@ defineFeature(feature, (test) => {
       );
 
       when('el caso de uso de encolar se ejecuta', async () => {
-        notificationId = await useCase.execute(payload);
+        notificationId = await useCase.execute(payload, 'test-key');
       });
 
       then('se retorna un ID de notificación', () => {

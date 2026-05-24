@@ -12,7 +12,7 @@ export class EnqueueNotificationUseCase {
 
   constructor(private readonly service: EnqueueNotificationService) {}
 
-  async execute(raw: unknown, idempotencyKey?: string): Promise<string> {
+  async execute(raw: unknown, idempotencyKey: string): Promise<string> {
     this.logger.log(`Body recibido: ${JSON.stringify(raw)}`);
     const result = EnqueueNotificationSchema.safeParse(raw);
     if (!result.success)

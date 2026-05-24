@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
+import { NotificationEntity } from '../../../common/entities/notification.entity';
 import { NotificationDbRepository } from '../repository/notification.db.repository';
 import { TemplateDbRepository } from '../repository/template.db.repository';
 import { TemplateRenderService } from './template-render.service';
@@ -28,15 +29,19 @@ export class EnqueueNotificationService {
     };
   }
 
-  async enqueue(request: EnqueueRequest, idempotencyKey?: string): Promise<string> {
+  async enqueue(request: EnqueueRequest, idempotencyKey: string): Promise<string> {
+    this.logger.log(`[PASO 1] Verificando idempotencia => idempotencyKey: ${idempotencyKey}`);
+    const cached = await this.dbRepository.findNotificationIdByIdempotencyKey(idempotencyKey);
+    if (cached) return cached;
+
     if (isTemplateEnqueueRequest(request)) {
       this.logger.log(
-        `[PASO 1] Resolviendo template => templateId: ${request.templateId} | to: ${request.to}`,
+        `[PASO 2] Resolviendo template => templateId: ${request.templateId} | to: ${request.to}`,
       );
       const template = await this.templateRepository.findActiveByTemplateId(request.templateId);
       if (!template) throw new CustomException(ErrorDictionary.TEMPLATE_NOT_FOUND);
       this.logger.log(
-        `[PASO 2] Template resuelto => templateId: ${template.templateId} | version: ${template.version}`,
+        `[PASO 3] Template resuelto => templateId: ${template.templateId} | version: ${template.version}`,
       );
       const resolvedInput = this.templateRenderService.buildInput(
         template,
@@ -48,7 +53,7 @@ export class EnqueueNotificationService {
     }
 
     this.logger.log(
-      `[PASO 1] Construyendo entidades => channel: ${request.channel} | to: ${request.to}`,
+      `[PASO 2] Construyendo entidades => channel: ${request.channel} | to: ${request.to}`,
     );
     return this.persistWithOutbox({ ...request, idempotencyKey });
   }
@@ -61,5 +66,10 @@ export class EnqueueNotificationService {
     );
     await this.dbRepository.createWithOutboxEvent(notification, outboxEvent, input.idempotencyKey);
     return notification.notificationId;
+  }
+
+  build(input: NotificationInput): NotificationEntity {
+    const provider = input.provider ?? this.defaultProviderByChannel[input.channel];
+    return EnqueuePayloadMapper.fromInput(input, provider).notification;
   }
 }

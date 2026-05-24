@@ -114,4 +114,10 @@ export class ErrorDictionary {
     descripcion: 'El POST al callbackUrl del webhook falló tras agotar los reintentos',
     statusCode: HttpStatus.SERVICE_UNAVAILABLE,
   };
+
+  static readonly MISSING_IDEMPOTENCY_KEY: InputError = {
+    code: 'NTF-017',
+    descripcion: 'El encabezado "x-idempotency-key" es obligatorio',
+    statusCode: HttpStatus.BAD_REQUEST,
+  };
 }

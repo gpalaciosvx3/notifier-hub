@@ -1,19 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { NotificationDbRepository } from '../../enqueue/domain/repository/notification.db.repository';
+import { MiddlewareObj } from '@middy/core';
+import { APIGatewayProxyResult } from 'aws-lambda';
+import { ApiGwHandlerEvent } from './lambda-event.middleware';
+import { ApiGwHelper } from '../helpers/api-gw.helper';
+import { CustomException } from '../errors/custom.exception';
+import { ErrorDictionary } from '../errors/error.dictionary';
 
-@Injectable()
-export class IdempotencyMiddleware {
-  private readonly logger = new Logger(IdempotencyMiddleware.name);
+export type EnqueueHandlerEvent = ApiGwHandlerEvent & { idempotencyKey: string };
 
-  constructor(private readonly notificationRepository: NotificationDbRepository) {}
-
-  async check(idempotencyKey?: string): Promise<string | null> {
-    if (!idempotencyKey) return null;
-    this.logger.log(`Verificando idempotencia => idempotencyKey: ${idempotencyKey}`);
-    const existing = await this.notificationRepository.findNotificationIdByIdempotencyKey(idempotencyKey);
-    if (existing) {
-      this.logger.log(`Resultado idempotente => notificationId: ${existing}`);
+export const requireIdempotencyKeyMiddleware = (): MiddlewareObj<EnqueueHandlerEvent, APIGatewayProxyResult> => ({
+  before: (request) => {
+    const key = request.event.parsed.headers['x-idempotency-key'];
+    if (!key) {
+      request.response = ApiGwHelper.error(new CustomException(ErrorDictionary.MISSING_IDEMPOTENCY_KEY));
+      return;
     }
-    return existing;
-  }
-}
+    request.event.idempotencyKey = key;
+  },
+});
+
