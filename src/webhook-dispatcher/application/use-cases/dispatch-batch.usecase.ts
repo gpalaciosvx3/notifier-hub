@@ -11,7 +11,7 @@ import {
   classifyBatchFailure,
   summarizeBatchResults,
 } from '../../../common/helpers/batch-processing.helper';
-import { WebhookDispatcherConstants } from '../../infrastructure/constants/webhook-dispatcher.constants';
+import { WebhookEventConstants } from '../constants/webhook-event.constants';
 
 @Injectable()
 export class DispatchBatchUseCase {
@@ -23,7 +23,7 @@ export class DispatchBatchUseCase {
     this.logger.log(`Lote recibido => total: ${records.length}`);
     const results = await executeChunkedBatch(
       records,
-      WebhookDispatcherConstants.MAX_RETRIES,
+      WebhookEventConstants.SQS_WEBHOOK_CHUNK_SIZE,
       (record) => this.executeOne(record),
       (sequenceNumber, error) => this.classifyFailure(sequenceNumber, error),
     );

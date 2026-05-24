@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CallbackHttpRepository } from '../../domain/repository/callback.http.repository';
+import { WebhookCallbackPayload } from '../../domain/types/webhook-event.types';
 import { WebhookDispatcherConstants } from '../constants/webhook-dispatcher.constants';
 
 @Injectable()
 export class CallbackHttpRepositoryImpl extends CallbackHttpRepository {
   private readonly logger = new Logger(CallbackHttpRepositoryImpl.name);
 
-  async post(url: string, payload: object): Promise<boolean> {
+  async post(url: string, payload: WebhookCallbackPayload): Promise<boolean> {
     for (let attempt = 0; attempt < WebhookDispatcherConstants.MAX_RETRIES; attempt++) {
       if (attempt > 0) {
         const delayMs = WebhookDispatcherConstants.RETRY_DELAYS_MS[attempt - 1];
@@ -21,7 +22,7 @@ export class CallbackHttpRepositoryImpl extends CallbackHttpRepository {
     return false;
   }
 
-  private async trySend(url: string, payload: object): Promise<boolean> {
+  private async trySend(url: string, payload: WebhookCallbackPayload): Promise<boolean> {
     try {
       const response = await fetch(url, {
         method: 'POST',

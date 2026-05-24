@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WebhookEvent } from '../types/webhook-event.types';
+import { WebhookEvent, WebhookCallbackPayload } from '../types/webhook-event.types';
 import { WebhookStatus } from '../../../common/constants/webhook-status.constants';
 import { NotificationDbRepository } from '../repository/notification.db.repository';
 import { CallbackHttpRepository } from '../repository/callback.http.repository';
@@ -16,7 +16,7 @@ export class DispatchService {
   ) {}
 
   async dispatch(event: WebhookEvent): Promise<void> {
-    const payload = { notificationId: event.notificationId, status: event.status };
+    const payload: WebhookCallbackPayload = { notificationId: event.notificationId, status: event.status };
     this.logger.log(
       `[PASO 1] Intentando POST al callbackUrl => notificationId: ${event.notificationId} | callbackUrl: ${event.callbackUrl}`,
     );

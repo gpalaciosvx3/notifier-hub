@@ -5,3 +5,8 @@ export interface WebhookEvent {
   status: NotificationStatus;
   callbackUrl: string;
 }
+
+export interface WebhookCallbackPayload {
+  notificationId: string;
+  status: NotificationStatus;
+}
