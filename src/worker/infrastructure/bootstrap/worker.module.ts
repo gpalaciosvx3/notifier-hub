@@ -3,18 +3,16 @@ import { DynamoClient } from '../../../common/dynamo/dynamo.client';
 import { SesClient } from '../../../common/ses/ses.client';
 import { SnsClient } from '../../../common/sns/sns.client';
 import { envConfig } from '../../../common/config/env.config';
-import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
-import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
 import { NotificationDbRepository } from '../../domain/repository/notification.db.repository';
 import {
-  NotificationSenderRepository,
   SesSenderRepository,
   SnsSenderRepository,
 } from '../../domain/repository/notification.sender.repository';
 import { NotificationDbRepositoryImpl } from '../repository/notification.db.repository.impl';
 import { SesSenderRepositoryImpl } from '../repository/ses.sender.repository.impl';
 import { SnsSenderRepositoryImpl } from '../repository/sns.sender.repository.impl';
-import { ChannelRouterService } from '../../domain/service/channel-router.service';
+import { SesEmailStrategy } from '../../domain/strategy/ses-email.strategy';
+import { SnsSmsStrategy } from '../../domain/strategy/sns-sms.strategy';
 import { ProcessBatchUseCase } from '../../application/use-cases/process-batch.usecase';
 import { ProcessingService } from '../../domain/service/processing.service';
 import { WorkerController } from '../controller/worker.controller';
@@ -45,21 +43,20 @@ import { WorkerController } from '../controller/worker.controller';
       inject: [SnsClient],
     },
     {
-      provide: ChannelRouterService,
-      useFactory: (ses: SesSenderRepository, sns: SnsSenderRepository) => {
-        const remitentes = new Map<string, NotificationSenderRepository>([
-          [`${NotificationChannel.EMAIL}:${NotificationProvider.SES}`, ses],
-          [`${NotificationChannel.SMS}:${NotificationProvider.SNS}`, sns],
-        ]);
-        return new ChannelRouterService(remitentes);
-      },
-      inject: [SesSenderRepository, SnsSenderRepository],
+      provide: SesEmailStrategy,
+      useFactory: (ses: SesSenderRepository) => new SesEmailStrategy(ses),
+      inject: [SesSenderRepository],
+    },
+    {
+      provide: SnsSmsStrategy,
+      useFactory: (sns: SnsSenderRepository) => new SnsSmsStrategy(sns),
+      inject: [SnsSenderRepository],
     },
     {
       provide: ProcessingService,
-      useFactory: (db: NotificationDbRepository, router: ChannelRouterService) =>
-        new ProcessingService(db, router),
-      inject: [NotificationDbRepository, ChannelRouterService],
+      useFactory: (db: NotificationDbRepository, ses: SesEmailStrategy, sns: SnsSmsStrategy) =>
+        new ProcessingService(db, ses, sns),
+      inject: [NotificationDbRepository, SesEmailStrategy, SnsSmsStrategy],
     },
     {
       provide: ProcessBatchUseCase,
