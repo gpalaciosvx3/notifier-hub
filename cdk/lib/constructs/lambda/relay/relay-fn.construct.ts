@@ -56,6 +56,7 @@ export class RelayFnConstruct extends Construct {
         startingPosition: lambda.StartingPosition.TRIM_HORIZON,
         batchSize: 10,
         retryAttempts: 3,
+        reportBatchItemFailures: true,
       }),
     );
   }
