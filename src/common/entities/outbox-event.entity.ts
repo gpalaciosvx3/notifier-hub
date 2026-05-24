@@ -11,7 +11,6 @@ export class OutboxEventEntity {
     public readonly payload: Record<string, unknown>,
     public readonly createdAt: string,
     public readonly ttl: number,
-    public readonly publishedAt?: string,
   ) {}
 
   static build(params: {
@@ -37,7 +36,6 @@ export class OutboxEventEntity {
     payload: Record<string, unknown>;
     createdAt: string;
     ttl: number;
-    publishedAt?: string;
   }): OutboxEventEntity {
     return new OutboxEventEntity(
       record.eventId,
@@ -46,7 +44,6 @@ export class OutboxEventEntity {
       record.payload,
       record.createdAt,
       record.ttl,
-      record.publishedAt,
     );
   }
 }
