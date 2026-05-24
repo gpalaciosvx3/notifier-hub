@@ -71,9 +71,4 @@ export class EnqueueNotificationService {
     await this.dbRepository.createWithOutboxEvent(notification, outboxEvent, input.idempotencyKey);
     return notification.notificationId;
   }
-
-  build(input: NotificationInput): NotificationEntity {
-    const provider = input.provider ?? this.defaultProviderByChannel[input.channel];
-    return EnqueuePayloadMapper.fromInput(input, provider).notification;
-  }
 }
