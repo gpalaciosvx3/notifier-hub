@@ -1,6 +1,6 @@
-import { createApiGwHandler } from '../../../common/bootstrap';
+import { ApiGwHandlerFactory } from '../../../common/bootstrap';
 import { QueryModule } from './query.module';
 import { QueryController } from '../controller/query.controller';
 
-export const handler = createApiGwHandler(QueryModule, QueryController);
+export const handler = new ApiGwHandlerFactory().build(QueryModule, QueryController);
 

@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { INestApplicationContext, Type } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { LambdaLogger } from '../../logger/lambda.logger';
+import { LambdaLogger } from '../logger/lambda.logger';
 
 export const createNestController = <TController>(
   Module: Type,

@@ -1,8 +1,8 @@
-export { createNestController } from './factories/nest-context.factory';
-export { createApiGwHandler } from './factories/api-gw.handler.factory';
-export { createEnqueueHandler } from './factories/enqueue.handler.factory';
-export { createSqsHandler } from './factories/sqs.handler.factory';
-export { createDynamoStreamHandler } from './factories/dynamo-stream.handler.factory';
+export { createNestController } from './nest-app.context';
+export { ApiGwHandlerFactory } from './factories/api-gw.handler.factory';
+export { EnqueueHandlerFactory } from './factories/enqueue.handler.factory';
+export { SqsHandlerFactory } from './factories/sqs.handler.factory';
+export { DynamoStreamHandlerFactory } from './factories/dynamo-stream.handler.factory';
 export type {
   ApiGwController,
   EnqueueApiGwController,
