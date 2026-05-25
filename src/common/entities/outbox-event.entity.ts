@@ -1,4 +1,3 @@
-import { ulid } from 'ulid';
 import { OutboxEventType } from '../constants/outbox-event-type.constants';
 import { OutboxEventBrokerType } from '../constants/outbox-event-broker-type.constants';
 import { OutboxEventConstants } from '../constants/outbox-event.constants';
@@ -22,7 +21,7 @@ export class OutboxEventEntity {
   }): OutboxEventEntity {
     const now = new Date().toISOString();
     return new OutboxEventEntity(
-      ulid(),
+      crypto.randomUUID(),
       params.eventType,
       params.brokerType,
       params.payload,
