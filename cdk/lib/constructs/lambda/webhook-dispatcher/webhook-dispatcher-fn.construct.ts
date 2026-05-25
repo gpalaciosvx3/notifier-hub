@@ -6,9 +6,10 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Construct } from 'constructs';
 import * as path from 'path';
-import { lambdaBundling } from '../shared/bundling.config';
+import { lambdaBundling, repoRoot } from '../shared/bundling.config';
 import { InfraConstants } from '../../../../common/constants/infra.constants';
 import { ResourceConstants } from '../../../../common/constants/resource.constants';
+import { WebhookDispatcherRoleConstruct } from '../../iam/webhook-dispatcher-role.construct';
 import { LambdaLogGroupConstruct } from '../../cloudwatch/lambda-log-group.construct';
 
 interface WebhookDispatcherFnProps {
@@ -24,11 +25,17 @@ export class WebhookDispatcherFnConstruct extends Construct {
       functionName: ResourceConstants.LAMBDA_WEBHOOK_DISPATCHER,
     });
 
+    const { role } = new WebhookDispatcherRoleConstruct(this, 'Role', {
+      notificationsTableArn: props.table.tableArn,
+      webhooksQueueArn: props.webhooksQueue.queueArn,
+    });
+
     const fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_WEBHOOK_DISPATCHER,
       description:
         'Procesa mensajes de la cola de webhooks y hace POST al callbackUrl con reintentos exponenciales',
       logGroup,
+      role,
       entry: path.join(
         __dirname,
         '../../../../../src/webhook-dispatcher/infrastructure/bootstrap/webhook-dispatcher.handler.ts',
@@ -37,13 +44,12 @@ export class WebhookDispatcherFnConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_WEBHOOK_DISPATCHER_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_DEFAULT_MB,
+      projectRoot: repoRoot,
       bundling: lambdaBundling,
       environment: {
         NOTIFICATIONS_TABLE: props.table.tableName,
       },
     });
-
-    props.table.grantWriteData(fn);
 
     fn.addEventSource(
       new SqsEventSource(props.webhooksQueue, {

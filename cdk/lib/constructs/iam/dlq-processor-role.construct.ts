@@ -1,23 +1,22 @@
-import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { ResourceConstants } from '../../../common/constants/resource.constants';
 
-interface SenderRoleProps {
+interface DlqProcessorRoleProps {
   notificationsTableArn: string;
   outboxTableArn: string;
-  queueArn: string;
-  sesSourceEmail: string;
+  dlqArn: string;
+  webhookDlqArn: string;
 }
 
-export class SenderRoleConstruct extends Construct {
+export class DlqProcessorRoleConstruct extends Construct {
   readonly role: iam.Role;
 
-  constructor(scope: Construct, id: string, props: SenderRoleProps) {
+  constructor(scope: Construct, id: string, props: DlqProcessorRoleProps) {
     super(scope, id);
 
     this.role = new iam.Role(this, 'Role', {
-      roleName: ResourceConstants.SENDER_ROLE,
+      roleName: ResourceConstants.DLQ_PROCESSOR_ROLE,
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
@@ -26,7 +25,7 @@ export class SenderRoleConstruct extends Construct {
         DynamoAccess: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
-              actions: ['dynamodb:GetItem', 'dynamodb:UpdateItem'],
+              actions: ['dynamodb:UpdateItem', 'dynamodb:PutItem'],
               resources: [props.notificationsTableArn],
             }),
             new iam.PolicyStatement({
@@ -44,25 +43,7 @@ export class SenderRoleConstruct extends Construct {
                 'sqs:GetQueueAttributes',
                 'sqs:ChangeMessageVisibility',
               ],
-              resources: [props.queueArn],
-            }),
-          ],
-        }),
-        SesPolicy: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              actions: ['ses:SendEmail', 'ses:SendRawEmail'],
-              resources: [
-                `arn:aws:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:identity/${props.sesSourceEmail}`,
-              ],
-            }),
-          ],
-        }),
-        SnsPolicy: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              actions: ['sns:Publish'],
-              resources: ['*'],
+              resources: [props.dlqArn, props.webhookDlqArn],
             }),
           ],
         }),

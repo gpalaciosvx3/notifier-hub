@@ -25,6 +25,12 @@ export class ResourceConstants {
   static readonly API_NAME = NamingConstants.APG_001;
 
   static readonly SENDER_ROLE = NamingConstants.ROL_001;
+  static readonly ENQUEUE_ROLE = NamingConstants.ROL_002;
+  static readonly QUERY_ROLE = NamingConstants.ROL_003;
+  static readonly RELAY_ROLE = NamingConstants.ROL_004;
+  static readonly WEBHOOK_DISPATCHER_ROLE = NamingConstants.ROL_005;
+  static readonly DLQ_PROCESSOR_ROLE = NamingConstants.ROL_006;
+  static readonly SCHEDULER_EXECUTION_ROLE = NamingConstants.ROL_007;
 
   static readonly ALARM_NOTIFICATION_DLQ = NamingConstants.CWA_001;
   static readonly ALARM_WEBHOOK_DLQ = NamingConstants.CWA_002;

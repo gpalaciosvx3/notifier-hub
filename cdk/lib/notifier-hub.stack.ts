@@ -16,6 +16,7 @@ import { WebhookDispatcherFnConstruct } from './constructs/lambda/webhook-dispat
 import { HttpApiConstruct } from './constructs/api-gateway/http-api.construct';
 import { NotificationDlqAlarmConstruct } from './constructs/cloudwatch/notification-dlq-alarm.construct';
 import { WebhookDlqAlarmConstruct } from './constructs/cloudwatch/webhook-dlq-alarm.construct';
+import { SchedulerExecutionRoleConstruct } from './constructs/iam/scheduler-execution-role.construct';
 
 interface NotifierHubStackProps extends cdk.StackProps {
   sesSourceEmail: string;
@@ -38,6 +39,7 @@ export class NotifierHubStack extends cdk.Stack {
     const enqueueFn = new EnqueueFnConstruct(this, 'EnqueueFn', {
       table: notifications.table,
       outboxTable: outbox.table,
+      templatesTable: templates.table,
       sesSourceEmail: props.sesSourceEmail,
     });
 
@@ -60,11 +62,18 @@ export class NotifierHubStack extends cdk.Stack {
     new NotificationDlqAlarmConstruct(this, 'NotificationDlqAlarm', { queue: dlq.queue });
     new WebhookDlqAlarmConstruct(this, 'WebhookDlqAlarm', { queue: webhookDlq.queue });
 
+    const schedulerExecutionRole = new SchedulerExecutionRoleConstruct(
+      this,
+      'SchedulerExecutionRole',
+      { notificationsQueueArn: queue.queue.queueArn },
+    );
+
     new RelayFnConstruct(this, 'RelayFn', {
       outboxTable: outbox.table,
       notificationsTable: notifications.table,
       notificationsQueue: queue.queue,
       webhooksQueue: webhooksQueue.queue,
+      schedulerExecutionRoleArn: schedulerExecutionRole.role.roleArn,
     });
 
     new WebhookDispatcherFnConstruct(this, 'WebhookDispatcherFn', {

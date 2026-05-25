@@ -6,7 +6,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Construct } from 'constructs';
 import * as path from 'path';
-import { lambdaBundling } from '../shared/bundling.config';
+import { lambdaBundling, repoRoot } from '../shared/bundling.config';
 import { InfraConstants } from '../../../../common/constants/infra.constants';
 import { ResourceConstants } from '../../../../common/constants/resource.constants';
 import { SenderRoleConstruct } from '../../iam/sender-role.construct';
@@ -23,7 +23,12 @@ export class SenderFnConstruct extends Construct {
   constructor(scope: Construct, id: string, props: SenderFnProps) {
     super(scope, id);
 
-    const { role } = new SenderRoleConstruct(this, 'Role');
+    const { role } = new SenderRoleConstruct(this, 'Role', {
+      notificationsTableArn: props.table.tableArn,
+      outboxTableArn: props.outboxTable.tableArn,
+      queueArn: props.queue.queueArn,
+      sesSourceEmail: props.sesSourceEmail,
+    });
 
     const { logGroup } = new LambdaLogGroupConstruct(this, 'LogGroup', {
       functionName: ResourceConstants.LAMBDA_SENDER,
@@ -42,6 +47,7 @@ export class SenderFnConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_SENDER_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_SENDER_MB,
+      projectRoot: repoRoot,
       bundling: lambdaBundling,
       role,
       environment: {
@@ -52,9 +58,6 @@ export class SenderFnConstruct extends Construct {
         SMS_DEFAULT_PROVIDER: 'sns',
       },
     });
-
-    props.table.grantReadWriteData(fn);
-    props.outboxTable.grantWriteData(fn);
 
     fn.addEventSource(
       new SqsEventSource(props.queue, {

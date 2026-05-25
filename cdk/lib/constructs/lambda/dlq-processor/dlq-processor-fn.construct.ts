@@ -6,9 +6,10 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Construct } from 'constructs';
 import * as path from 'path';
-import { lambdaBundling } from '../shared/bundling.config';
+import { lambdaBundling, repoRoot } from '../shared/bundling.config';
 import { InfraConstants } from '../../../../common/constants/infra.constants';
 import { ResourceConstants } from '../../../../common/constants/resource.constants';
+import { DlqProcessorRoleConstruct } from '../../iam/dlq-processor-role.construct';
 import { LambdaLogGroupConstruct } from '../../cloudwatch/lambda-log-group.construct';
 
 interface DlqProcessorFnProps {
@@ -26,25 +27,31 @@ export class DlqProcessorFnConstruct extends Construct {
       functionName: ResourceConstants.LAMBDA_DLQ_PROCESSOR,
     });
 
+    const { role } = new DlqProcessorRoleConstruct(this, 'Role', {
+      notificationsTableArn: props.table.tableArn,
+      outboxTableArn: props.outboxTable.tableArn,
+      dlqArn: props.dlq.queueArn,
+      webhookDlqArn: props.webhookDlq.queueArn,
+    });
+
     const fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_DLQ_PROCESSOR,
       description:
         'Procesa mensajes fallidos de la DLQ y marca las notificaciones como FAILED_PERMANENT',
       logGroup,
+      role,
       entry: path.join(__dirname, '../../../../../src/dlq/infrastructure/bootstrap/dlq.handler.ts'),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_DEFAULT_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_DEFAULT_MB,
+      projectRoot: repoRoot,
       bundling: lambdaBundling,
       environment: {
         NOTIFICATIONS_TABLE: props.table.tableName,
         OUTBOX_TABLE: props.outboxTable.tableName,
       },
     });
-
-    props.table.grantWriteData(fn);
-    props.outboxTable.grantWriteData(fn);
 
     fn.addEventSource(
       new SqsEventSource(props.dlq, {

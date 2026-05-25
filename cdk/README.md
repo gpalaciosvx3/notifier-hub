@@ -30,7 +30,7 @@ cdk/
       api-gateway/        # REST API v1, API Key, Usage Plan
       cloudwatch/         # Log groups por Lambda
       dynamodb/           # Tabla de notificaciones
-      iam/                # Rol de ejecución compartido
+      iam/                # Roles IAM mínimos por Lambda (ROL001–ROL007)
       lambda/             # Una construct por función Lambda
       sqs/                # Cola principal + DLQ
   common/
@@ -119,7 +119,7 @@ La tabla usa `templateId` (PK) + `version` (SK numérico). La versión más alta
 
 ```bash
 awslocal dynamodb put-item \
-  --table-name UE1NOTIFIERDDB002 \
+  --table-name UE1NOTIFIERDDB003 \
   --item '{
     "templateId": {"S": "password-reset"},
     "version":    {"N": "1"},
@@ -136,7 +136,7 @@ awslocal dynamodb put-item \
 
 ```bash
 aws dynamodb put-item \
-  --table-name UE1NOTIFIERDDB002 \
+  --table-name UE1NOTIFIERDDB003 \
   --item '{
     "templateId": {"S": "password-reset"},
     "version":    {"N": "1"},
@@ -188,14 +188,28 @@ awslocal ses list-identities
 
 | Recurso | Nombre lógico | Nombre físico |
 |---|---|---|
-| DynamoDB Table | `NotificationsTable` | `UE1NOTIFIERDDB001` |
-| DynamoDB Table | `TemplatesTable` | `UE1NOTIFIERDDB002` |
-| SQS Main Queue | `MainQueue` | `UE1NOTIFIERSQS001` |
-| SQS Dead Letter Queue | `DeadLetterQueue` | `UE1NOTIFIERSQS002` |
-| Lambda Enqueue | `EnqueueFn` | `UE1NOTIFIERLMB001` |
-| Lambda Query | `QueryFn` | `UE1NOTIFIERLMB002` |
-| Lambda Sender | `WorkerFn` | `UE1NOTIFIERLMB003` |
-| Lambda DLQ Processor | `DlqProcessorFn` | `UE1NOTIFIERLMB004` |
+| DynamoDB `notifications` | `NotificationsTable` | `UE1NOTIFIERDDB001` |
+| DynamoDB `outbox` | `OutboxTable` | `UE1NOTIFIERDDB002` |
+| DynamoDB `templates` | `TemplatesTable` | `UE1NOTIFIERDDB003` |
+| SQS main | `MainQueue` | `UE1NOTIFIERSQS001` |
+| SQS webhooks | `WebhooksQueue` | `UE1NOTIFIERSQS002` |
+| SQS main-DLQ | `DeadLetterQueue` | `UE1NOTIFIERSQS003` |
+| SQS webhook-DLQ | `WebhookDeadLetterQueue` | `UE1NOTIFIERSQS004` |
+| Lambda `enqueue` | `EnqueueFn` | `UE1NOTIFIERLMB001` |
+| Lambda `query` | `QueryFn` | `UE1NOTIFIERLMB002` |
+| Lambda `relay` | `RelayFn` | `UE1NOTIFIERLMB003` |
+| Lambda `sender` | `SenderFn` | `UE1NOTIFIERLMB004` |
+| Lambda `webhook-dispatcher` | `WebhookDispatcherFn` | `UE1NOTIFIERLMB005` |
+| Lambda `dlq-processor` | `DlqProcessorFn` | `UE1NOTIFIERLMB006` |
 | API Gateway REST | `HttpApi` | `UE1NOTIFIERGTW001` |
-| IAM Role | `WorkerRole` | `UE1NOTIFIERROL001` |
+| IAM Role `sender-role` | `SenderRoleConstruct` | `UE1NOTIFIERROL001` |
+| IAM Role `enqueue-role` | `EnqueueRoleConstruct` | `UE1NOTIFIERROL002` |
+| IAM Role `query-role` | `QueryRoleConstruct` | `UE1NOTIFIERROL003` |
+| IAM Role `relay-role` | `RelayRoleConstruct` | `UE1NOTIFIERROL004` |
+| IAM Role `webhook-dispatcher-role` | `WebhookDispatcherRoleConstruct` | `UE1NOTIFIERROL005` |
+| IAM Role `dlq-processor-role` | `DlqProcessorRoleConstruct` | `UE1NOTIFIERROL006` |
+| IAM Role `scheduler-execution-role` | `SchedulerExecutionRoleConstruct` | `UE1NOTIFIERROL007` |
+| CloudWatch Alarm | `NotificationDlqAlarm` | `UE1NOTIFIERCWA001` |
+| CloudWatch Alarm | `WebhookDlqAlarm` | `UE1NOTIFIERCWA002` |
+| EventBridge Scheduler | — | Reglas one-time por notificación programada |
 

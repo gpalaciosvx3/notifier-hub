@@ -6,9 +6,10 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Construct } from 'constructs';
 import * as path from 'path';
-import { lambdaBundling } from '../shared/bundling.config';
+import { lambdaBundling, repoRoot } from '../shared/bundling.config';
 import { InfraConstants } from '../../../../common/constants/infra.constants';
 import { ResourceConstants } from '../../../../common/constants/resource.constants';
+import { RelayRoleConstruct } from '../../iam/relay-role.construct';
 import { LambdaLogGroupConstruct } from '../../cloudwatch/lambda-log-group.construct';
 
 interface RelayFnProps {
@@ -16,6 +17,7 @@ interface RelayFnProps {
   notificationsTable: dynamodb.Table;
   notificationsQueue: sqs.Queue;
   webhooksQueue: sqs.Queue;
+  schedulerExecutionRoleArn: string;
 }
 
 export class RelayFnConstruct extends Construct {
@@ -26,11 +28,21 @@ export class RelayFnConstruct extends Construct {
       functionName: ResourceConstants.LAMBDA_RELAY,
     });
 
+    const { role } = new RelayRoleConstruct(this, 'Role', {
+      outboxTableArn: props.outboxTable.tableArn,
+      outboxStreamArn: props.outboxTable.tableStreamArn!,
+      notificationsTableArn: props.notificationsTable.tableArn,
+      notificationsQueueArn: props.notificationsQueue.queueArn,
+      webhooksQueueArn: props.webhooksQueue.queueArn,
+      schedulerExecutionRoleArn: props.schedulerExecutionRoleArn,
+    });
+
     const fn = new NodejsFunction(this, 'Fn', {
       functionName: ResourceConstants.LAMBDA_RELAY,
       description:
         'Lee el stream de la tabla outbox y publica eventos en los brokers correspondientes (SQS / Scheduler)',
       logGroup,
+      role,
       entry: path.join(
         __dirname,
         '../../../../../src/relay/infrastructure/bootstrap/relay.handler.ts',
@@ -39,17 +51,16 @@ export class RelayFnConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_RELAY_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_DEFAULT_MB,
+      projectRoot: repoRoot,
       bundling: lambdaBundling,
       environment: {
         OUTBOX_TABLE: props.outboxTable.tableName,
+        NOTIFICATIONS_TABLE: props.notificationsTable.tableName,
         NOTIFICATIONS_QUEUE_URL: props.notificationsQueue.queueUrl,
         WEBHOOKS_QUEUE_URL: props.webhooksQueue.queueUrl,
+        SCHEDULER_ROLE_ARN: props.schedulerExecutionRoleArn,
       },
     });
-
-    props.outboxTable.grantReadWriteData(fn);
-    props.notificationsQueue.grantSendMessages(fn);
-    props.webhooksQueue.grantSendMessages(fn);
 
     fn.addEventSource(
       new DynamoEventSource(props.outboxTable, {
