@@ -167,6 +167,7 @@ npx ts-node local-test/templates.seed.ts
 # API Gateway
 awslocal apigateway get-rest-apis
 awslocal apigateway get-stages --rest-api-id <api-id>
+awslocal apigateway get-api-keys --include-values
 
 # Lambda
 awslocal lambda list-functions --query 'Functions[*].FunctionName'

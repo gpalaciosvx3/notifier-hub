@@ -5,7 +5,7 @@ import { NotifierHubStack } from '../lib/notifier-hub.stack';
 const app = new cdk.App();
 
 new NotifierHubStack(app, 'NotifierHubStack', {
-  sesSourceEmail: process.env.SES_SOURCE_EMAIL ?? '',
+  sesSourceEmail: process.env.SES_SOURCE_EMAIL ?? 'test@example.com',
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT || '000000000000',
     region: process.env.CDK_DEFAULT_REGION ?? 'us-east-1',

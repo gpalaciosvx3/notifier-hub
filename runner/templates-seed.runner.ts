@@ -11,7 +11,7 @@ const client = DynamoDBDocumentClient.from(
   }),
 );
 
-const TABLE_NAME = 'UE1NOTIFIERDDB002';
+const TABLE_NAME = 'UE1NOTIFIERDDB003';
 
 const templates = [
   {

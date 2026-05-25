@@ -6,7 +6,8 @@
     "build": "tsc --noEmit",
     "test": "jest --coverage",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"cdk/**/*.ts\"",
-    "local:templates": "ts-node runners/templates-seed.runner.ts",
+    "local:templates": "ts-node runner/templates-seed.runner.ts",
+    "local:webhook": "ts-node runner/webhook-receiver.runner.ts",
     "prepare": "husky"
   },
   "dependencies": {
