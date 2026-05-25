@@ -36,5 +36,5 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Webhook receiver escuchando en http://localhost:${PORT}`);
-  console.log('callbackUrl para pruebas: http://host.docker.internal:' + PORT + '/webhook');
+  console.log('callbackUrl para pruebas (localstack): http://host.docker.internal:' + PORT + '/webhook');
 });
