@@ -1,4 +1,3 @@
-import { ulid } from 'ulid';
 import { CustomException } from '../errors/custom.exception';
 import { ErrorDictionary, InputError } from '../errors/error.dictionary';
 import { NotificationStatus } from '../constants/notification-status.constants';
@@ -65,7 +64,7 @@ export class NotificationEntity {
     NotificationEntity.validateInvariants(params);
     const now = new Date().toISOString();
     return new NotificationEntity(
-      ulid(),
+      crypto.randomUUID(),
       params.channel,
       params.provider,
       params.to,
@@ -97,7 +96,7 @@ export class NotificationEntity {
     NotificationEntity.validateInvariants(params);
     const now = new Date().toISOString();
     return new NotificationEntity(
-      ulid(),
+      crypto.randomUUID(),
       params.channel,
       params.provider,
       params.to,

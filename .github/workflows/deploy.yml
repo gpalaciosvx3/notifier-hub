@@ -80,6 +80,7 @@ jobs:
           key: deps-${{ hashFiles('package.json', 'cdk/package.json') }}
 
       - name: Instalar dependencias
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install && cd cdk && npm install
 
       - name: Configurar credenciales AWS
