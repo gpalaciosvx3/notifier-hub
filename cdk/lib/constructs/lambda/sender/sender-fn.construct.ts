@@ -27,7 +27,6 @@ export class SenderFnConstruct extends Construct {
       notificationsTableArn: props.table.tableArn,
       outboxTableArn: props.outboxTable.tableArn,
       queueArn: props.queue.queueArn,
-      sesSourceEmail: props.sesSourceEmail,
     });
 
     const { logGroup } = new LambdaLogGroupConstruct(this, 'LogGroup', {

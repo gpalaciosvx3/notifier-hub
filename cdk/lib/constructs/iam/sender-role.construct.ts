@@ -7,7 +7,6 @@ interface SenderRoleProps {
   notificationsTableArn: string;
   outboxTableArn: string;
   queueArn: string;
-  sesSourceEmail: string;
 }
 
 export class SenderRoleConstruct extends Construct {
@@ -53,7 +52,7 @@ export class SenderRoleConstruct extends Construct {
             new iam.PolicyStatement({
               actions: ['ses:SendEmail', 'ses:SendRawEmail'],
               resources: [
-                `arn:aws:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:identity/${props.sesSourceEmail}`,
+                `arn:aws:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:identity/*`,
               ],
             }),
           ],
