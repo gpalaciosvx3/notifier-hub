@@ -7,6 +7,7 @@ import { envConfig } from './env.config';
 
 export const dynamoDbClient = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: envConfig.awsRegion }),
+  { marshallOptions: { convertClassInstanceToMap: true, removeUndefinedValues: true } },
 );
 export const sqsClient = new SQSClient({ region: envConfig.awsRegion });
 export const sesClient = new SESClient({ region: envConfig.awsRegion });
