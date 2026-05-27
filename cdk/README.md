@@ -23,20 +23,36 @@ Infraestructura AWS del proyecto `notifier-hub`, definida con AWS CDK (TypeScrip
 ```
 cdk/
   bin/
-    notifier-hub.ts       # Entry point — configura y crea el stack
+    notifier-hub.ts              # Entry point — instancia NotifierHubStack + ObservabilityStack
   lib/
-    notifier-hub.stack.ts # Stack principal
-    constructs/
-      api-gateway/        # REST API v1, API Key, Usage Plan
-      cloudwatch/         # Log groups por Lambda
-      dynamodb/           # Tabla de notificaciones
-      iam/                # Roles IAM mínimos por Lambda (ROL001–ROL007)
-      lambda/             # Una construct por función Lambda
-      sqs/                # Cola principal + DLQ
+    stacks/
+      notifier-hub.stack.ts      # Stack principal: API, Lambdas, DynamoDB, SQS, IAM
+      observability.stack.ts     # Stack de observabilidad: alarmas, dashboard, SNS
+    notifier-constructs/
+      api-gateway/               # REST API v1, API Key, Usage Plan
+      cloudwatch/                # Log groups por Lambda
+      dynamodb/                  # Tablas DynamoDB (notifications, outbox, templates)
+      iam/                       # Roles IAM mínimos por Lambda (ROL001–ROL007)
+      lambda/                    # Una construct por función Lambda
+      sqs/                       # Colas principales + DLQs
+    observability-constructs/
+      sns/                       # AlarmTopicConstruct — SNS topic + suscripción email
+      cloudwatch/
+        lambda-alarms.construct.ts      # Error rate + p99 por Lambda
+        queue-age-alarm.construct.ts    # Edad máxima en colas de procesamiento
+        dlq-alarm.construct.ts          # Mensajes visibles en DLQs
+        observability-dashboard.construct.ts  # Dashboard unificado
   common/
-    constants/            # NamingConstants, ResourceConstants, InfraConstants
-  docker-compose.yml      # LocalStack Pro para desarrollo local
+    constants/                   # NamingConstants, ResourceConstants, InfraConstants
+  docker-compose.yml             # LocalStack Pro para desarrollo local
 ```
+
+### Dos stacks independientes
+
+| Stack | Descripción |
+|---|---|
+| `NotifierHubStack` | Infraestructura funcional: API Gateway, 6 Lambdas, 3 tablas DynamoDB, 4 colas SQS, 7 roles IAM |
+| `ObservabilityStack` | Monitoreo: alarmas por Lambda (error rate + p99), alarmas de DLQ y age de cola, dashboard CloudWatch, SNS topic |
 
 ---
 
@@ -187,6 +203,8 @@ awslocal ses list-identities
 
 ## Recursos desplegados
 
+### NotifierHubStack
+
 | Recurso | Nombre lógico | Nombre físico |
 |---|---|---|
 | DynamoDB `notifications` | `NotificationsTable` | `UE1NOTIFIERDDB001` |
@@ -210,7 +228,23 @@ awslocal ses list-identities
 | IAM Role `webhook-dispatcher-role` | `WebhookDispatcherRoleConstruct` | `UE1NOTIFIERROL005` |
 | IAM Role `dlq-processor-role` | `DlqProcessorRoleConstruct` | `UE1NOTIFIERROL006` |
 | IAM Role `scheduler-execution-role` | `SchedulerExecutionRoleConstruct` | `UE1NOTIFIERROL007` |
-| CloudWatch Alarm | `NotificationDlqAlarm` | `UE1NOTIFIERCWA001` |
-| CloudWatch Alarm | `WebhookDlqAlarm` | `UE1NOTIFIERCWA002` |
 | EventBridge Scheduler | — | Reglas one-time por notificación programada |
+
+### ObservabilityStack
+
+| Recurso | Construct | Descripción |
+|---|---|---|
+| SNS Topic | `AlarmTopicConstruct` | Recibe todas las alarmas — suscripción email opcional vía `ALARM_EMAIL` |
+| CloudWatch Alarm ×12 | `LambdaAlarmsConstruct` | Error rate (> 5%) + p99 (> 10 000 ms) para cada una de las 6 Lambdas |
+| CloudWatch Alarm ×2 | `QueueAgeAlarmConstruct` | Edad del mensaje más antiguo en SQS main y SQS webhooks (> 300 s) |
+| CloudWatch Alarm ×2 | `DlqAlarmConstruct` | Mensajes visibles > 0 en main-DLQ y webhook-DLQ |
+| CloudWatch Dashboard | `ObservabilityDashboardConstruct` | Vista unificada: métricas de Lambdas, colas, tablas y métricas de negocio |
+
+**Umbrales configurables** en `common/constants/infra.constants.ts`:
+
+| Constante | Default |
+|---|---|
+| `LAMBDA_ALARM_ERROR_RATE_PERCENT` | `5` |
+| `LAMBDA_ALARM_P99_DURATION_MS` | `10 000` |
+| `LAMBDA_ALARM_QUEUE_AGE_SECONDS` | `300` |
 

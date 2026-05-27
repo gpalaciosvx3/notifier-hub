@@ -7,54 +7,47 @@ import * as path from 'path';
 import { lambdaBundling, repoRoot } from '../shared/bundling.config';
 import { InfraConstants } from '../../../../common/constants/infra.constants';
 import { ResourceConstants } from '../../../../common/constants/resource.constants';
-import { EnqueueRoleConstruct } from '../../iam/enqueue-role.construct';
+import { QueryRoleConstruct } from '../../iam/query-role.construct';
 import { LambdaLogGroupConstruct } from '../../cloudwatch/lambda-log-group.construct';
 
-interface EnqueueFnProps {
+interface QueryFnProps {
   table: dynamodb.Table;
-  outboxTable: dynamodb.Table;
-  templatesTable: dynamodb.Table;
-  sesSourceEmail: string;
 }
 
-export class EnqueueFnConstruct extends Construct {
+export class QueryFnConstruct extends Construct {
   readonly fn: NodejsFunction;
 
-  constructor(scope: Construct, id: string, props: EnqueueFnProps) {
+  constructor(scope: Construct, id: string, props: QueryFnProps) {
     super(scope, id);
 
     const { logGroup } = new LambdaLogGroupConstruct(this, 'LogGroup', {
-      functionName: ResourceConstants.LAMBDA_ENQUEUE,
+      functionName: ResourceConstants.LAMBDA_QUERY,
     });
 
-    const { role } = new EnqueueRoleConstruct(this, 'Role', {
+    const { role } = new QueryRoleConstruct(this, 'Role', {
       notificationsTableArn: props.table.tableArn,
-      outboxTableArn: props.outboxTable.tableArn,
-      templatesTableArn: props.templatesTable.tableArn,
     });
 
     this.fn = new NodejsFunction(this, 'Fn', {
-      functionName: ResourceConstants.LAMBDA_ENQUEUE,
-      description: 'Recibe peticiones HTTP del API Gateway y encola notificaciones en SQS',
+      functionName: ResourceConstants.LAMBDA_QUERY,
+      description: 'Consulta el estado e historial de notificaciones desde DynamoDB',
       logGroup,
       role,
       entry: path.join(
         __dirname,
-        '../../../../../src/enqueue/infrastructure/bootstrap/enqueue.handler.ts',
+        '../../../../../src/query/infrastructure/bootstrap/query.handler.ts',
       ),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_DEFAULT_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_DEFAULT_MB,
+      tracing: lambda.Tracing.ACTIVE,
       projectRoot: repoRoot,
       bundling: lambdaBundling,
       environment: {
         NOTIFICATIONS_TABLE: props.table.tableName,
-        OUTBOX_TABLE: props.outboxTable.tableName,
-        TEMPLATES_TABLE: props.templatesTable.tableName,
-        SES_SOURCE_EMAIL: props.sesSourceEmail,
-        EMAIL_DEFAULT_PROVIDER: 'ses',
-        SMS_DEFAULT_PROVIDER: 'sns',
+        POWERTOOLS_SERVICE_NAME: ResourceConstants.LAMBDA_QUERY,
+        POWERTOOLS_METRICS_NAMESPACE: ResourceConstants.METRICS_NAMESPACE,
       },
     });
 

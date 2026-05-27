@@ -1,6 +1,6 @@
 import { CustomException } from './custom.exception';
 import { InputError } from './error.dictionary';
-import { Logger } from '@nestjs/common';
+import { appLogger } from '../logger/lambda.logger';
 
 
 type awsErrorHandler<T> = { code: string; result: T };
@@ -17,8 +17,7 @@ export async function awsError<T>(
     const handler = handlers.find((h) => isAwsError(error, h.code));
     if (handler) return handler.result;
     const raw = error instanceof Error ? `${error.message}\n${error.stack}` : JSON.stringify(error);
-    const logger = new Logger('awsError');
-    logger.error(`AWS SDK error (code: ${fallback.code}):\n${raw}`);
+    appLogger.error('AWS SDK error', { code: fallback.code, raw });
     throw new CustomException(fallback);
   }
 }

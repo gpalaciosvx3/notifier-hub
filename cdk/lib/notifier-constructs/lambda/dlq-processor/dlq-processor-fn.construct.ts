@@ -20,6 +20,8 @@ interface DlqProcessorFnProps {
 }
 
 export class DlqProcessorFnConstruct extends Construct {
+  readonly fn: NodejsFunction;
+
   constructor(scope: Construct, id: string, props: DlqProcessorFnProps) {
     super(scope, id);
 
@@ -45,13 +47,18 @@ export class DlqProcessorFnConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_DEFAULT_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_DEFAULT_MB,
+      tracing: lambda.Tracing.ACTIVE,
       projectRoot: repoRoot,
       bundling: lambdaBundling,
       environment: {
         NOTIFICATIONS_TABLE: props.table.tableName,
         OUTBOX_TABLE: props.outboxTable.tableName,
+        POWERTOOLS_SERVICE_NAME: ResourceConstants.LAMBDA_DLQ_PROCESSOR,
+        POWERTOOLS_METRICS_NAMESPACE: ResourceConstants.METRICS_NAMESPACE,
       },
     });
+
+    this.fn = fn;
 
     fn.addEventSource(
       new SqsEventSource(props.dlq, {

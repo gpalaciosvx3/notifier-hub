@@ -18,6 +18,8 @@ interface WebhookDispatcherFnProps {
 }
 
 export class WebhookDispatcherFnConstruct extends Construct {
+  readonly fn: NodejsFunction;
+
   constructor(scope: Construct, id: string, props: WebhookDispatcherFnProps) {
     super(scope, id);
 
@@ -44,12 +46,17 @@ export class WebhookDispatcherFnConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_WEBHOOK_DISPATCHER_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_DEFAULT_MB,
+      tracing: lambda.Tracing.ACTIVE,
       projectRoot: repoRoot,
       bundling: lambdaBundling,
       environment: {
         NOTIFICATIONS_TABLE: props.table.tableName,
+        POWERTOOLS_SERVICE_NAME: ResourceConstants.LAMBDA_WEBHOOK_DISPATCHER,
+        POWERTOOLS_METRICS_NAMESPACE: ResourceConstants.METRICS_NAMESPACE,
       },
     });
+
+    this.fn = fn;
 
     fn.addEventSource(
       new SqsEventSource(props.webhooksQueue, {

@@ -1,22 +1,29 @@
-import { ConsoleLogger, LogLevel } from '@nestjs/common';
+import { powertoolsLogger } from '../config/aws.config';
 
-export class LambdaLogger extends ConsoleLogger {
-  protected printMessages(
-    messages: unknown[],
-    context = '',
-    logLevel: LogLevel = 'log',
-    writeStreamType?: 'stdout' | 'stderr',
-  ): void {
-    const level = logLevel.toUpperCase().padEnd(5);
-    const ctx = context ? `[${context}]` : '';
-    const time =
-      new Date().toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour12: false }) +
-      '.' +
-      String(new Date().getMilliseconds()).padStart(3, '0');
+class AppLogger {
+  start(featureName: string, context?: Record<string, unknown>): void {
+    powertoolsLogger.info({ message: `--- ${featureName} start ---`, ...context });
+  }
 
-    messages.forEach((message) => {
-      const line = `${time} ${ctx} ${level} - ${String(message)}`;
-      process[writeStreamType ?? 'stdout'].write(line + '\n');
-    });
+  end(featureName: string, durationMs: number, success: boolean, context?: Record<string, unknown>): void {
+    powertoolsLogger.info({ message: `--- ${featureName} end ---`, durationMs, success, ...context });
+  }
+
+  step(n: number, message: string, context?: Record<string, unknown>): void {
+    powertoolsLogger.info({ message: `[PASO ${n}] ${message}`, ...context });
+  }
+
+  info(message: string, context?: Record<string, unknown>): void {
+    powertoolsLogger.info({ message, ...context });
+  }
+
+  warn(message: string, context?: Record<string, unknown>): void {
+    powertoolsLogger.warn({ message, ...context });
+  }
+
+  error(message: string, context?: Record<string, unknown>): void {
+    powertoolsLogger.error({ message, ...context });
   }
 }
+
+export const appLogger = new AppLogger();

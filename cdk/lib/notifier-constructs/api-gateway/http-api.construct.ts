@@ -19,6 +19,7 @@ export class HttpApiConstruct extends Construct {
       description: 'API HTTP para recepción y consulta de notificaciones multicanal',
       deployOptions: {
         stageName: 'prod',
+        tracingEnabled: true,
       },
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,

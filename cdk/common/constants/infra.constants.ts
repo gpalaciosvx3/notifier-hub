@@ -11,4 +11,8 @@ export class InfraConstants {
   static readonly LAMBDA_TIMEOUT_WEBHOOK_DISPATCHER_SECONDS = 120;
   static readonly LAMBDA_MEMORY_DEFAULT_MB = 256;
   static readonly LAMBDA_MEMORY_SENDER_MB = 512;
+
+  static readonly LAMBDA_ALARM_ERROR_RATE_PERCENT = 5;
+  static readonly LAMBDA_ALARM_P99_DURATION_MS = 10_000;
+  static readonly LAMBDA_ALARM_QUEUE_AGE_SECONDS = 300;
 }

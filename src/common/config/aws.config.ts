@@ -3,6 +3,9 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { SQSClient } from '@aws-sdk/client-sqs';
 import { SESClient } from '@aws-sdk/client-ses';
 import { SNSClient } from '@aws-sdk/client-sns';
+import { Tracer } from '@aws-lambda-powertools/tracer';
+import { Logger } from '@aws-lambda-powertools/logger';
+import { Metrics } from '@aws-lambda-powertools/metrics';
 import { envConfig } from './env.config';
 
 export const dynamoDbClient = DynamoDBDocumentClient.from(
@@ -12,3 +15,7 @@ export const dynamoDbClient = DynamoDBDocumentClient.from(
 export const sqsClient = new SQSClient({ region: envConfig.awsRegion });
 export const sesClient = new SESClient({ region: envConfig.awsRegion });
 export const snsClient = new SNSClient({ region: envConfig.awsRegion });
+
+export const powertoolsTracer = new Tracer();
+export const powertoolsLogger = new Logger();
+export const powertoolsMetrics = new Metrics();

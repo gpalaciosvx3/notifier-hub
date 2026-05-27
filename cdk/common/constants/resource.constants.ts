@@ -34,4 +34,7 @@ export class ResourceConstants {
 
   static readonly ALARM_NOTIFICATION_DLQ = NamingConstants.CWA_001;
   static readonly ALARM_WEBHOOK_DLQ = NamingConstants.CWA_002;
+
+  static readonly DASHBOARD_NAME = NamingConstants.CWD_001;
+  static readonly METRICS_NAMESPACE = 'NotifierHub/Business';
 }

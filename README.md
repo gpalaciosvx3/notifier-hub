@@ -7,6 +7,9 @@ Plataforma centralizada de notificaciones para arquitecturas de microservicios. 
 ## Índice
 
 - [Arquitectura](#arquitectura)
+- [Observabilidad](#observabilidad)
+  - [Alarmas CloudWatch](#alarmas-cloudwatch)
+  - [Métricas de Negocio](#métricas-de-negocio)
 - [API Reference](#api-reference)
   - [POST /v1/notify](#post-v1notify)
   - [GET /v1/notifications/{id}](#get-v1notificationsid)
@@ -80,9 +83,41 @@ API Gateway REST
 | IAM Role `webhook-dispatcher-role` | `UE1NOTIFIERROL005` | Ejecución Lambda webhook-dispatcher — DynamoDB UpdateItem + SQS consume webhooks |
 | IAM Role `dlq-processor-role` | `UE1NOTIFIERROL006` | Ejecución Lambda dlq-processor — DynamoDB UpdateItem/PutItem + SQS consume ambas DLQs |
 | IAM Role `scheduler-execution-role` | `UE1NOTIFIERROL007` | Asumido por EventBridge Scheduler — SQS SendMessage → SQS main |
-| CloudWatch Alarm | `UE1NOTIFIERCWA001` | Alerta cuando `main-DLQ` recibe mensajes |
-| CloudWatch Alarm | `UE1NOTIFIERCWA002` | Alerta cuando `webhook-DLQ` recibe mensajes |
+| CloudWatch Alarm | — | Error rate (> 5%) + p99 duration (> 10 000 ms) por cada Lambda |
+| CloudWatch Alarm | — | Edad del mensaje en SQS main y SQS webhooks (> 300 s) |
+| CloudWatch Alarm | — | Mensajes visibles > 0 en main-DLQ y webhook-DLQ |
+| CloudWatch Dashboard | `notifier-hub-dashboard` | Vista unificada: Lambdas, colas, tablas y métricas de negocio |
+| SNS Topic | — | Destino de todas las alarmas — suscripción email opcional |
 | EventBridge Scheduler | — | Reglas one-time para notificaciones programadas (target: SQS main) |
+
+---
+
+## Observabilidad
+
+### Alarmas CloudWatch
+
+| Alarma | Umbral | Alcance |
+|---|---|---|
+| Lambda error rate | > 5% de invocaciones con error | Las 6 Lambdas |
+| Lambda p99 duration | > 10 000 ms | Las 6 Lambdas |
+| SQS queue age | > 300 s mensaje más antiguo | SQS main + SQS webhooks |
+| DLQ visible messages | > 0 mensajes | main-DLQ + webhook-DLQ |
+
+Todas las alarmas publican al mismo SNS Topic. Si se configura `ALARM_EMAIL` en los secretos
+de CI/CD, el topic crea automáticamente una suscripción de email.
+
+### Métricas de negocio
+
+| Métrica | Descripción |
+|---|---|
+| `notifications_accepted` | Notificaciones encoladas con éxito |
+| `notifications_rejected` | Notificaciones rechazadas (template no encontrado) |
+| `notifications_sent` | Notificaciones enviadas por SES / SNS |
+| `notifications_failed_permanent` | Notificaciones movidas a DLQ tras 3 intentos |
+| `webhooks_delivered` | Callbacks entregados al `callbackUrl` |
+| `webhooks_failed_permanent` | Webhooks movidos a DLQ tras 3 intentos |
+
+Los umbrales son configurables en `cdk/common/constants/infra.constants.ts`.
 
 ---
 

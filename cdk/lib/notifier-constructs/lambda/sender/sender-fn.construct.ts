@@ -20,6 +20,8 @@ interface SenderFnProps {
 }
 
 export class SenderFnConstruct extends Construct {
+  readonly fn: NodejsFunction;
+
   constructor(scope: Construct, id: string, props: SenderFnProps) {
     super(scope, id);
 
@@ -46,6 +48,7 @@ export class SenderFnConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(InfraConstants.LAMBDA_TIMEOUT_SENDER_SECONDS),
       memorySize: InfraConstants.LAMBDA_MEMORY_SENDER_MB,
+      tracing: lambda.Tracing.ACTIVE,
       projectRoot: repoRoot,
       bundling: lambdaBundling,
       role,
@@ -55,8 +58,12 @@ export class SenderFnConstruct extends Construct {
         SES_SOURCE_EMAIL: props.sesSourceEmail,
         EMAIL_DEFAULT_PROVIDER: 'ses',
         SMS_DEFAULT_PROVIDER: 'sns',
+        POWERTOOLS_SERVICE_NAME: ResourceConstants.LAMBDA_SENDER,
+        POWERTOOLS_METRICS_NAMESPACE: ResourceConstants.METRICS_NAMESPACE,
       },
     });
+
+    this.fn = fn;
 
     fn.addEventSource(
       new SqsEventSource(props.queue, {

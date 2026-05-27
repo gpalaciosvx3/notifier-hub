@@ -1,7 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { NotificationChannel } from '../../../common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../../common/constants/notification-provider.constants';
-import { NotificationEntity } from '../../../common/entities/notification.entity';
 import { NotificationDbRepository } from '../repository/enqueue-notification.db.repository';
 import { TemplateDbRepository } from '../repository/enqueue-template.db.repository';
 import { TemplateRenderService } from './enqueue-template-render.service';
@@ -10,10 +9,12 @@ import { EnqueueRequest, isTemplateEnqueueRequest } from '../types/enqueue-reque
 import { EnqueuePayloadMapper } from '../mapper/enqueue-payload.mapper';
 import { CustomException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
+import { appLogger } from '../../../common/logger/lambda.logger';
+import { appTracer } from '../../../common/tracer/lambda.tracer';
+import { appMetrics, MetricUnit } from '../../../common/metrics/lambda.metrics';
 
 @Injectable()
 export class EnqueueNotificationService {
-  private readonly logger = new Logger(EnqueueNotificationService.name);
   private readonly defaultProviderByChannel: Record<NotificationChannel, NotificationProvider>;
 
   constructor(
@@ -30,45 +31,60 @@ export class EnqueueNotificationService {
   }
 
   async enqueue(request: EnqueueRequest, idempotencyKey: string): Promise<string> {
-    this.logger.log(`[PASO 1] Verificando idempotencia => idempotencyKey: ${idempotencyKey}`);
+    appLogger.step(1, 'Verificando idempotencia', { eventId: idempotencyKey });
     const cached = await this.dbRepository.findNotificationIdByIdempotencyKey(idempotencyKey);
     if (cached) return cached;
 
     if (isTemplateEnqueueRequest(request)) {
-      this.logger.log(
-        `[PASO 2] Resolviendo template => templateId: ${request.templateId} | to: ${request.to}`,
-      );
-      const template = await this.templateRepository.findActiveByTemplateId(request.templateId);
-      if (!template) throw new CustomException(ErrorDictionary.TEMPLATE_NOT_FOUND);
-      this.logger.log(
-        `[PASO 3] Template resuelto => templateId: ${template.templateId} | version: ${template.version}`,
-      );
-      const resolvedInput = this.templateRenderService.buildInput(
-        template,
-        request.to,
-        request.variables ?? {},
-        request.callbackUrl,
-      );
-      return this.persistWithOutbox({
-        ...resolvedInput,
-        scheduledAt: request.scheduledAt,
-        idempotencyKey,
+      return appTracer.subsegment('templateResolution', async () => {
+        appLogger.step(2, 'Resolviendo template', { templateId: request.templateId });
+        const template = await this.templateRepository.findActiveByTemplateId(request.templateId);
+        if (!template) {
+          appMetrics.dimension('gate', 'template-resolution');
+          appMetrics.add('notifications_rejected');
+          appMetrics.flush();
+          appLogger.warn('Template no encontrado — rechazo', { gate: 'template-resolution', templateId: request.templateId });
+          throw new CustomException(ErrorDictionary.TEMPLATE_NOT_FOUND);
+        }
+        appLogger.step(3, 'Template resuelto', { templateId: template.templateId, templateVersion: template.version });
+        const resolvedInput = this.templateRenderService.buildInput(
+          template,
+          request.to,
+          request.variables ?? {},
+          request.callbackUrl,
+        );
+        return this.persistWithOutbox({
+          ...resolvedInput,
+          scheduledAt: request.scheduledAt,
+          idempotencyKey,
+        });
       });
     }
 
-    this.logger.log(
-      `[PASO 2] Construyendo entidades => channel: ${request.channel} | to: ${request.to}`,
-    );
+    appLogger.step(2, 'Construyendo entidades', { channel: request.channel });
     return this.persistWithOutbox({ ...request, idempotencyKey });
   }
 
   private async persistWithOutbox(input: NotificationInput): Promise<string> {
     const provider = input.provider ?? this.defaultProviderByChannel[input.channel];
     const { notification, outboxEvent } = EnqueuePayloadMapper.fromInput(input, provider);
-    this.logger.log(
-      `Persistiendo notificación + evento de outbox atómicamente => notificationId: ${notification.notificationId} | eventId: ${outboxEvent.eventId}`,
+
+    appTracer.annotate('notificationId', notification.notificationId);
+
+    appLogger.info('Persistiendo notificación + evento de outbox atómicamente', {
+      notificationId: notification.notificationId,
+      templateId: notification.templateId,
+      templateVersion: notification.templateVersion,
+      eventId: outboxEvent.eventId,
+      eventType: outboxEvent.eventType,
+    });
+
+    await appTracer.subsegment('persistWithOutbox', () =>
+      this.dbRepository.createWithOutboxEvent(notification, outboxEvent, input.idempotencyKey),
     );
-    await this.dbRepository.createWithOutboxEvent(notification, outboxEvent, input.idempotencyKey);
+
+    appMetrics.add('notifications_accepted');
+
     return notification.notificationId;
   }
 }

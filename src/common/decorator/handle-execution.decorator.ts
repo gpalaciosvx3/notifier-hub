@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { appLogger } from '../logger/lambda.logger';
 
 export function HandleExecution(
   featureName: string,
@@ -8,16 +8,16 @@ export function HandleExecution(
     const original = descriptor.value as (...args: unknown[]) => Promise<unknown>;
 
     descriptor.value = async function (...args: unknown[]) {
-      const logger = new Logger(featureName);
-      logger.log(`---------- INICIO: ${featureName} ----------`);
+      const start = Date.now();
+      appLogger.start(featureName);
       try {
-        return await original.apply(this, args);
+        const result = await original.apply(this, args);
+        appLogger.end(featureName, Date.now() - start, true);
+        return result;
       } catch (error) {
-        logger.error(`Error en ${featureName}`, error);
+        appLogger.end(featureName, Date.now() - start, false);
         if (onError) return onError(error);
         throw error;
-      } finally {
-        logger.log(`---------- FIN: ${featureName} ----------`);
       }
     };
 
