@@ -52,7 +52,7 @@ cdk/
 | Stack | Descripción |
 |---|---|
 | `NotifierHubStack` | Infraestructura funcional: API Gateway, 6 Lambdas, 3 tablas DynamoDB, 4 colas SQS, 7 roles IAM |
-| `ObservabilityStack` | Monitoreo: alarmas por Lambda (error rate + p99), alarmas de DLQ y age de cola, dashboard CloudWatch, SNS topic |
+| `ObservabilityStack` | Monitoreo: alarmas por Lambda (error rate + p99), alarmas de DLQ y age de cola, dashboard CloudWatch, SNS topic. **Opcional** — solo se despliega si `DEPLOY_OBSERVABILITY=true` |
 
 ---
 
@@ -230,7 +230,7 @@ awslocal ses list-identities
 | IAM Role `scheduler-execution-role` | `SchedulerExecutionRoleConstruct` | `UE1NOTIFIERROL007` |
 | EventBridge Scheduler | — | Reglas one-time por notificación programada |
 
-### ObservabilityStack
+### ObservabilityStack (opcional)
 
 | Recurso | Construct | Descripción |
 |---|---|---|

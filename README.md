@@ -270,11 +270,16 @@ npm test
 
 Configurar en GitHub → Settings → Environments:
 
-**`deployer`:**
+**`deployer` — Secrets:**
 ```
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
 CDK_DEFAULT_ACCOUNT
 AWS_DEFAULT_REGION
 SES_SOURCE_EMAIL
+```
+
+**`deployer` — Variables:**
+```
+DEPLOY_OBSERVABILITY   # Opcional — "true" para desplegar el ObservabilityStack (default: no se despliega)
 ```
