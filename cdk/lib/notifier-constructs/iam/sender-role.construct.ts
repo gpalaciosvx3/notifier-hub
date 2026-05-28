@@ -51,9 +51,7 @@ export class SenderRoleConstruct extends Construct {
           statements: [
             new iam.PolicyStatement({
               actions: ['ses:SendEmail', 'ses:SendRawEmail'],
-              resources: [
-                `arn:aws:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:identity/*`,
-              ],
+              resources: [`arn:aws:ses:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:identity/*`],
             }),
           ],
         }),

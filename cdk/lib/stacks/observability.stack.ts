@@ -74,8 +74,8 @@ export class ObservabilityStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'AlarmTopicArn', {
       value: this.alarmTopic.topicArn,
-      description: 'ARN del Topic SNS para notificaciones de alarma — suscribir email/Slack desde la consola o CLI',
-
+      description:
+        'ARN del Topic SNS para notificaciones de alarma — suscribir email/Slack desde la consola o CLI',
     });
   }
 }

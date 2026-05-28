@@ -20,7 +20,9 @@ export class DlqBatchService {
       notificationId,
       callbackUrl,
     });
-    appLogger.step(2, 'Persistiendo estado FAILED_PERMANENT y evento outbox atómicamente', { notificationId });
+    appLogger.step(2, 'Persistiendo estado FAILED_PERMANENT y evento outbox atómicamente', {
+      notificationId,
+    });
     await this.dbRepository.updateStatusWithOutboxEvent(
       notificationId,
       NotificationStatus.FAILED_PERMANENT,

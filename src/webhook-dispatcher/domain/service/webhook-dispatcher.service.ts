@@ -30,13 +30,17 @@ export class DispatchService {
     );
 
     if (delivered) {
-      appLogger.step(2, 'Actualizando webhookStatus a DELIVERED', { notificationId: event.notificationId });
+      appLogger.step(2, 'Actualizando webhookStatus a DELIVERED', {
+        notificationId: event.notificationId,
+      });
       await this.dbRepository.updateWebhookStatus(event.notificationId, WebhookStatus.DELIVERED);
       appMetrics.add('webhooks_delivered');
       return;
     }
 
-    appLogger.step(2, 'Fallaron todos los reintentos — relanzando para reintento SQS', { notificationId: event.notificationId });
+    appLogger.step(2, 'Fallaron todos los reintentos — relanzando para reintento SQS', {
+      notificationId: event.notificationId,
+    });
     throw new CustomException(ErrorDictionary.WEBHOOK_POST_FAILED, event.notificationId);
   }
 }

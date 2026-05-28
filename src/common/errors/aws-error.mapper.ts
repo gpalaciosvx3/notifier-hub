@@ -2,7 +2,6 @@ import { CustomException } from './custom.exception';
 import { InputError } from './error.dictionary';
 import { appLogger } from '../logger/lambda.logger';
 
-
 type awsErrorHandler<T> = { code: string; result: T };
 
 export async function awsError<T>(

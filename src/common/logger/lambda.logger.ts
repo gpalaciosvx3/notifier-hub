@@ -5,8 +5,18 @@ class AppLogger {
     powertoolsLogger.info({ message: `--- ${featureName} start ---`, ...context });
   }
 
-  end(featureName: string, durationMs: number, success: boolean, context?: Record<string, unknown>): void {
-    powertoolsLogger.info({ message: `--- ${featureName} end ---`, durationMs, success, ...context });
+  end(
+    featureName: string,
+    durationMs: number,
+    success: boolean,
+    context?: Record<string, unknown>,
+  ): void {
+    powertoolsLogger.info({
+      message: `--- ${featureName} end ---`,
+      durationMs,
+      success,
+      ...context,
+    });
   }
 
   step(n: number, message: string, context?: Record<string, unknown>): void {

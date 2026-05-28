@@ -38,7 +38,9 @@ export class ProcessingService {
 
   private async process(notification: NotificationEntity): Promise<void> {
     appTracer.annotate('notificationId', notification.notificationId);
-    appLogger.step(1, 'Tomando control de notificación', { notificationId: notification.notificationId });
+    appLogger.step(1, 'Tomando control de notificación', {
+      notificationId: notification.notificationId,
+    });
     const taken =
       (await this.dbRepository.updateStatusConditional(
         notification.notificationId,
@@ -72,7 +74,9 @@ export class ProcessingService {
 
     appMetrics.add('notifications_sent');
 
-    appLogger.step(4, 'Marcando notificación como SENT', { notificationId: notification.notificationId });
+    appLogger.step(4, 'Marcando notificación como SENT', {
+      notificationId: notification.notificationId,
+    });
     const outboxEvent = WebhookOutboxEventMapper.fromSent({
       notificationId: notification.notificationId,
       callbackUrl: notification.callbackUrl,
@@ -97,7 +101,11 @@ export class ProcessingService {
             ErrorDictionary.NOTIFICATION_SEND_FAILED,
             error instanceof Error ? error.message : String(error),
           );
-    appLogger.step(2, 'Revirtiendo estado a PENDING', { notificationId: notification.notificationId, code: exception.code, description: exception.description });
+    appLogger.step(2, 'Revirtiendo estado a PENDING', {
+      notificationId: notification.notificationId,
+      code: exception.code,
+      description: exception.description,
+    });
     await this.dbRepository.updateStatus(notification.notificationId, NotificationStatus.PENDING);
     return false;
   }

@@ -27,11 +27,17 @@ export class RelayService {
 
   async relay(event: OutboxEventEntity): Promise<void> {
     appTracer.annotate('notificationId', event.notificationId);
-    appLogger.step(1, 'Validando estrategia de publicación', { eventId: event.eventId, eventType: event.eventType });
+    appLogger.step(1, 'Validando estrategia de publicación', {
+      eventId: event.eventId,
+      eventType: event.eventType,
+    });
     const strategy = this.strategies.get(event.eventType);
     if (!strategy) throw new CustomException(ErrorDictionary.UNRESOLVABLE_SENDER);
 
-    appLogger.step(2, 'Publicando evento al broker', { eventId: event.eventId, eventType: event.eventType });
+    appLogger.step(2, 'Publicando evento al broker', {
+      eventId: event.eventId,
+      eventType: event.eventType,
+    });
     await appTracer.subsegment('brokerPublish', () => strategy.publish(event));
 
     appLogger.step(3, 'Marcando evento como publicado en DB', { eventId: event.eventId });

@@ -23,10 +23,7 @@ export class QueryRoleConstruct extends Construct {
           statements: [
             new iam.PolicyStatement({
               actions: ['dynamodb:GetItem', 'dynamodb:Query'],
-              resources: [
-                props.notificationsTableArn,
-                `${props.notificationsTableArn}/index/*`,
-              ],
+              resources: [props.notificationsTableArn, `${props.notificationsTableArn}/index/*`],
             }),
           ],
         }),

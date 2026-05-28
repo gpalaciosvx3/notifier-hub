@@ -1,11 +1,11 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
-import { DispatchService } from '../../src/webhook-dispatcher/domain/service/dispatch.service';
-import { DispatchBatchUseCase } from '../../src/webhook-dispatcher/application/use-cases/dispatch-batch.usecase';
-import { NotificationDbRepository } from '../../src/webhook-dispatcher/domain/repository/notification.db.repository';
-import { CallbackHttpRepository } from '../../src/webhook-dispatcher/domain/repository/callback.http.repository';
-import { CallbackHttpRepositoryImpl } from '../../src/webhook-dispatcher/infrastructure/repository/callback.http.repository.impl';
-import { WebhookEvent } from '../../src/webhook-dispatcher/domain/types/webhook-event.types';
+import { DispatchService } from '../../src/webhook-dispatcher/domain/service/webhook-dispatcher.service';
+import { DispatchBatchUseCase } from '../../src/webhook-dispatcher/application/use-cases/webhook-dispatcher.usecase';
+import { NotificationDbRepository } from '../../src/webhook-dispatcher/domain/repository/webhook-dispatcher-notification.db.repository';
+import { CallbackHttpRepository } from '../../src/webhook-dispatcher/domain/repository/webhook-dispatcher-callback.http.repository';
+import { CallbackHttpRepositoryImpl } from '../../src/webhook-dispatcher/infrastructure/repository/webhook-dispatcher-callback.http.repository.impl';
+import { WebhookEvent } from '../../src/webhook-dispatcher/domain/types/webhook-dispatcher-event.types';
 import { WebhookStatus } from '../../src/common/constants/webhook-status.constants';
 import { NotificationStatus } from '../../src/common/constants/notification-status.constants';
 import { CustomException } from '../../src/common/errors/custom.exception';
@@ -122,6 +122,7 @@ defineFeature(feature, (test) => {
     when('el impl HTTP intenta el POST', async () => {
       const postPromise = impl.post('https://example.com/callback', {
         notificationId: 'NOTIF-001',
+        status: NotificationStatus.SENT,
       });
       await jest.runAllTimersAsync();
       result = await postPromise;

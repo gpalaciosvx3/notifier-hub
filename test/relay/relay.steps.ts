@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
 import { RelayService } from '../../src/relay/domain/service/relay.service';
-import { OutboxEventDbRepository } from '../../src/relay/domain/repository/outbox-event.db.repository';
-import { BrokerPublishStrategy } from '../../src/relay/domain/strategy/broker-publish.strategy';
+import { OutboxEventDbRepository } from '../../src/relay/domain/repository/relay-outbox-event.db.repository';
+import { BrokerPublishStrategy } from '../../src/relay/domain/strategy/relay-broker-publish.strategy';
 import { OutboxEventEntity } from '../../src/common/entities/outbox-event.entity';
 import { OutboxEventType } from '../../src/common/constants/outbox-event-type.constants';
 import { OutboxEventBrokerType } from '../../src/common/constants/outbox-event-broker-type.constants';
@@ -54,6 +54,7 @@ defineFeature(feature, (test) => {
       event = OutboxEventEntity.build({
         eventType: tipoEvento as OutboxEventType,
         brokerType: brokerTypeFor(tipoEvento as OutboxEventType),
+        notificationId: 'NOTIF-001',
         payload: {
           notificationId: 'NOTIF-001',
           notification: {},
@@ -96,6 +97,7 @@ defineFeature(feature, (test) => {
       event = OutboxEventEntity.build({
         eventType: OutboxEventType.NOTIFICATION_CREATED,
         brokerType: OutboxEventBrokerType.SQS_NOTIFICATION,
+        notificationId: 'NOTIF-001',
         payload: { notificationId: 'NOTIF-001' },
       });
     });

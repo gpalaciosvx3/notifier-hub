@@ -51,7 +51,9 @@ export class ObservabilityDashboardConstruct extends Construct {
             title: `Cola: ${queue.queueName}`,
 
             width: queueWidth,
-            left: [queue.metricApproximateNumberOfMessagesVisible({ period: cdk.Duration.minutes(1) })],
+            left: [
+              queue.metricApproximateNumberOfMessagesVisible({ period: cdk.Duration.minutes(1) }),
+            ],
             right: [
               queue.metricApproximateAgeOfOldestMessage({
                 statistic: 'Maximum',

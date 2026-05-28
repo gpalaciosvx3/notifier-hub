@@ -1,10 +1,9 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
-import { ChannelRouterService } from '../../src/worker/domain/service/channel-router.service';
-import { ProcessingService } from '../../src/worker/domain/service/processing.service';
-import { ProcessBatchUseCase } from '../../src/worker/application/use-cases/process-batch.usecase';
-import { NotificationDbRepository } from '../../src/worker/domain/repository/notification.db.repository';
-import { NotificationSenderRepository } from '../../src/worker/domain/repository/notification.sender.repository';
+import { ProcessingService } from '../../src/sender/domain/service/sender.service';
+import { ProcessBatchUseCase } from '../../src/sender/application/use-cases/sender.usecase';
+import { NotificationDbRepository } from '../../src/sender/domain/repository/sender-notification.db.repository';
+import { NotificationSendStrategy } from '../../src/sender/domain/strategy/sender-notification-send.strategy';
 import { NotificationEntity } from '../../src/common/entities/notification.entity';
 import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../src/common/constants/notification-provider.constants';
@@ -27,51 +26,6 @@ const buildNotification = (): NotificationEntity =>
   });
 
 defineFeature(feature, (test) => {
-  test('El router de canal resuelve un remitente conocido', ({ given, when, then }) => {
-    let router: ChannelRouterService;
-    let mockSender: NotificationSenderRepository;
-    let result: NotificationSenderRepository;
-
-    given('un remitente registrado para "email:ses"', () => {
-      mockSender = { send: jest.fn() } as unknown as NotificationSenderRepository;
-      router = new ChannelRouterService(new Map([['email:ses', mockSender]]));
-    });
-
-    when('el router de canal resuelve canal "email" y proveedor "ses"', () => {
-      result = router.resolve('email', 'ses');
-    });
-
-    then('el remitente registrado es retornado', () => {
-      expect(result).toBe(mockSender);
-    });
-  });
-
-  test('El router de canal lanza NTF-006 para una combinación desconocida', ({
-    given,
-    when,
-    then,
-  }) => {
-    let router: ChannelRouterService;
-    let error: CustomException;
-
-    given('ningún remitente registrado para "email:unknown"', () => {
-      router = new ChannelRouterService(new Map());
-    });
-
-    when('el router de canal resuelve canal "email" y proveedor "unknown"', () => {
-      try {
-        router.resolve('email', 'unknown');
-      } catch (e) {
-        error = e as CustomException;
-      }
-    });
-
-    then('se lanza una CustomException con código "NTF-006"', () => {
-      expect(error).toBeInstanceOf(CustomException);
-      expect(error.code).toBe('NTF-006');
-    });
-  });
-
   test('El servicio de procesamiento envía y marca SENT cuando toma el lock', ({
     given,
     and,
@@ -80,7 +34,7 @@ defineFeature(feature, (test) => {
   }) => {
     const mockSender = {
       send: jest.fn().mockResolvedValue(undefined),
-    } as unknown as NotificationSenderRepository;
+    } as unknown as NotificationSendStrategy;
     const mockDb = {
       updateStatusConditional: jest.fn().mockResolvedValue(true),
       updateStatus: jest.fn().mockResolvedValue(undefined),
@@ -91,10 +45,7 @@ defineFeature(feature, (test) => {
 
     given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
       notification = buildNotification();
-      const router = new ChannelRouterService(
-        new Map([[`${notification.channel}:${notification.provider}`, mockSender]]),
-      );
-      service = new ProcessingService(mockDb, router);
+      service = new ProcessingService(mockDb, mockSender, mockSender);
     });
 
     and('la actualización condicional para "NOTIF-001" tiene éxito', () => {
@@ -124,7 +75,7 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    const mockSender = { send: jest.fn() } as unknown as NotificationSenderRepository;
+    const mockSender = { send: jest.fn() } as unknown as NotificationSendStrategy;
     const mockDb = {
       updateStatusConditional: jest.fn().mockResolvedValue(false),
       updateStatus: jest.fn(),
@@ -134,10 +85,7 @@ defineFeature(feature, (test) => {
 
     given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
       notification = buildNotification();
-      const router = new ChannelRouterService(
-        new Map([[`${notification.channel}:${notification.provider}`, mockSender]]),
-      );
-      service = new ProcessingService(mockDb, router);
+      service = new ProcessingService(mockDb, mockSender, mockSender);
     });
 
     and('la actualización condicional para "NOTIF-001" falla', () => {
@@ -161,7 +109,7 @@ defineFeature(feature, (test) => {
   }) => {
     const mockSender = {
       send: jest.fn(),
-    } as unknown as NotificationSenderRepository;
+    } as unknown as NotificationSendStrategy;
     const mockDb = {
       updateStatusConditional: jest.fn().mockResolvedValue(true),
       updateStatus: jest.fn().mockResolvedValue(undefined),
@@ -173,10 +121,7 @@ defineFeature(feature, (test) => {
 
     given('una notificación PENDING con ID "NOTIF-001" para canal "email:ses"', () => {
       notification = buildNotification();
-      const router = new ChannelRouterService(
-        new Map([[`${notification.channel}:${notification.provider}`, mockSender]]),
-      );
-      service = new ProcessingService(mockDb, router);
+      service = new ProcessingService(mockDb, mockSender, mockSender);
     });
 
     and('la actualización condicional para "NOTIF-001" tiene éxito', () => {

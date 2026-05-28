@@ -43,10 +43,16 @@ export class EnqueueNotificationService {
           appMetrics.dimension('gate', 'template-resolution');
           appMetrics.add('notifications_rejected');
           appMetrics.flush();
-          appLogger.warn('Template no encontrado — rechazo', { gate: 'template-resolution', templateId: request.templateId });
+          appLogger.warn('Template no encontrado — rechazo', {
+            gate: 'template-resolution',
+            templateId: request.templateId,
+          });
           throw new CustomException(ErrorDictionary.TEMPLATE_NOT_FOUND);
         }
-        appLogger.step(3, 'Template resuelto', { templateId: template.templateId, templateVersion: template.version });
+        appLogger.step(3, 'Template resuelto', {
+          templateId: template.templateId,
+          templateVersion: template.version,
+        });
         const resolvedInput = this.templateRenderService.buildInput(
           template,
           request.to,

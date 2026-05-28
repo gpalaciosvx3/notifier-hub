@@ -60,6 +60,5 @@ export class EnqueueFnConstruct extends Construct {
         POWERTOOLS_METRICS_NAMESPACE: ResourceConstants.METRICS_NAMESPACE,
       },
     });
-
   }
 }

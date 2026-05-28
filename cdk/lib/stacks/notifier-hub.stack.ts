@@ -117,32 +117,26 @@ export class NotifierHubStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'QueueUrl', {
       value: queue.queue.queueUrl,
       description: 'URL de la cola SQS principal',
-
     });
     new cdk.CfnOutput(this, 'DlqUrl', {
       value: dlq.queue.queueUrl,
       description: 'URL de la cola de mensajes fallidos',
-
     });
     new cdk.CfnOutput(this, 'WebhooksQueueUrl', {
       value: webhooksQueue.queue.queueUrl,
       description: 'URL de la cola de webhooks',
-
     });
     new cdk.CfnOutput(this, 'WebhooksDlqUrl', {
       value: webhookDlq.queue.queueUrl,
       description: 'URL de la cola de mensajes fallidos de webhooks',
-
     });
     new cdk.CfnOutput(this, 'OutboxTableName', {
       value: outbox.table.tableName,
       description: 'Nombre de la tabla outbox',
-
     });
     new cdk.CfnOutput(this, 'TemplatesTableName', {
       value: templates.table.tableName,
       description: 'Nombre de la tabla de plantillas',
-
     });
   }
 }

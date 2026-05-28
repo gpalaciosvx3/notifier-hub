@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
 import { QueryService } from '../../src/query/domain/service/query.service';
-import { GetNotificationUseCase } from '../../src/query/application/use-cases/get-notification.usecase';
-import { GetNotificationsByRecipientUseCase } from '../../src/query/application/use-cases/get-notifications-by-recipient.usecase';
-import { NotificationDbRepository } from '../../src/query/domain/repository/notification.db.repository';
+import { GetNotificationUseCase } from '../../src/query/application/use-cases/query-get-notification.usecase';
+import { GetNotificationsByRecipientUseCase } from '../../src/query/application/use-cases/query-notifications-by-recipient.usecase';
+import { NotificationDbRepository } from '../../src/query/domain/repository/query-notification.db.repository';
 import { NotificationEntity } from '../../src/common/entities/notification.entity';
 import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../src/common/constants/notification-provider.constants';

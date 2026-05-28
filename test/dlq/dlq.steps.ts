@@ -1,11 +1,11 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
 import { DlqBatchService } from '../../src/dlq/domain/service/dlq-batch.service';
-import { MarkBatchFailedPermanentUseCase } from '../../src/dlq/application/use-cases/mark-batch-failed-permanent.usecase';
-import { NotificationDbRepository } from '../../src/dlq/domain/repository/notification.db.repository';
+import { MarkBatchFailedPermanentUseCase } from '../../src/dlq/application/use-cases/dlq.usecase';
+import { NotificationDbRepository } from '../../src/dlq/domain/repository/dlq-notification.db.repository';
 import { ProcessRecordResult } from '../../src/common/types/process-record-result.types';
 import { SqsMessage } from '../../src/common/middleware/types/lambda-event.types';
-import { DlqMessageType } from '../../src/dlq/domain/constants/dlq-message-type.constants';
+import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
 
 const feature = loadFeature('./test/dlq/features/dlq.feature');
 
@@ -15,7 +15,7 @@ const buildNotificationFailedRecord = (
 ): SqsMessage => ({
   messageId: `msg-${notificationId}`,
   sequenceNumber: `msg-${notificationId}`,
-  body: { messageType: DlqMessageType.NOTIFICATION_FAILED, notificationId, callbackUrl },
+  body: { notificationId, channel: NotificationChannel.EMAIL, callbackUrl },
 });
 
 defineFeature(feature, (test) => {
@@ -24,9 +24,7 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    const mockDb = {
-      updateStatusWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
-    } as unknown as NotificationDbRepository;
+    let mockDb: NotificationDbRepository;
     let service: DlqBatchService;
     let notificationId: string;
     let callbackUrl: string;
@@ -36,14 +34,17 @@ defineFeature(feature, (test) => {
       (nid, url) => {
         notificationId = nid;
         callbackUrl = url;
+        mockDb = {
+          updateStatusWithOutboxEvent: jest.fn().mockResolvedValue(undefined),
+        } as unknown as NotificationDbRepository;
         service = new DlqBatchService(mockDb);
       },
     );
 
     when('el servicio de batch DLQ maneja el fallo de notificación', async () => {
-      await service.handle({
-        messageType: DlqMessageType.NOTIFICATION_FAILED,
+      await service.handleNotificationFailed({
         notificationId,
+        channel: NotificationChannel.EMAIL,
         callbackUrl,
       });
     });
@@ -62,7 +63,8 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const mockDlqBatchService = {
-      handle: jest.fn().mockResolvedValue(undefined),
+      handleNotificationFailed: jest.fn().mockResolvedValue(undefined),
+      handleWebhookFailed: jest.fn().mockResolvedValue(undefined),
     } as unknown as DlqBatchService;
     let useCase: MarkBatchFailedPermanentUseCase;
     let records: SqsMessage[];
@@ -98,10 +100,11 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const mockDlqBatchService = {
-      handle: jest
+      handleNotificationFailed: jest
         .fn()
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(new Error('DynamoDB unavailable')),
+      handleWebhookFailed: jest.fn(),
     } as unknown as DlqBatchService;
     let useCase: MarkBatchFailedPermanentUseCase;
     let records: SqsMessage[];
@@ -147,7 +150,7 @@ defineFeature(feature, (test) => {
     });
 
     when('el servicio de batch DLQ maneja el fallo de webhook', async () => {
-      await service.handle({ messageType: DlqMessageType.WEBHOOK_FAILED, notificationId });
+      await service.handleWebhookFailed({ notificationId, sentAt: new Date().toISOString() });
     });
 
     then('el webhookStatus es actualizado a FAILED', () => {
@@ -166,7 +169,8 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const mockDlqBatchService = {
-      handle: jest.fn(),
+      handleNotificationFailed: jest.fn(),
+      handleWebhookFailed: jest.fn(),
     } as unknown as DlqBatchService;
     let useCase: MarkBatchFailedPermanentUseCase;
     let records: SqsMessage[];
@@ -187,7 +191,8 @@ defineFeature(feature, (test) => {
     });
 
     then('el servicio de dominio no es invocado', () => {
-      expect(mockDlqBatchService.handle).not.toHaveBeenCalled();
+      expect(mockDlqBatchService.handleNotificationFailed).not.toHaveBeenCalled();
+      expect(mockDlqBatchService.handleWebhookFailed).not.toHaveBeenCalled();
     });
   });
 });

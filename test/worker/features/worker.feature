@@ -1,16 +1,6 @@
 # language: es
 Característica: Procesamiento Worker
 
-  Escenario: El router de canal resuelve un remitente conocido
-    Dado un remitente registrado para "email:ses"
-    Cuando el router de canal resuelve canal "email" y proveedor "ses"
-    Entonces el remitente registrado es retornado
-
-  Escenario: El router de canal lanza NTF-006 para una combinación desconocida
-    Dado ningún remitente registrado para "email:unknown"
-    Cuando el router de canal resuelve canal "email" y proveedor "unknown"
-    Entonces se lanza una CustomException con código "NTF-006"
-
   Escenario: El servicio de procesamiento envía y marca SENT cuando toma el lock
     Dado una notificación PENDING con ID "NOTIF-001" para canal "email:ses"
     Y la actualización condicional para "NOTIF-001" tiene éxito

@@ -1,11 +1,11 @@
 import 'reflect-metadata';
 import { loadFeature, defineFeature } from 'jest-cucumber';
 import { EnqueueNotificationService } from '../../src/enqueue/domain/service/enqueue-notification.service';
-import { NotificationInput } from '../../src/enqueue/domain/types/notification-input.types';
+import { NotificationInput } from '../../src/enqueue/domain/types/enqueue-notification-input.types';
 import { EnqueueNotificationUseCase } from '../../src/enqueue/application/use-cases/enqueue-notification.usecase';
-import { NotificationDbRepository } from '../../src/enqueue/domain/repository/notification.db.repository';
-import { TemplateDbRepository } from '../../src/enqueue/domain/repository/template.db.repository';
-import { TemplateRenderService } from '../../src/enqueue/domain/service/template-render.service';
+import { NotificationDbRepository } from '../../src/enqueue/domain/repository/enqueue-notification.db.repository';
+import { TemplateDbRepository } from '../../src/enqueue/domain/repository/enqueue-template.db.repository';
+import { TemplateRenderService } from '../../src/enqueue/domain/service/enqueue-template-render.service';
 import { NotificationEntity } from '../../src/common/entities/notification.entity';
 import { NotificationChannel } from '../../src/common/constants/notification-channel.constants';
 import { NotificationProvider } from '../../src/common/constants/notification-provider.constants';
@@ -49,7 +49,7 @@ defineFeature(feature, (test) => {
     );
 
     when('el servicio de notificación construye la entidad', () => {
-      entity = service.build(input);
+      entity = NotificationEntity.build({ ...input, provider: input.provider! });
     });
 
     then('el estado de la entidad es "PENDING"', () => {
@@ -98,7 +98,7 @@ defineFeature(feature, (test) => {
 
     when('el servicio de notificación intenta construir la entidad', () => {
       try {
-        service.build(input);
+        NotificationEntity.build({ ...input, provider: input.provider! });
       } catch (e) {
         error = e as CustomException;
       }
@@ -142,7 +142,7 @@ defineFeature(feature, (test) => {
     );
 
     when('el servicio de notificación construye la entidad', () => {
-      entity = service.build(input);
+      entity = NotificationEntity.build({ ...input, provider: input.provider! });
     });
 
     then('el estado de la entidad es "PENDING"', () => {
