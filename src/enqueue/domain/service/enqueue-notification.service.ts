@@ -11,7 +11,7 @@ import { CustomException } from '../../../common/errors/custom.exception';
 import { ErrorDictionary } from '../../../common/errors/error.dictionary';
 import { appLogger } from '../../../common/logger/lambda.logger';
 import { appTracer } from '../../../common/tracer/lambda.tracer';
-import { appMetrics, MetricUnit } from '../../../common/metrics/lambda.metrics';
+import { appMetrics } from '../../../common/metrics/lambda.metrics';
 
 @Injectable()
 export class EnqueueNotificationService {

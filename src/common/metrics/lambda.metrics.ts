@@ -1,8 +1,5 @@
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { powertoolsMetrics } from '../config/aws.config';
-
-export { MetricUnit };
-
 class AppMetrics {
   add(name: string, unit = MetricUnit.Count, value = 1): void {
     powertoolsMetrics.addMetric(name, unit, value);
